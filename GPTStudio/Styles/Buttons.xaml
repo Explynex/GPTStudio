@@ -11,4 +11,56 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style x:Key="ModernMenuRadioButton" TargetType="{x:Type RadioButton}">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
+        <Setter Property="Height" Value="45" />
+        <Setter Property="Width" Value="Auto"/>
+        <Setter Property="Margin" Value="0 0 0 15"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template" >
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border Background="Transparent">
+                        <ContentPresenter x:Name="Content" Margin="0 0 0 0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Checked">
+                                    <Storyboard>
+                                        <ThicknessAnimation Duration="0:0:0.4" Storyboard.TargetName="Content" 
+                                                                    Storyboard.TargetProperty="(Border.Margin)"
+                                                               From="0 0 0 0"  To="15 0 0 0"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Unchecked" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Content" Property="Margin" Value="15 0 0 0"/>
+                            <Setter Property="Foreground" Value="#fff"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="#fff"/>
+                        </Trigger>
+
+                        <EventTrigger RoutedEvent="Unchecked">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Duration="0:0:0.4" Storyboard.TargetName="Content" 
+                                                                    Storyboard.TargetProperty="(Border.Margin)"
+                                                               From="15 0 0 0"  To="0 0 0 0"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
 </ResourceDictionary>

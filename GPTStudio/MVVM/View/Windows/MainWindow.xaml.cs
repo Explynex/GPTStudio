@@ -6,6 +6,8 @@ namespace GPTStudio.MVVM.View.Windows
     {
         public MainWindow()
         {
+            this.MaxHeight = SystemParameters.WorkArea.Height + 12;
+            this.MaxWidth = SystemParameters.WorkArea.Width + 12;
             InitializeComponent();
         }
 
@@ -28,18 +30,15 @@ namespace GPTStudio.MVVM.View.Windows
         {
             if(WindowState == WindowState.Normal)
             {
-                Top = 0;
-                Left = 0;
+                ResizeMode  = ResizeMode.NoResize;
                 WindowState = WindowState.Maximized;
             }
             else
+            {
+                ResizeMode  = ResizeMode.CanResize;
                 WindowState = WindowState.Normal;
-        }
-
-        private void DockPanel_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            this.MaxHeight = SystemParameters.MaximizedPrimaryScreenHeight;
-            this.MaxWidth  = SystemParameters.MaximizedPrimaryScreenWidth;
+            }
+                
         }
     }
 }
