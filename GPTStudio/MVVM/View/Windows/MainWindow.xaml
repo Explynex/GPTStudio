@@ -4,12 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
         mc:Ignorable="d"
         Title="GPTStudio" MinHeight="550" MinWidth="850"
         WindowStyle="None"
         AllowsTransparency="True"
         WindowStartupLocation="CenterScreen"
-        Background="Transparent">
+        Background="Transparent"
+        d:DataContext="{d:DesignInstance viewmodels:MainWindowViewModel}">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="1"/>
     </WindowChrome.WindowChrome>
@@ -28,27 +30,57 @@
 
             <Border Background="{DynamicResource SecondaryBackgroundBrush}"
                     HorizontalAlignment="Left"
-                    Grid.RowSpan="2" Grid.ColumnSpan="2"
-                    Width="300"/>
+                    Grid.RowSpan="2" Width="70"/>
 
             <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0 0 0 20">
-                <RadioButton Style="{StaticResource ModernMenuRadioButton}" >
-                    <icon:FontAwesome Kind="MarkerSolid" Height="20" Width="20" />
-                </RadioButton>
-
-                <RadioButton x:Name="home" IsChecked="True" Style="{StaticResource ModernMenuRadioButton}">
+                <RadioButton x:Name="home"  Style="{StaticResource ModernMenuRadioButton}" Command="{Binding HomeCommand}">
                     <Viewbox Height="20" Width="20">
                         <Path Fill="{Binding ElementName=home,Path=Foreground}" Data="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
                     </Viewbox>
                 </RadioButton>
 
-                <RadioButton Style="{StaticResource ModernMenuRadioButton}">
-                    <icon:FontAwesome Kind="CogSolid" Height="20" Width="20" />
+                <RadioButton IsChecked="True" Style="{StaticResource ModernMenuRadioButton}" Command="{Binding MessengerCommand}">
+                    <icon:FontAwesome Kind="PaperPlaneSolid" Height="20" Width="20" />
+                </RadioButton>
+
+                <RadioButton Style="{StaticResource ModernMenuRadioButton}" Command="{Binding BookmarksCommand}">
+                    <icon:FontAwesome Kind="BookmarkSolid" Height="20" Width="20" />
                 </RadioButton>
             </StackPanel>
 
-            <Image Grid.Row="1" RenderOptions.BitmapScalingMode="HighQuality" Width="45" Height="45" HorizontalAlignment="Center" Margin="0 10 0 0" Source="\Resources\Logo.png" VerticalAlignment="Top" />
 
+            <Image Grid.Row="1" RenderTransformOrigin=".5,.5" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="HighQuality"  Height="45"  Source="\Resources\Logo.png">
+                <Image.RenderTransform>
+                    <RotateTransform x:Name="AnimatedRotateTransform" Angle="0" />
+                </Image.RenderTransform>
+                <Image.Triggers>
+                    <EventTrigger RoutedEvent="MouseDown">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="AnimatedRotateTransform" 
+                            Storyboard.TargetProperty="Angle" 
+                            To="50" AutoReverse="True"
+                            Duration="0:0:0.5" 
+                            FillBehavior="Stop">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CircleEase EasingMode="EaseInOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Image.Triggers>
+            </Image>
+
+
+            <ContentControl Margin="3 0 10 0" Content="{Binding CurrentView}" Grid.Column="1" Grid.RowSpan="2">
+                
+            </ContentControl>
+
+            <Button Style="{StaticResource TransparentButton}" Height="45" VerticalAlignment="Bottom"
+                    Grid.Row="1" Margin="0 0 0 10">
+                <icon:FontAwesome Kind="CogSolid" Height="20" Width="20" />
+            </Button>
             <Rectangle Grid.RowSpan="2" Width="3" Grid.Column="1" HorizontalAlignment="Left"
                        Fill="{DynamicResource PrimaryBackgroundBrush}"/>
             <DockPanel MouseLeftButtonDown="WindowDragMove" Grid.ColumnSpan="2" Background="Transparent" >

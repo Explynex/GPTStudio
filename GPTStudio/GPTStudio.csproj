@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
@@ -20,10 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Infrastructure\Converters\" />
     <Folder Include="Locale\" />
     <Folder Include="MVVM\Core\" />
-    <Folder Include="MVVM\ViewModels\" />
-    <Folder Include="MVVM\View\Controls\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using GPTStudio.MVVM.ViewModels;
+using System.Windows;
 
 namespace GPTStudio.MVVM.View.Windows
 {
@@ -6,9 +7,8 @@ namespace GPTStudio.MVVM.View.Windows
     {
         public MainWindow()
         {
-            this.MaxHeight = SystemParameters.WorkArea.Height + 12;
-            this.MaxWidth = SystemParameters.WorkArea.Width + 12;
             InitializeComponent();
+            DataContext = new MainWindowViewModel();
         }
 
         private void WindowDragMove(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -40,5 +40,6 @@ namespace GPTStudio.MVVM.View.Windows
             }
                 
         }
+
     }
 }
