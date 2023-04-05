@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace GPTStudio.MVVM.ViewModels
 {
-    class MainWindowViewModel : ObservableObject
+    
+    internal sealed class MainWindowViewModel : ObservableObject
     {
         public RelayCommand MessengerCommand { get; private set; }
         public RelayCommand HomeCommand { get; private set; }

@@ -72,8 +72,8 @@
         
         <Border Background="{DynamicResource SecondaryBackgroundBrush}">
 
-            <Grid ShowGridLines="True">
-                <TextBox x:Name="ChatSearchBox" Padding="0 0 23 0" Text="{Binding SearchBoxText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Tag="Search . . ." Style="{StaticResource ModernSearchBox}" Margin="12 35 12 12" VerticalAlignment="Top"/>
+            <Grid>
+                <TextBox x:Name="ChatSearchBox" Padding="0 0 23 0" MaxLength="60" Text="{Binding SearchBoxText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Tag="Search . . ." Style="{StaticResource ModernSearchBox}" Margin="12 35 12 12" VerticalAlignment="Top"/>
 
                 <Button Visibility="{Binding ElementName=ChatSearchBox,Path=Text.Length,Converter={StaticResource BoolToVis}}"
                         Style="{StaticResource ModernSpinButton}" Width="15" Height="15"
@@ -81,9 +81,58 @@
                         Command="{Binding ClearSearchBoxCommand}">
                     <icon:FontAwesome Kind="TimesSolid" Width="15" Height="15"/>
                 </Button>
+
+                <ListBox Margin="0 90 0 0" Background="Transparent" 
+                         VirtualizingPanel.CacheLengthUnit="Item"
+                         VirtualizingPanel.CacheLength="1,1" VirtualizingPanel.ScrollUnit="Pixel"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         ScrollViewer.CanContentScroll="True" 
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         BorderThickness="0" ItemsSource="{Binding Chats}" HorizontalContentAlignment="Stretch"
+                         >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Border CornerRadius="50" Background="{DynamicResource PurpleGradient1}" HorizontalAlignment="Left"
+                                           Margin="10 0 0 0" Height="40" Width="40">
+                                    <TextBlock Text="{Binding Name[0]}" VerticalAlignment="Center"
+                                               HorizontalAlignment="Center" FontSize="15" FontWeight="Medium"
+                                               Foreground="#ffff" Opacity="0.7" />
+                                </Border>
+
+                                <TextBlock Text="{Binding Name}" FontSize="14" Foreground="#fff" VerticalAlignment="Top"
+                                           Margin="60 -5 15 0" TextTrimming="CharacterEllipsis" 
+                                           TextWrapping="NoWrap" FontWeight="Medium" Opacity="0.85"/>
+
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Height" Value="68"/>
+                            <Setter Property="BorderThickness" Value="0 0 0 3"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
             </Grid>
         </Border>
         <GridSplitter BorderThickness="0" FocusVisualStyle="{x:Null}" Grid.Column="0" Width="3" Background="Transparent"/>
     </Grid>
-   
+
+    <!-- <UserControl.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard x:Name="StoryboardLoad">
+                <Storyboard>
+                    <ThicknessAnimation Storyboard.TargetProperty="Margin"
+                                            From="-300" To="0" Duration="0:0:0.6">
+                        <ThicknessAnimation.EasingFunction>
+                            <CircleEase EasingMode="EaseInOut"/>
+                        </ThicknessAnimation.EasingFunction>
+                    </ThicknessAnimation>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>-->
 </UserControl>

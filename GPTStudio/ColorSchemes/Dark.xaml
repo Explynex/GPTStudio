@@ -14,4 +14,8 @@
     </LinearGradientBrush>
 
 
+    <LinearGradientBrush x:Key="PurpleGradient1" StartPoint="0,0" EndPoint="1,1" >
+        <GradientStop Color="#7222db" Offset="0.1"/>
+        <GradientStop Color="#6c5ecf" Offset="1"/>
+    </LinearGradientBrush>
 </ResourceDictionary>
