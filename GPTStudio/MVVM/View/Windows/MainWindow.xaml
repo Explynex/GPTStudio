@@ -15,7 +15,7 @@
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="1"/>
     </WindowChrome.WindowChrome>
-    <Border Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="3 8 8 3"
+    <Border Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="3 3 3 3"
             BorderThickness="3 0 0 0" BorderBrush="{DynamicResource PurpleGradient}">
         <Grid>
             <Grid.RowDefinitions>
@@ -73,9 +73,10 @@
             </Image>
 
 
-            <ContentControl Margin="3 0 10 0" Content="{Binding CurrentView}" Grid.Column="1" Grid.RowSpan="2">
-                
-            </ContentControl>
+            <ContentControl Margin="3 0 3 0" Content="{Binding CurrentView}" Grid.Column="1" Grid.RowSpan="2"
+                                          FocusVisualStyle="{x:Null}"/>
+
+
 
             <Button Style="{StaticResource TransparentButton}" Height="45" VerticalAlignment="Bottom"
                     Grid.Row="1" Margin="0 0 0 10">

@@ -10,6 +10,7 @@
              d:DataContext="{d:DesignInstance viewmodels:MessengerViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        
         <Style x:Key="ModernSearchBox" TargetType="{x:Type TextBox}">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="40"/>
@@ -23,7 +24,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type TextBox}">
-                        <Grid>
+                        <Grid Background="Transparent">
                             <Border x:Name="border" CornerRadius="8" Background="{TemplateBinding Background}" Width="{TemplateBinding Width}"
                                 Height="{TemplateBinding Height}" Padding="10 5 10 5" BorderThickness="1.25">
                                 <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Padding="{TemplateBinding Padding}"
@@ -61,12 +62,73 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+
+        <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="IsTabStop" Value="false"/>
+            <Setter Property="Focusable" Value="false"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="Transparent" Margin="2" Width="8">
+                            <Border HorizontalAlignment="Center" CornerRadius="3" Background="{TemplateBinding Background}" Width="4.5"/>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="VerticalScrollBar" TargetType="{x:Type ScrollBar}">
+            <Border Margin="-11 5 0 5" Background="Transparent" CornerRadius="10" Opacity="0">
+                <Track Name="PART_Track" IsDirectionReversed="true">
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource ScrollBarThumb}"  Background="{StaticResource PrimaryForegroundBrush}"/>
+                    </Track.Thumb>
+                </Track>
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="MouseOver">
+                            <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" FillBehavior="HoldEnd">
+                                    <DoubleKeyFrameCollection>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.7" Value="0.3" />
+                                    </DoubleKeyFrameCollection>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="Normal">
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4" FillBehavior="HoldEnd"/>
+                            </Storyboard>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+            </Border>
+
+        </ControlTemplate>
+
+        <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="0"/>
+                    <Setter Property="Height" Value="Auto" />
+                    <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
     </UserControl.Resources>
     
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition  Width="260" MinWidth="250" MaxWidth="360"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
         
@@ -87,10 +149,9 @@
                          VirtualizingPanel.CacheLength="1,1" VirtualizingPanel.ScrollUnit="Pixel"
                          VirtualizingPanel.VirtualizationMode="Recycling"
                          ScrollViewer.CanContentScroll="True" 
-                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         BorderThickness="0" ItemsSource="{Binding Chats}" HorizontalContentAlignment="Stretch"
-                         >
+                         BorderThickness="0" ItemsSource="{Binding Chats}" HorizontalContentAlignment="Stretch">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -112,27 +173,45 @@
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Height" Value="68"/>
                             <Setter Property="BorderThickness" Value="0 0 0 3"/>
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>
+                            <Style.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource PrimarySubColor}" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{DynamicResource PrimarySubColor}" />
+                            </Style.Resources>
                         </Style>
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </Grid>
         </Border>
         <GridSplitter BorderThickness="0" FocusVisualStyle="{x:Null}" Grid.Column="0" Width="3" Background="Transparent"/>
+        <Border Grid.Column="1" Background="{DynamicResource SecondaryBackgroundBrush}"
+                VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150" Margin="3 0 0 3" CornerRadius="3">
+
+            <Grid>
+                <TextBox Style="{StaticResource ModernSearchBox}" Background="Transparent" Tag="Send a message . . ."
+                     TextWrapping="Wrap" Height="Auto" Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" />
+
+                <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
+                        Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"
+                        IsDefault="True" Command="{Binding SendMessageCommand}"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                    <icon:FontAwesome Kind="PaperPlaneRegular" Width="20" Height="20"/>
+                </Button>
+            </Grid>
+
+        </Border>
     </Grid>
 
-    <!-- <UserControl.Triggers>
+
+    <UserControl.Triggers>
         <EventTrigger RoutedEvent="FrameworkElement.Loaded">
             <BeginStoryboard x:Name="StoryboardLoad">
                 <Storyboard>
-                    <ThicknessAnimation Storyboard.TargetProperty="Margin"
-                                            From="-300" To="0" Duration="0:0:0.6">
-                        <ThicknessAnimation.EasingFunction>
-                            <CircleEase EasingMode="EaseInOut"/>
-                        </ThicknessAnimation.EasingFunction>
-                    </ThicknessAnimation>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.6"/>
+
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
-    </UserControl.Triggers>-->
+    </UserControl.Triggers>
 </UserControl>

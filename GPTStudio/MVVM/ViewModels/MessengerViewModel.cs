@@ -13,6 +13,7 @@ namespace GPTStudio.MVVM.ViewModels
     internal sealed class MessengerViewModel : ObservableObject
     {
         public RelayCommand ClearSearchBoxCommand { get; private set; }
+        public RelayCommand SendMessageCommand { get; private set; }
         private string _searchBoxText;
         public string SearchBoxText
         {
@@ -45,6 +46,7 @@ namespace GPTStudio.MVVM.ViewModels
             };
 
             ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
+            SendMessageCommand = new RelayCommand(o => App.Shutdown()) ;
         }
 
     }
