@@ -150,6 +150,7 @@
                          VirtualizingPanel.VirtualizationMode="Recycling"
                          ScrollViewer.CanContentScroll="True" 
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         SelectedItem="{Binding SelectedChat,Mode=TwoWay}"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          BorderThickness="0" ItemsSource="{Binding Chats}" HorizontalContentAlignment="Stretch">
                     <ListBox.ItemTemplate>
@@ -185,22 +186,95 @@
             </Grid>
         </Border>
         <GridSplitter BorderThickness="0" FocusVisualStyle="{x:Null}" Grid.Column="0" Width="3" Background="Transparent"/>
-        <Border Grid.Column="1" Background="{DynamicResource SecondaryBackgroundBrush}"
-                VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150" Margin="3 0 0 3" CornerRadius="3">
 
-            <Grid>
-                <TextBox Style="{StaticResource ModernSearchBox}" Background="Transparent" Tag="Send a message . . ."
-                     TextWrapping="Wrap" Height="Auto" Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" />
+        <Grid Grid.Column="1" Margin="3 0 0 3" Visibility="{Binding ElementName=Chat,Path=Visibility,Converter={StaticResource BoolToVis}}">
+            <Border  Background="{DynamicResource SecondaryBackgroundBrush}"
+                VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150"  CornerRadius="3">
+                <Grid>
+                    <TextBox Style="{StaticResource ModernSearchBox}" Background="Transparent" Tag="Send a message . . ."
+                     TextWrapping="Wrap" Height="Auto" Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
 
-                <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
+                    <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
                         Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"
                         IsDefault="True" Command="{Binding SendMessageCommand}"
                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                    <icon:FontAwesome Kind="PaperPlaneRegular" Width="20" Height="20"/>
-                </Button>
-            </Grid>
+                        <icon:FontAwesome Kind="PaperPlaneRegular" Width="20" Height="20"/>
+                    </Button>
+                </Grid>
+            </Border>
 
+            <ListBox x:Name="messages" BorderThickness="0" Margin="0 50 0 60" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     Background="Transparent" ItemsSource="{Binding SelectedChat.Messages}" 
+                     VerticalAlignment="Bottom"  VirtualizingPanel.ScrollUnit="Pixel" Padding="0 0 10 0"
+                     ScrollViewer.CanContentScroll="True">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+
+                        <Border x:Name="border" Height="Auto" CornerRadius="0 15 15 15" Padding="10" Margin="0 0 0 10">
+                            <Grid>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <icon:PackIconFontAwesome x:Name="icon" Width="20" Height="20" Foreground="{DynamicResource PurpleGradient1}">
+                                        <icon:PackIconFontAwesome.Style>
+                                            <Style TargetType="icon:PackIconFontAwesome">
+                                                <Setter Property="Kind" Value="HubspotBrands"/>
+                                                <Setter Property="Tag" Value="Chat GPT"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Role}" Value="user">
+                                                        <Setter Property="Kind" Value="UserRegular"/>
+                                                        <Setter Property="Tag" Value="Me"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </icon:PackIconFontAwesome.Style>
+                                    </icon:PackIconFontAwesome>
+                                    <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
+
+                                    <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0">
+                                        <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
+                                    </Button>
+                                </StackPanel>
+
+
+                                <TextBlock Text="{Binding Content,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7"/>
+
+                                <TextBlock Text="{Binding DynamicResponseCallback.Text}" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7" TextWrapping="WrapWithOverflow"/>
+                            </Grid>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Role}" Value="user">
+                                            <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+
+
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+
+        <Border d:Visibility="Collapsed" x:Name="Chat" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.8"
+                CornerRadius="15" Background="{DynamicResource SecondaryBackgroundBrush}" Padding="12">
+            <TextBlock Text="Select a chat" FontSize="20" Foreground="#FFF" 
+                       FontWeight="Medium"/>
+            <Border.Style>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedChat}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
         </Border>
+
     </Grid>
 
 

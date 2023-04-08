@@ -19,6 +19,8 @@ namespace GPTStudio.Infrastructure.Converters
 
         public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (value == null)
+                return False;
             if (value is bool @bool)
                 return @bool ? True : False;
             return System.Convert.ToInt64(value) > 0 ? True : False;
