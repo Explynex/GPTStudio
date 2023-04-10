@@ -12,6 +12,7 @@
 
             <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
             <converters:BooleanToVisibilityConverter x:Key="BoolToVisInverted" True="Collapsed" False="Visible"/>
+            <converters:InvertedBooleanConverter x:Key="BoolInverter" True="False" False="True"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

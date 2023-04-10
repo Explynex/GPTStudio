@@ -39,4 +39,11 @@ namespace GPTStudio.Infrastructure.Converters
             base(Visibility.Visible, Visibility.Collapsed)
         { }
     }
+
+    public sealed class InvertedBooleanConverter : BooleanConverter<bool>
+    {
+        public InvertedBooleanConverter() :
+            base(true, false)
+        { }
+    }
 }

@@ -191,14 +191,31 @@
             <Border  Background="{DynamicResource SecondaryBackgroundBrush}"
                 VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150"  CornerRadius="3">
                 <Grid>
-                    <TextBox Style="{StaticResource ModernSearchBox}" Background="Transparent" Tag="Send a message . . ."
-                     TextWrapping="Wrap" Height="Auto" Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox x:Name="messageBox" Style="{StaticResource ModernSearchBox}" Background="Transparent" Tag="Send a message . . ."
+                     TextWrapping="Wrap" Height="Auto" IsHitTestVisible="{Binding IsAudioRecording,Converter={StaticResource BoolInverter}}"
+                             Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
 
                     <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
                         Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"
                         IsDefault="True" Command="{Binding SendMessageCommand}"
                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        <icon:FontAwesome Kind="PaperPlaneRegular" Width="20" Height="20"/>
+                        
+                        <icon:PackIconFontAwesome  Spin="False" Width="20" Height="20">
+                            <icon:PackIconFontAwesome.Style>
+                                <Style TargetType="icon:PackIconFontAwesome">
+                                    <Setter Property="Kind" Value="PaperPlaneRegular"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=messageBox,Path=Text.Length}" Value="0">
+                                            <Setter Property="Kind" Value="MicrophoneSolid"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsAudioRecording}" Value="True">
+                                            <Setter Property="Kind" Value="StopSolid"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </icon:PackIconFontAwesome.Style>
+                        </icon:PackIconFontAwesome>
+                            
                     </Button>
                 </Grid>
             </Border>
@@ -230,7 +247,9 @@
                                     </icon:PackIconFontAwesome>
                                     <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
 
-                                    <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0">
+                                    <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
+                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
+                                            CommandParameter="{Binding Content}">
                                         <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
                                     </Button>
                                 </StackPanel>

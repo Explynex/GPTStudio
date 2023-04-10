@@ -12,6 +12,14 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Text;
 using System.Windows.Controls;
+using System.Speech.Synthesis;
+using static OpenAI.GPT3.ObjectModels.SharedModels.IOpenAiModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.IO;
+using Microsoft.VisualBasic;
+using NAudio.Wave;
+using NAudio.Utils;
+using GPTStudio.Utils;
 
 namespace GPTStudio.MVVM.ViewModels
 {
@@ -114,11 +122,19 @@ namespace GPTStudio.MVVM.ViewModels
     {
         public RelayCommand ClearSearchBoxCommand { get; private set; }
         public AsyncRelayCommand SendMessageCommand { get; private set; }
-        public AsyncRelayCommand ListenMessageCommand { get; private set; }
+        public RelayCommand ListenMessageCommand { get; private set; }
         public static ScrollViewer ChatScrollViewer { get; set; }
 
         public event Action<string> AssistantResponseCallback;
 
+        private AudioRecorder _audioRecorder;
+
+        private bool _isAudioRecording;
+        public bool IsAudioRecording
+        {
+            get => _isAudioRecording;
+            set => SetProperty(ref _isAudioRecording, value);
+        }
 
         private string _searchBoxText;
         public string SearchBoxText
@@ -149,6 +165,8 @@ namespace GPTStudio.MVVM.ViewModels
         }
 
 
+       
+
         public MessengerViewModel()
         {
             var openAiService = new OpenAIService(new OpenAiOptions()
@@ -170,13 +188,38 @@ namespace GPTStudio.MVVM.ViewModels
                 new Chat{ Name = "Test2"},
                 new Chat{ Name = "Test2"},
             };
-            Chats[0].Messages.Add(new ChatGPTMessage("assistant", "Количество символов в китайском языке может зависеть от того, как считать символ. Если мы говорим о количество иероглифов, то в современном стандарте китайского языка (унифицированных иероглифах) их более 50 000. Однако, большинство из них используются очень редко, а на практике для чтения и написания китайского языка обычно достаточно знать от 3 000 до 5 000 наиболее распространенных иероглифов. Если мы говорим о количестве символов в широком смысле, то китайский язык использует множество различных знаков, включая знаки препинания, числа, буквы и т.д., и общее количество символов может быть существенно больше."));
+            Chats[0].Messages.Add(new ChatGPTMessage("assistant", "The number of characters in Chinese may depend on how the character is counted. If we are talking about the number of characters, then in the modern standard of the Chinese language (unified characters) there are more than 50,000 of them. However, most of them are used very rarely, and in practice, to read and write Chinese, it is usually enough to know from 3,000 to 5,000 of the most common hieroglyphs. If we talk about the number of characters in a broad sense, then the Chinese language uses many different characters, including punctuation marks, numbers, letters, etc., and the total number of characters can be significantly higher."));
             ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
 
             SendMessageCommand = new AsyncRelayCommand(async (o) =>
             {
-                if (string.IsNullOrEmpty(TypingMessageText))
+                var stream = new MemoryStream();
+
+                if (IsAudioRecording)
+                {
+                    IsAudioRecording = false;
+                    _audioRecorder.Stop();
+
+                    var audioResult = await openAiService.Audio.CreateTranscription(new AudioCreateTranscriptionRequest
+                    {
+                        FileName = "Hello.mp3",
+                        File = _audioRecorder.MemoryStream.ToArray(),
+                        Model = Models.WhisperV1,
+                        ResponseFormat = StaticValues.AudioStatics.ResponseFormat.VerboseJson
+                    });
+
+                    TypingMessageText = audioResult.Text;
+
+                    _audioRecorder.Dispose();
                     return;
+                }
+                else if (string.IsNullOrEmpty(TypingMessageText))
+                {
+                    _audioRecorder = new();
+                    _audioRecorder.Start();
+                    IsAudioRecording = true;
+                    return;
+                }
 
                 SelectedChat.Messages.Add(new ChatGPTMessage(StaticValues.ChatMessageRoles.User, TypingMessageText));
                 ChatScrollViewer.ScrollToBottom();
@@ -191,6 +234,10 @@ namespace GPTStudio.MVVM.ViewModels
                 SelectedChat.Messages.Add(new ChatGPTMessage(StaticValues.ChatMessageRoles.Assistant, ""));
                 var current = SelectedChat.Messages[SelectedChat.Messages.Count - 1];
 
+                TypingMessageText = null;
+                current.DynamicResponseCallback.Append(". . .");
+
+                int counter = 0;
                 await Task.Run(async () =>
                 {
                     await foreach (var completion in completionResult)
@@ -199,8 +246,12 @@ namespace GPTStudio.MVVM.ViewModels
                         {
                             App.Current.Dispatcher.Invoke(() =>
                             {
+                                if (counter == 0)
+                                    current.DynamicResponseCallback.Clear();
+
                                 current.DynamicResponseCallback.Append(completion.Choices.First().Message.Content);
                                 ChatScrollViewer.ScrollToBottom();
+                                counter++;
                             });
 
                         }
@@ -211,14 +262,22 @@ namespace GPTStudio.MVVM.ViewModels
                     }
                 });
 
-                current.Content = current.DynamicResponseCallback.Text;
+                SelectedChat.Messages[SelectedChat.Messages.Count - 1] = new ChatGPTMessage("assistant", current.DynamicResponseCallback.Text);
+                current.DynamicResponseCallback.Clear();
+
 
                 TypingMessageText = null;
-            }) ;
+            });
 
-            ListenMessageCommand = new AsyncRelayCommand(async (o) =>
+            ListenMessageCommand = new RelayCommand(o =>
             {
-                SpeechSynthesizer synthesizer;
+                SpeechSynthesizer synthesizer = new();
+                synthesizer.Volume = 100;  // 0...100
+                synthesizer.Rate = -1;     // -10...10
+
+                var str = o as string;
+                // Synchronous
+                synthesizer.SpeakAsync(str);
             });
         }
 
