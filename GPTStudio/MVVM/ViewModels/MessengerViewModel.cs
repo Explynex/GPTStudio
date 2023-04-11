@@ -1,25 +1,16 @@
 ﻿using GPTStudio.MVVM.Core;
-using OpenAI.GPT3.Managers;
-using OpenAI.GPT3;
-using OpenAI.GPT3.ObjectModels.RequestModels;
+using GPTStudio.Utils;
+using Microsoft.CognitiveServices.Speech;
+using OpenAI;
+using OpenAI.Chat;
+using OpenAI.Models;
 using System;
 using System.Collections.ObjectModel;
-using OpenAI.GPT3.ObjectModels;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Data;
 using System.ComponentModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Windows.Controls;
-using System.Speech.Synthesis;
-using static OpenAI.GPT3.ObjectModels.SharedModels.IOpenAiModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.IO;
-using Microsoft.VisualBasic;
-using NAudio.Wave;
-using NAudio.Utils;
-using GPTStudio.Utils;
 
 namespace GPTStudio.MVVM.ViewModels
 {
@@ -34,13 +25,15 @@ namespace GPTStudio.MVVM.ViewModels
         public string CreatedTimestamp { get; set; }
     }
 
-    internal sealed class ChatGPTMessage : ChatMessage
+    internal sealed class ChatGPTMessage 
     {
+        public Message InnerMessage { get; private set; }
         public BindableStringBuilder DynamicResponseCallback { get; set; }
-        public ChatGPTMessage(string role, string content) : base(role, content)
+        public ChatGPTMessage(Role role, string content)
         {
-            if (role != StaticValues.ChatMessageRoles.User)
+            if (role == Role.Assistant)
                 DynamicResponseCallback = new BindableStringBuilder();
+            InnerMessage = new(role, content);
         }
     }
 
@@ -79,8 +72,7 @@ namespace GPTStudio.MVVM.ViewModels
         public void Clear()
         {
             _builder.Clear();
-            if (TextChanged != null)
-                TextChanged(this, null);
+            TextChanged?.Invoke(this, null);
             RaisePropertyChanged(() => Text);
         }
 
@@ -122,7 +114,7 @@ namespace GPTStudio.MVVM.ViewModels
     {
         public RelayCommand ClearSearchBoxCommand { get; private set; }
         public AsyncRelayCommand SendMessageCommand { get; private set; }
-        public RelayCommand ListenMessageCommand { get; private set; }
+        public AsyncRelayCommand ListenMessageCommand { get; private set; }
         public static ScrollViewer ChatScrollViewer { get; set; }
 
         public event Action<string> AssistantResponseCallback;
@@ -164,22 +156,23 @@ namespace GPTStudio.MVVM.ViewModels
             set => SetProperty(ref _selecedChat, value);
         }
 
+        static string speechKey = "";
+        static string speechRegion = "northeurope";
 
-       
 
         public MessengerViewModel()
         {
-            var openAiService = new OpenAIService(new OpenAiOptions()
-            {
-                ApiKey = "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"
-            });
+            var api = new OpenAIClient("");
+
+
+            var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
 
             Chats = new()
             {
                 new Chat{ Name = "Test1" },
                 new Chat{ Name = "Chates"},
-                new Chat{ Name = "GPTSemen"},
-                new Chat{ Name = "Nicecock"},
+                new Chat{ Name = "TEST2"},
+                new Chat{ Name = "Test"},
                 new Chat{ Name = "Somechatwefefefefggdfgasdsadfasdfas"},
                 new Chat{ Name = "Test2"},
                 new Chat{ Name = "Test2"},
@@ -188,27 +181,39 @@ namespace GPTStudio.MVVM.ViewModels
                 new Chat{ Name = "Test2"},
                 new Chat{ Name = "Test2"},
             };
-            Chats[0].Messages.Add(new ChatGPTMessage("assistant", "The number of characters in Chinese may depend on how the character is counted. If we are talking about the number of characters, then in the modern standard of the Chinese language (unified characters) there are more than 50,000 of them. However, most of them are used very rarely, and in practice, to read and write Chinese, it is usually enough to know from 3,000 to 5,000 of the most common hieroglyphs. If we talk about the number of characters in a broad sense, then the Chinese language uses many different characters, including punctuation marks, numbers, letters, etc., and the total number of characters can be significantly higher."));
             ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
 
             SendMessageCommand = new AsyncRelayCommand(async (o) =>
             {
-                var stream = new MemoryStream();
+/*                var autoDetectSourceLanguageConfig =
+                    AutoDetectSourceLanguageConfig.FromLanguages(
+                        new string[] { "en-US", "de-DE", "zh-CN", "ru-RU" });
+
+                using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+                using (var recognizer = new SpeechRecognizer(
+                    speechConfig,
+                    autoDetectSourceLanguageConfig,
+                    audioConfig))
+                {
+                    recognizer.Recognized += (sender, e) => { TypingMessageText += e.Result.Text; };
+                    await recognizer.StartContinuousRecognitionAsync();
+                    await Task.Delay(10000);
+                    await recognizer.StopContinuousRecognitionAsync();
+                    // var result = await api.EditsEndpoint.CreateEditAsync(new EditRequest(TypingMessageText, "Correct punctuation marks without translation"));
+                    // TypingMessageText = result.ToString();
+                    return;
+                }*/
 
                 if (IsAudioRecording)
                 {
                     IsAudioRecording = false;
                     _audioRecorder.Stop();
+                    // File.WriteAllBytes("D:\\output.mp3", _audioRecorder.MemoryStream.ToArray());
 
-                    var audioResult = await openAiService.Audio.CreateTranscription(new AudioCreateTranscriptionRequest
-                    {
-                        FileName = "Hello.mp3",
-                        File = _audioRecorder.MemoryStream.ToArray(),
-                        Model = Models.WhisperV1,
-                        ResponseFormat = StaticValues.AudioStatics.ResponseFormat.VerboseJson
-                    });
+                    _audioRecorder.MemoryStream.Position = 0;
+                    var audioResult = await api.AudioEndpoint.CreateTranscriptionAsync(new OpenAI.Audio.AudioTranscriptionRequest(_audioRecorder.MemoryStream, "hello.wav"));
 
-                    TypingMessageText = audioResult.Text;
+                    TypingMessageText = audioResult;
 
                     _audioRecorder.Dispose();
                     return;
@@ -221,63 +226,43 @@ namespace GPTStudio.MVVM.ViewModels
                     return;
                 }
 
-                SelectedChat.Messages.Add(new ChatGPTMessage(StaticValues.ChatMessageRoles.User, TypingMessageText));
+                SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText));
                 ChatScrollViewer.ScrollToBottom();
 
-                var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
-                {
-                    Messages = SelectedChat.Messages.Cast<ChatMessage>().ToList(),
-                    Model = Models.ChatGpt3_5Turbo,
-                    MaxTokens = 250//optional
-                });
+                var request = new ChatRequest(SelectedChat.Messages.Select(o => o.InnerMessage),Model.GPT3_5_Turbo,maxTokens: 550);
+                SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ""));
 
-                SelectedChat.Messages.Add(new ChatGPTMessage(StaticValues.ChatMessageRoles.Assistant, ""));
+                int counter = 0;
                 var current = SelectedChat.Messages[SelectedChat.Messages.Count - 1];
-
                 TypingMessageText = null;
                 current.DynamicResponseCallback.Append(". . .");
 
-                int counter = 0;
-                await Task.Run(async () =>
+                await api.ChatEndpoint.StreamCompletionAsync(request, result =>
                 {
-                    await foreach (var completion in completionResult)
-                    {
-                        if (completion.Successful)
-                        {
-                            App.Current.Dispatcher.Invoke(() =>
-                            {
-                                if (counter == 0)
-                                    current.DynamicResponseCallback.Clear();
+                    if (String.IsNullOrEmpty(result.FirstChoice))
+                        return;
 
-                                current.DynamicResponseCallback.Append(completion.Choices.First().Message.Content);
-                                ChatScrollViewer.ScrollToBottom();
-                                counter++;
-                            });
+                    if (counter == 0)
+                        current.DynamicResponseCallback.Clear();
 
-                        }
-                        else if (completion.Error != null)
-                        {
-                            throw new Exception(completion.Error.ToString());
-                        }
-                    }
+                    current.DynamicResponseCallback.Append(result.FirstChoice);
+                    App.Current.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
+                    counter++;
                 });
 
-                SelectedChat.Messages[SelectedChat.Messages.Count - 1] = new ChatGPTMessage("assistant", current.DynamicResponseCallback.Text);
+                SelectedChat.Messages[SelectedChat.Messages.Count - 1] = new ChatGPTMessage(Role.Assistant, current.DynamicResponseCallback.Text);
                 current.DynamicResponseCallback.Clear();
-
-
-                TypingMessageText = null;
             });
 
-            ListenMessageCommand = new RelayCommand(o =>
+            ListenMessageCommand = new AsyncRelayCommand(async(o) =>
             {
-                SpeechSynthesizer synthesizer = new();
-                synthesizer.Volume = 100;  // 0...100
-                synthesizer.Rate = -1;     // -10...10
+                speechConfig.SpeechSynthesisVoiceName = "en-US-EricNeural";
 
-                var str = o as string;
-                // Synchronous
-                synthesizer.SpeakAsync(str);
+
+                using (var speechSynthesizer = new SpeechSynthesizer(speechConfig))
+                {
+                    using var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(o as string);
+                }
             });
         }
 

@@ -197,7 +197,7 @@
 
                     <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
                         Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"
-                        IsDefault="True" Command="{Binding SendMessageCommand}"
+                        IsDefault="True" Command="{Binding SendMessageCommand}" 
                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                         
                         <icon:PackIconFontAwesome  Spin="False" Width="20" Height="20">
@@ -226,7 +226,6 @@
                      ScrollViewer.CanContentScroll="True">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-
                         <Border x:Name="border" Height="Auto" CornerRadius="0 15 15 15" Padding="10" Margin="0 0 0 10">
                             <Grid>
 
@@ -237,7 +236,7 @@
                                                 <Setter Property="Kind" Value="HubspotBrands"/>
                                                 <Setter Property="Tag" Value="Chat GPT"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Role}" Value="user">
+                                                    <DataTrigger Binding="{Binding InnerMessage.Role}" Value="User">
                                                         <Setter Property="Kind" Value="UserRegular"/>
                                                         <Setter Property="Tag" Value="Me"/>
                                                     </DataTrigger>
@@ -249,13 +248,13 @@
 
                                     <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
                                             Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
-                                            CommandParameter="{Binding Content}">
+                                            CommandParameter="{Binding InnerMessage.Content}">
                                         <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
                                     </Button>
                                 </StackPanel>
 
 
-                                <TextBlock Text="{Binding Content,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7"/>
+                                <TextBlock Text="{Binding InnerMessage.Content,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7"/>
 
                                 <TextBlock Text="{Binding DynamicResponseCallback.Text}" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7" TextWrapping="WrapWithOverflow"/>
                             </Grid>
