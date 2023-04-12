@@ -40,6 +40,5 @@ namespace GPTStudio.MVVM.View.Windows
             }
                 
         }
-
     }
 }

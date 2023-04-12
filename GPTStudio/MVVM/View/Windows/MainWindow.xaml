@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:controls="clr-namespace:GPTStudio.MVVM.View.Controls"
+        xmlns:ext="clr-namespace:GPTStudio.MVVM.View.Extensions"
         xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
         mc:Ignorable="d"
         Title="GPTStudio" MinHeight="550" MinWidth="850"
@@ -79,7 +81,7 @@
 
 
             <Button Style="{StaticResource TransparentButton}" Height="45" VerticalAlignment="Bottom"
-                    Grid.Row="1" Margin="0 0 0 10">
+                    Grid.Row="1" Margin="0 0 0 10" Command="{Binding SettingsCommand}">
                 <icon:FontAwesome Kind="CogSolid" Height="20" Width="20" />
             </Button>
             <Rectangle Grid.RowSpan="2" Width="3" Grid.Column="1" HorizontalAlignment="Left"
@@ -94,6 +96,41 @@
                 <Button Style="{StaticResource CircleButton}" Background="#6c5ecf" Width="12" Height="12"
                         HorizontalAlignment="Left" Margin="6 0 0 0" Click="WindowMinimize"/>
             </DockPanel>
+
+            <!--             <Border x:Name="splashBorder" Background="Black" CornerRadius="3" Grid.RowSpan="2" Grid.ColumnSpan="2" >
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding ClosePopupCommand}"
+                                  CommandParameter="{Binding ElementName=settingsPopup}"/>
+                </Border.InputBindings>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Opacity" Value="0"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPopupActive}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.3"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border> -->
+
+            <ext:ModenPopup Grid.ColumnSpan="2" Grid.RowSpan="2" PopupContent="{Binding PopupContent}"  IsOpen="{Binding IsPopupActive,UpdateSourceTrigger=PropertyChanged}">
+            </ext:ModenPopup>
+
+
         </Grid>
     </Border>
 </Window>

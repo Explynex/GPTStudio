@@ -1,16 +1,23 @@
 ﻿using GPTStudio.MVVM.Core;
 using GPTStudio.Utils;
-using Microsoft.CognitiveServices.Speech;
-using OpenAI;
-using OpenAI.Chat;
-using OpenAI.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Controls;
+using Microsoft.CognitiveServices.Speech;
+using Microsoft.CognitiveServices.Speech.Audio;
+using OpenAI;
+using OpenAI.Chat;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using OpenAI.Models;
+using OpenAI.Edits;
+using GPTStudio.Infrastructure;
 
 namespace GPTStudio.MVVM.ViewModels
 {
@@ -156,16 +163,10 @@ namespace GPTStudio.MVVM.ViewModels
             set => SetProperty(ref _selecedChat, value);
         }
 
-        static string speechKey = "";
-        static string speechRegion = "northeurope";
-
-
         public MessengerViewModel()
         {
-            var api = new OpenAIClient("");
-
-
-            var speechConfig = SpeechConfig.FromSubscription(speechKey, speechRegion);
+            
+            
 
             Chats = new()
             {
@@ -185,24 +186,25 @@ namespace GPTStudio.MVVM.ViewModels
 
             SendMessageCommand = new AsyncRelayCommand(async (o) =>
             {
-/*                var autoDetectSourceLanguageConfig =
-                    AutoDetectSourceLanguageConfig.FromLanguages(
-                        new string[] { "en-US", "de-DE", "zh-CN", "ru-RU" });
+                var api = new OpenAIClient(Config.Properties.OpenAIAPIKey);
+                /*                var autoDetectSourceLanguageConfig =
+                                    AutoDetectSourceLanguageConfig.FromLanguages(
+                                        new string[] { "en-US", "de-DE", "zh-CN", "ru-RU" });
 
-                using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
-                using (var recognizer = new SpeechRecognizer(
-                    speechConfig,
-                    autoDetectSourceLanguageConfig,
-                    audioConfig))
-                {
-                    recognizer.Recognized += (sender, e) => { TypingMessageText += e.Result.Text; };
-                    await recognizer.StartContinuousRecognitionAsync();
-                    await Task.Delay(10000);
-                    await recognizer.StopContinuousRecognitionAsync();
-                    // var result = await api.EditsEndpoint.CreateEditAsync(new EditRequest(TypingMessageText, "Correct punctuation marks without translation"));
-                    // TypingMessageText = result.ToString();
-                    return;
-                }*/
+                                using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+                                using (var recognizer = new SpeechRecognizer(
+                                    speechConfig,
+                                    autoDetectSourceLanguageConfig,
+                                    audioConfig))
+                                {
+                                    recognizer.Recognized += (sender, e) => { TypingMessageText += e.Result.Text; };
+                                    await recognizer.StartContinuousRecognitionAsync();
+                                    await Task.Delay(10000);
+                                    await recognizer.StopContinuousRecognitionAsync();
+                                    // var result = await api.EditsEndpoint.CreateEditAsync(new EditRequest(TypingMessageText, "Correct punctuation marks without translation"));
+                                    // TypingMessageText = result.ToString();
+                                    return;
+                                }*/
 
                 if (IsAudioRecording)
                 {
@@ -256,6 +258,7 @@ namespace GPTStudio.MVVM.ViewModels
 
             ListenMessageCommand = new AsyncRelayCommand(async(o) =>
             {
+                var speechConfig = SpeechConfig.FromSubscription(Config.Properties.AzureAPIKey, Config.Properties.AzureSpeechRegion);
                 speechConfig.SpeechSynthesisVoiceName = "en-US-EricNeural";
 
 

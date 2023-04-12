@@ -1,8 +1,4 @@
 ﻿using GPTStudio.MVVM.ViewModels;
-using OpenAI.GPT3.Managers;
-using OpenAI.GPT3.ObjectModels.RequestModels;
-using OpenAI.GPT3.ObjectModels;
-using OpenAI.GPT3;
 using System;
 using System.Collections.Generic;
 using System.Windows.Controls;

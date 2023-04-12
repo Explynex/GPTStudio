@@ -1,0 +1,153 @@
+﻿<Grid x:Class="GPTStudio.MVVM.View.Controls.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GPTStudio.MVVM.View.Controls"
+             xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             mc:Ignorable="d" Width="470" Height="390"
+             d:Background="{DynamicResource SecondaryBackgroundBrush}">
+    <StackPanel>
+        <TextBlock HorizontalAlignment="Center"
+                   Foreground="#fff"
+                   FontWeight="Medium" FontSize="18" 
+                   >Settings</TextBlock>
+        <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3" Margin="0 10 0 5"/>
+        <ScrollViewer VerticalAlignment="Top" MaxHeight="325">
+            <StackPanel >
+                <TextBlock Text="Global" FontSize="14" Foreground="#6c5eb3" 
+                           Margin="10 0 0 7" FontWeight="Medium"/>
+
+                <DockPanel Margin="10 0 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="LockSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="OpenAI Secret API key" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+
+                    <TextBox HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190"
+                             Text="{Binding Properties.OpenAIAPIKey,UpdateSourceTrigger=PropertyChanged}"/>
+                </DockPanel>
+
+                <DockPanel  Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="LockSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Azure cognetive services API key" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+
+                    <TextBox HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190"
+                             Text="{Binding Properties.AzureAPIKey,UpdateSourceTrigger=PropertyChanged}"/>
+                </DockPanel>
+
+                <DockPanel  Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="GlobeAmericasSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Azure speech region" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+
+                    <TextBox HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190"
+                             Text="{Binding Properties.AzureSpeechRegion,UpdateSourceTrigger=PropertyChanged}"/>
+                </DockPanel>
+
+                <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3" Margin="0 10 0 0"/>
+
+                <TextBlock Text="Chat" FontSize="14" Foreground="#6c5eb3" 
+                           Margin="10 3 0 7" FontWeight="Medium"/>
+                
+                <DockPanel Margin="10 0 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="MicrophoneSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Automatically speak ChatGPT responses" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+
+                <DockPanel Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="PaperPlaneSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Send message after voice transcription" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+
+                <DockPanel Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="SpellCheckSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Voice recognition" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+
+                <DockPanel Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="SatelliteDishSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Getting ChatGPT response" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+
+                <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3" Margin="0 10 0 0"/>
+
+                <TextBlock Text="Other" FontSize="14" Foreground="#6c5eb3" 
+                           Margin="10 3 0 7" FontWeight="Medium"/>
+                
+                <DockPanel Margin="10 0 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="SatelliteDishSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Getting ChatGPT response" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+
+                <DockPanel Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="SatelliteDishSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Getting ChatGPT response" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+
+                <DockPanel Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="SatelliteDishSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Getting ChatGPT response" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                </DockPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </StackPanel>
+
+</Grid>
