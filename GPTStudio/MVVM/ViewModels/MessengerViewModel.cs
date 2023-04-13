@@ -182,6 +182,18 @@ namespace GPTStudio.MVVM.ViewModels
                 new Chat{ Name = "Test2"},
                 new Chat{ Name = "Test2"},
             };
+
+            for (int i = 0; i < 100; i++)
+            {
+                Chats[0].Messages.Add(new ChatGPTMessage(Role.User, "Конечно, вот пример кода на Python, который выводит на консоль \"Hello World\":\n\n```\nprint(\"Hello World!\")\n```\n\nЭтот код использует функцию `print()` для вывода строки \"Hello World!\" на консоль. Когда вы запустите этот код, вы должны увидеть сообщение \"Hello World!\" в консоли."));
+            }
+
+            for (int i = 0; i < 100; i++)
+            {
+                Chats[1].Messages.Add(new ChatGPTMessage(Role.User, "\n```\nprint(\"Hello World!\")\n```\n\nЭтот код используе)` для вывода ст апуститеHello World!\\ в консоли."));
+            }
+
+            Chats[0].Messages.Add(new ChatGPTMessage(Role.User, "```#include <iostream>\r\n\r\nusing namespace std;\r\n\r\nint main()\r\n{\r\n    cout << \"Hello world!\" << endl;\r\n    return 0;\r\n}```"));
             ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
 
             SendMessageCommand = new AsyncRelayCommand(async (o) =>

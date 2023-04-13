@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.11.0" />
+    <PackageReference Include="MdXaml" Version="1.17.0" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.27.0" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="OpenAI-DotNet" Version="6.7.0" />

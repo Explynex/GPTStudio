@@ -4,7 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:local="clr-namespace:GPTStudio.MVVM.View.Controls"
              xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
+             xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewmodels:MessengerViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -109,7 +111,10 @@
 
             <ListBox x:Name="messages" BorderThickness="0" Margin="0 50 0 60" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      Background="Transparent" ItemsSource="{Binding SelectedChat.Messages}" 
-                     VerticalAlignment="Bottom"  VirtualizingPanel.ScrollUnit="Pixel" Padding="0 0 10 0"
+                     VerticalAlignment="Bottom" 
+                     VirtualizingPanel.ScrollUnit="Pixel"
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     Padding="0 0 10 0"
                      ScrollViewer.CanContentScroll="True">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -140,9 +145,51 @@
                                     </Button>
                                 </StackPanel>
 
+                                <mdxam:MarkdownScrollViewer Markdown="{Binding InnerMessage.Content}" Background="Transparent"
+                                                            Foreground="{DynamicResource PrimaryForegroundBrush}" Margin="30 25 0 0" ScrollViewer.CanContentScroll="False">
+                                    <mdxam:MarkdownScrollViewer.MarkdownStyle>
+                                        <Style TargetType="FlowDocument" BasedOn="{x:Static mdxam:MarkdownStyle.GithubLike}">
+                                            <Style.Resources>
+                                                <Style TargetType="Paragraph">
+                                                    <Style.Triggers>
 
-                                <TextBlock Text="{Binding InnerMessage.Content,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7"/>
+                                                    </Style.Triggers>
+                                                </Style>
 
+                                                <Style TargetType="avalonEdit:TextEditor" xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit">
+                                                    <Setter Property="Background"      Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                                    <Setter Property="BorderBrush"     Value="{DynamicResource PurpleGradient}"/>
+                                                    <Setter Property="BorderThickness" Value="0,2,0,2"/>
+                                                    <Setter Property="Foreground" Value="#fff"/>
+                                                    <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+                                                    <Setter Property="VerticalScrollBarVisibility"   Value="Auto"/>
+                                                    <Setter Property="Padding"                       Value="5"/>
+                                                </Style>
+
+                                                <Style TargetType="Run">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="Tag" Value="CodeSpan">
+                                                            <Setter Property="FontFamily" Value="Courier New"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
+                                                            <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                                <Style TargetType="Span">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="Tag" Value="CodeSpan">
+                                                            <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
+                                                            <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Style.Resources>
+                                        </Style>
+                                    </mdxam:MarkdownScrollViewer.MarkdownStyle>
+                                </mdxam:MarkdownScrollViewer>
+
+                                <!-- <TextBlock Text="{Binding InnerMessage.Content,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}" TextWrapping="WrapWithOverflow" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7"/> -->
+                                
                                 <TextBlock Text="{Binding DynamicResponseCallback.Text}" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7" TextWrapping="WrapWithOverflow"/>
                             </Grid>
                             <Border.Style>

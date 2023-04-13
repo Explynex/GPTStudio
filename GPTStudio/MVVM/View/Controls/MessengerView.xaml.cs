@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace GPTStudio.MVVM.View.Controls
 {
@@ -17,6 +18,7 @@ namespace GPTStudio.MVVM.View.Controls
             InitializeComponent();
             DataContext = new MessengerViewModel();
             MessengerViewModel.ChatScrollViewer = Utils.Presentation.GetDescendantByType(messages, typeof(ScrollViewer)) as ScrollViewer;
+            MessengerViewModel.ChatScrollViewer.Loaded += (sender, e) => MessengerViewModel.ChatScrollViewer.ScrollToEnd();
         }
 
         private async void Button_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -58,4 +60,5 @@ namespace GPTStudio.MVVM.View.Controls
             
         }
     }
+
 }

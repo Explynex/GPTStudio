@@ -21,7 +21,9 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Grid Background="Transparent">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
