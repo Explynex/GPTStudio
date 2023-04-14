@@ -18,37 +18,53 @@ using System.Diagnostics.Metrics;
 using OpenAI.Models;
 using OpenAI.Edits;
 using GPTStudio.Infrastructure;
+using System.Windows.Shapes;
 
 namespace GPTStudio.MVVM.ViewModels
 {
+    [Serializable]
     internal sealed class Chat 
     {
-        public Chat()
-        {
-            Messages = new ObservableCollection<ChatGPTMessage>();
-        }
-        public string Name { get; set; }
+        [field: NonSerialized]
         public ObservableCollection<ChatGPTMessage> Messages { get; set; }
-        public string CreatedTimestamp { get; set; }
+        public string ID { get; private set; }
+        public string CreatedTimestamp { get; private set; }
+        public string Name { get; set; }
+
+        public Chat(string name)
+        {
+            Name     = name;
+            ID       = Common.GenerateRandomHash(name);
+
+        }
     }
 
+    [Serializable]
     internal sealed class ChatGPTMessage 
     {
-        public Message InnerMessage { get; private set; }
         public BindableStringBuilder DynamicResponseCallback { get; set; }
+        public Role Role { get; set; }
         public ChatGPTMessage(Role role, string content)
         {
-            if (role == Role.Assistant)
-                DynamicResponseCallback = new BindableStringBuilder();
-            InnerMessage = new(role, content);
+            this.Role = role;
+            this.DynamicResponseCallback = new(content);
+        }
+
+        public static implicit operator Message(ChatGPTMessage msg)
+        {
+            return new Message(msg.Role, msg.DynamicResponseCallback.Text);
         }
     }
 
+    [Serializable]
     public class BindableStringBuilder : INotifyPropertyChanged
     {
-        private readonly StringBuilder _builder = new StringBuilder();
+        private readonly StringBuilder _builder;
 
-        private EventHandler<EventArgs> TextChanged;
+        [field: NonSerialized]
+        private readonly EventHandler<EventArgs> TextChanged;
+        public BindableStringBuilder()            => _builder = new();
+        public BindableStringBuilder(string text) => _builder = new(text);
 
         public string Text
         {
@@ -63,16 +79,14 @@ namespace GPTStudio.MVVM.ViewModels
         public void Append(string text)
         {
             _builder.Append(text);
-            if (TextChanged != null)
-                TextChanged(this, null);
+            TextChanged?.Invoke(this, null);
             RaisePropertyChanged(() => Text);
         }
 
         public void AppendLine(string text)
         {
             _builder.AppendLine(text);
-            if (TextChanged != null)
-                TextChanged(this, null);
+            TextChanged?.Invoke(this, null);
             RaisePropertyChanged(() => Text);
         }
 
@@ -84,15 +98,12 @@ namespace GPTStudio.MVVM.ViewModels
         }
 
         #region INotifyPropertyChanged Members
-
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void RaisePropertyChanged(string property)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(property));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
 
         public void RaisePropertyChanged<T>(Expression<Func<T>> propertyExpression)
@@ -113,7 +124,6 @@ namespace GPTStudio.MVVM.ViewModels
         }
 
         #endregion
-
 
     }
 
@@ -156,44 +166,39 @@ namespace GPTStudio.MVVM.ViewModels
             set => SetProperty(ref _chats, value);
         }
 
-        private Chat _selecedChat;
+        private Chat _selectedChat;
         public Chat SelectedChat
         {
-            get => _selecedChat;
-            set => SetProperty(ref _selecedChat, value);
+            get => _selectedChat;
+            set
+            {
+                if (value.Messages == null)
+                {
+                    if (File.Exists(App.UserdataDirectory + value.ID))
+                        value.Messages = Utils.Common.BinaryDeserialize<ObservableCollection<ChatGPTMessage>>(App.UserdataDirectory + value.ID);
+                    else
+                        value.Messages = new();
+                }
+
+                SetProperty(ref _selectedChat, value);
+            }
         }
 
         public MessengerViewModel()
         {
-            
-            
 
-            Chats = new()
-            {
-                new Chat{ Name = "Test1" },
-                new Chat{ Name = "Chates"},
-                new Chat{ Name = "TEST2"},
-                new Chat{ Name = "Test"},
-                new Chat{ Name = "Somechatwefefefefggdfgasdsadfasdfas"},
-                new Chat{ Name = "Test2"},
-                new Chat{ Name = "Test2"},
-                new Chat{ Name = "Test2"},
-                new Chat{ Name = "Test2"},
-                new Chat{ Name = "Test2"},
-                new Chat{ Name = "Test2"},
-            };
+            Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats");
 
-            for (int i = 0; i < 100; i++)
-            {
-                Chats[0].Messages.Add(new ChatGPTMessage(Role.User, "Конечно, вот пример кода на Python, который выводит на консоль \"Hello World\":\n\n```\nprint(\"Hello World!\")\n```\n\nЭтот код использует функцию `print()` для вывода строки \"Hello World!\" на консоль. Когда вы запустите этот код, вы должны увидеть сообщение \"Hello World!\" в консоли."));
-            }
+            /*            for (int i = 0; i < 100; i++)
+                        {
+                            Chats[0].Messages.Add(new ChatGPTMessage(Role.User, "Конечно, вот пример кода на Python, который выводит на консоль \"Hello World\":\n\n```\nprint(\"Hello World!\")\n```\n\nЭтот код использует функцию `print()` для вывода строки \"Hello World!\" на консоль. Когда вы запустите этот код, вы должны увидеть сообщение \"Hello World!\" в консоли."));
+                        }
 
-            for (int i = 0; i < 100; i++)
-            {
-                Chats[1].Messages.Add(new ChatGPTMessage(Role.User, "\n```\nprint(\"Hello World!\")\n```\n\nЭтот код используе)` для вывода ст апуститеHello World!\\ в консоли."));
-            }
+                        for (int i = 0; i < 100; i++)
+                        {
+                            Chats[1].Messages.Add(new ChatGPTMessage(Role.User, "\n```\nprint(\"Hello World!\")\n```\n\nЭтот код используе)` для вывода ст апуститеHello World!\\ в консоли."));
+                        }*/
 
-            Chats[0].Messages.Add(new ChatGPTMessage(Role.User, "```#include <iostream>\r\n\r\nusing namespace std;\r\n\r\nint main()\r\n{\r\n    cout << \"Hello world!\" << endl;\r\n    return 0;\r\n}```"));
             ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
 
             SendMessageCommand = new AsyncRelayCommand(async (o) =>
@@ -243,7 +248,7 @@ namespace GPTStudio.MVVM.ViewModels
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText));
                 ChatScrollViewer.ScrollToBottom();
 
-                var request = new ChatRequest(SelectedChat.Messages.Select(o => o.InnerMessage),Model.GPT3_5_Turbo,maxTokens: 550);
+                var request = new ChatRequest(new List<Message>() { new(Role.User,TypingMessageText)},Model.GPT3_5_Turbo,maxTokens: 550);
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ""));
 
                 int counter = 0;
@@ -263,9 +268,7 @@ namespace GPTStudio.MVVM.ViewModels
                     App.Current.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
                     counter++;
                 });
-
-                SelectedChat.Messages[SelectedChat.Messages.Count - 1] = new ChatGPTMessage(Role.Assistant, current.DynamicResponseCallback.Text);
-                current.DynamicResponseCallback.Clear();
+                Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
             });
 
             ListenMessageCommand = new AsyncRelayCommand(async(o) =>

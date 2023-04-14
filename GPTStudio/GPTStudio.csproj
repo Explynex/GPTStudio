@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows</TargetFramework>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
     <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
@@ -31,7 +32,7 @@
     <PackageReference Include="MdXaml" Version="1.17.0" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.27.0" />
     <PackageReference Include="NAudio" Version="2.1.0" />
-    <PackageReference Include="OpenAI-DotNet" Version="6.7.0" />
+    <PackageReference Include="OpenAI-DotNet" Version="6.7.1" />
   </ItemGroup>
 
   <ItemGroup>

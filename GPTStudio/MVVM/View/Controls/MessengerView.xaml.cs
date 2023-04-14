@@ -13,10 +13,12 @@ namespace GPTStudio.MVVM.View.Controls
     /// </summary>
     public partial class MessengerView : UserControl
     {
+        private MessengerViewModel viewModel;
         public MessengerView()
         {
             InitializeComponent();
-            DataContext = new MessengerViewModel();
+            viewModel = new MessengerViewModel();
+            DataContext = viewModel;
             MessengerViewModel.ChatScrollViewer = Utils.Presentation.GetDescendantByType(messages, typeof(ScrollViewer)) as ScrollViewer;
             MessengerViewModel.ChatScrollViewer.Loaded += (sender, e) => MessengerViewModel.ChatScrollViewer.ScrollToEnd();
         }
@@ -58,6 +60,17 @@ namespace GPTStudio.MVVM.View.Controls
                 }
             });*/
             
+        }
+        private void messages_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+/*            if (MessengerViewModel.ChatScrollViewer.ContentVerticalOffset != 0 && e.VerticalChange != 0 && MessengerViewModel.ChatScrollViewer.ContentVerticalOffset < 300)
+            {
+                messages.ItemsSource = viewModel.SelectedChat.Messages.Take(messages.Items.Count + 10);
+                MessengerViewModel.ChatScrollViewer.ScrollToVerticalOffset(600);
+            }*/
+
+
+
         }
     }
 
