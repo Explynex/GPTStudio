@@ -12,5 +12,8 @@ namespace GPTStudio.Infrastructure.Models
         public string OpenAIAPIKey { get; set; }
         public string AzureAPIKey { get; set; }
         public string AzureSpeechRegion { get; set; }
+        public bool UsingMarkdown { get; set; }
+        public bool SendMessageAfterTranscription { get; set; }
+        public bool AutoSpeakGPTResponses { get; set; }
     }
 }

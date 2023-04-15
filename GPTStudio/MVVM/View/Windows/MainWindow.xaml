@@ -18,7 +18,7 @@
         <WindowChrome CaptionHeight="1"/>
     </WindowChrome.WindowChrome>
     <Border Background="{DynamicResource PrimaryBackgroundBrush}" CornerRadius="3 3 3 3"
-            BorderThickness="3 0 0 0" BorderBrush="{DynamicResource PurpleGradient}">
+            BorderThickness="3 0 0 0" BorderBrush="{DynamicResource PurpleGradient}" MouseLeftButtonDown="WindowDragMove">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
@@ -86,7 +86,7 @@
             </Button>
             <Rectangle Grid.RowSpan="2" Width="3" Grid.Column="1" HorizontalAlignment="Left"
                        Fill="{DynamicResource PrimaryBackgroundBrush}"/>
-            <DockPanel MouseLeftButtonDown="WindowDragMove" Grid.ColumnSpan="2" Background="Transparent" >
+            <DockPanel Grid.ColumnSpan="2"  Background="Transparent" HorizontalAlignment="Left">
                 <Button Style="{StaticResource CircleButton}" Background="#ea6161" Width="12" Height="12"
                         HorizontalAlignment="Left" Margin="12 0 0 0" Cursor="Hand" Click="WindowShutdown"/>
                 

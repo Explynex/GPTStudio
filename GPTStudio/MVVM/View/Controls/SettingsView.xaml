@@ -74,6 +74,7 @@
                     <TextBlock Text="Automatically speak ChatGPT responses" VerticalAlignment="Center" Margin="10 0 0 0"
                        Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
                        FontWeight="Medium"/>
+                    <ToggleButton Style="{StaticResource ModernSwitchToggleButton}" IsChecked="{Binding Properties.AutoSpeakGPTResponses}"/>
                 </DockPanel>
 
                 <DockPanel Margin="10 10 10 0">
@@ -85,6 +86,19 @@
                     <TextBlock Text="Send message after voice transcription" VerticalAlignment="Center" Margin="10 0 0 0"
                        Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
                        FontWeight="Medium"/>
+                    <ToggleButton Style="{StaticResource ModernSwitchToggleButton}" IsChecked="{Binding Properties.SendMessageAfterTranscription}"/>
+                </DockPanel>
+
+                <DockPanel Margin="10 10 10 0">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="CodeSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Displaying responses in markdown" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+                    <ToggleButton Style="{StaticResource ModernSwitchToggleButton}" IsChecked="{Binding UsingMarkdown}"/>
                 </DockPanel>
 
                 <DockPanel Margin="10 10 10 0">

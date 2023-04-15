@@ -13,6 +13,10 @@ namespace GPTStudio.MVVM.View.Windows
 
         private void WindowDragMove(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (WindowState == WindowState.Maximized && e.ClickCount != 2)
+                return;
+            
+
             if(WindowState == WindowState.Maximized)
             {
                 WindowState      = WindowState.Normal;

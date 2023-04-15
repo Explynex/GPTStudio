@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Infrastructure\Converters\" />
     <Folder Include="Locale\" />
     <Folder Include="MVVM\Core\" />
   </ItemGroup>
@@ -32,7 +31,10 @@
     <PackageReference Include="MdXaml" Version="1.17.0" />
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.27.0" />
     <PackageReference Include="NAudio" Version="2.1.0" />
-    <PackageReference Include="OpenAI-DotNet" Version="6.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GPTStudio.Open-AI\GPTStudio.Open-AI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

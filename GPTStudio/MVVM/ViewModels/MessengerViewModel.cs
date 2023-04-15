@@ -1,24 +1,19 @@
-﻿using GPTStudio.MVVM.Core;
+﻿using GPTStudio.Infrastructure;
+using GPTStudio.MVVM.Core;
+using GPTStudio.OpenAI;
+using GPTStudio.OpenAI.Chat;
+using GPTStudio.OpenAI.Models;
 using GPTStudio.Utils;
+using Microsoft.CognitiveServices.Speech;
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
-using Microsoft.CognitiveServices.Speech;
-using Microsoft.CognitiveServices.Speech.Audio;
-using OpenAI;
-using OpenAI.Chat;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using OpenAI.Models;
-using OpenAI.Edits;
-using GPTStudio.Infrastructure;
-using System.Windows.Shapes;
 
 namespace GPTStudio.MVVM.ViewModels
 {
@@ -27,6 +22,10 @@ namespace GPTStudio.MVVM.ViewModels
     {
         [field: NonSerialized]
         public ObservableCollection<ChatGPTMessage> Messages { get; set; }
+
+        [field: NonSerialized]
+        public double CachedScrollOffset { get; set; } = -1d;
+
         public string ID { get; private set; }
         public string CreatedTimestamp { get; private set; }
         public string Name { get; set; }
@@ -40,20 +39,17 @@ namespace GPTStudio.MVVM.ViewModels
     }
 
     [Serializable]
-    internal sealed class ChatGPTMessage 
+    internal sealed class ChatGPTMessage : IMessage
     {
-        public BindableStringBuilder DynamicResponseCallback { get; set; }
+        public BindableStringBuilder ChatCompletion { get; set; }
+        public string Content => ChatCompletion.Text;
         public Role Role { get; set; }
         public ChatGPTMessage(Role role, string content)
         {
             this.Role = role;
-            this.DynamicResponseCallback = new(content);
+            this.ChatCompletion = new(content);
         }
 
-        public static implicit operator Message(ChatGPTMessage msg)
-        {
-            return new Message(msg.Role, msg.DynamicResponseCallback.Text);
-        }
     }
 
     [Serializable]
@@ -130,6 +126,8 @@ namespace GPTStudio.MVVM.ViewModels
     internal sealed class MessengerViewModel : ObservableObject
     {
         public RelayCommand ClearSearchBoxCommand { get; private set; }
+        public RelayCommand ExitChatCommand { get; private set; }
+        public RelayCommand DeleteMessageCommand { get; private set; }
         public AsyncRelayCommand SendMessageCommand { get; private set; }
         public AsyncRelayCommand ListenMessageCommand { get; private set; }
         public static ScrollViewer ChatScrollViewer { get; set; }
@@ -137,6 +135,13 @@ namespace GPTStudio.MVVM.ViewModels
         public event Action<string> AssistantResponseCallback;
 
         private AudioRecorder _audioRecorder;
+
+
+        public bool UsingMarkdown
+        {
+           get => Config.Properties.UsingMarkdown;
+           set => OnPropertyChanged(nameof(UsingMarkdown));
+        }
 
         private bool _isAudioRecording;
         public bool IsAudioRecording
@@ -172,12 +177,23 @@ namespace GPTStudio.MVVM.ViewModels
             get => _selectedChat;
             set
             {
-                if (value.Messages == null)
+                if (value != null)
                 {
-                    if (File.Exists(App.UserdataDirectory + value.ID))
-                        value.Messages = Utils.Common.BinaryDeserialize<ObservableCollection<ChatGPTMessage>>(App.UserdataDirectory + value.ID);
+                    if(value.Messages == null)
+                    {
+                        if (File.Exists(App.UserdataDirectory + value.ID))
+                            value.Messages = Utils.Common.BinaryDeserialize<ObservableCollection<ChatGPTMessage>>(App.UserdataDirectory + value.ID);
+                        else
+                            value.Messages = new();
+                    }
+
+                    if (_selectedChat != null)
+                        _selectedChat.CachedScrollOffset = ChatScrollViewer.VerticalOffset;
+
+                    if (value.CachedScrollOffset != 0d)
+                        ChatScrollViewer.ScrollToVerticalOffset(value.CachedScrollOffset);
                     else
-                        value.Messages = new();
+                        ChatScrollViewer.ScrollToBottom();
                 }
 
                 SetProperty(ref _selectedChat, value);
@@ -248,13 +264,14 @@ namespace GPTStudio.MVVM.ViewModels
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText));
                 ChatScrollViewer.ScrollToBottom();
 
-                var request = new ChatRequest(new List<Message>() { new(Role.User,TypingMessageText)},Model.GPT3_5_Turbo,maxTokens: 550);
+                var request = new ChatRequest(SelectedChat.Messages.TakeLast(5),Model.GPT3_5_Turbo,maxTokens: 550);
+
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ""));
 
                 int counter = 0;
                 var current = SelectedChat.Messages[SelectedChat.Messages.Count - 1];
                 TypingMessageText = null;
-                current.DynamicResponseCallback.Append(". . .");
+                current.ChatCompletion.Append(". . .");
 
                 await api.ChatEndpoint.StreamCompletionAsync(request, result =>
                 {
@@ -262,9 +279,9 @@ namespace GPTStudio.MVVM.ViewModels
                         return;
 
                     if (counter == 0)
-                        current.DynamicResponseCallback.Clear();
+                        current.ChatCompletion.Clear();
 
-                    current.DynamicResponseCallback.Append(result.FirstChoice);
+                    current.ChatCompletion.Append(result.FirstChoice);
                     App.Current.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
                     counter++;
                 });
@@ -281,6 +298,20 @@ namespace GPTStudio.MVVM.ViewModels
                 {
                     using var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(o as string);
                 }
+            });
+
+            ExitChatCommand = new(o => SelectedChat = null);
+
+            DeleteMessageCommand = new(o =>
+            {
+                var selected = (IList)o;
+                
+                while(selected.Count != 0)
+                {
+                    _selectedChat.Messages.Remove(selected[0] as ChatGPTMessage);
+                }
+
+                Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
             });
         }
 

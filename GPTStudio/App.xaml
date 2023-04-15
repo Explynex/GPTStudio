@@ -14,6 +14,7 @@
             <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
             <converters:BooleanToVisibilityConverter x:Key="BoolToVisInverted" True="Collapsed" False="Visible"/>
             <converters:InvertedBooleanConverter x:Key="BoolInverter" True="False" False="True"/>
+            <converters:IndexToVisConverter x:Key="IndexToVisibility"/>
 
             <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
                 <Setter Property="SnapsToDevicePixels" Value="True"/>

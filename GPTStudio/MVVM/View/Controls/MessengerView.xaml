@@ -11,7 +11,105 @@
              d:DataContext="{d:DesignInstance viewmodels:MessengerViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-      
+
+        <Style x:Key="ListBoxItemIcon" TargetType="icon:PackIconFontAwesome">
+            <Setter Property="Kind" Value="HubspotBrands"/>
+            <Setter Property="Tag" Value="Chat GPT"/>
+            <Setter Property="Width" Value="20"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Role}" Value="User">
+                    <Setter Property="Kind" Value="UserRegular"/>
+                    <Setter Property="Tag" Value="Me"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="MarkdownTemplate" DataType="ListBoxItem">
+            <Border Background="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBoxItem}},Path=Tag}" Height="Auto" CornerRadius="0 15 15 15" Padding="10">
+                <Grid>
+                    <DockPanel VerticalAlignment="Top">
+                        <icon:PackIconFontAwesome x:Name="icon" Style="{StaticResource ListBoxItemIcon}"/>
+
+                        <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
+
+                        <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
+                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
+                                            CommandParameter="{Binding ChatCompletion.Text}">
+                            <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
+                        </Button>
+
+                        <ToggleButton x:Name="LockContext" Style="{StaticResource DynamicContentButton}" Margin="0 4 0 0" 
+                                      Tag="{x:Static icon:PackIconFontAwesomeKind.UnlockSolid}" Width="11" Height="11"
+                                      Content="{x:Static icon:PackIconFontAwesomeKind.LockSolid}" HorizontalAlignment="Right"/>
+
+                    </DockPanel>
+
+                    <mdxam:MarkdownScrollViewer Markdown="{Binding ChatCompletion.Text}" Background="Transparent" FocusVisualStyle="{x:Null}" IsHitTestVisible="{Binding ElementName=LockContext,Path=IsChecked}"
+                                                SelectionOpacity="0.3" SelectionBrush="{DynamicResource PrimarySubBrush}"
+                                                Foreground="{DynamicResource PrimaryForegroundBrush}" Margin="30 25 0 0" >
+                        <mdxam:MarkdownScrollViewer.MarkdownStyle>
+                            <Style TargetType="FlowDocument" BasedOn="{x:Static mdxam:MarkdownStyle.GithubLike}">
+                                <Setter Property="FontSize" Value="13"/>
+                                <!-- <Setter Property="MaxPageWidth" Value="{Binding Path=Tag,RelativeSource={RelativeSource FindAncestor, AncestorType=mdxam:MarkdownScrollViewer}}"/> -->
+                                <Style.Resources>
+                                    <Style TargetType="avalonEdit:TextEditor" xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit">
+                                        <Setter Property="Background"      Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                        <Setter Property="BorderBrush"     Value="{DynamicResource PurpleGradient}"/>
+                                        <Setter Property="BorderThickness" Value="0,2,0,2"/>
+                                        <Setter Property="Foreground" Value="#fff"/>
+                                        <Setter Property="Padding"                       Value="5"/>
+                                    </Style>
+
+                                    <Style TargetType="Run">
+                                        <Style.Triggers>
+                                            <Trigger Property="Tag" Value="CodeSpan">
+                                                <Setter Property="FontFamily" Value="Courier New"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
+                                                <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                    <Style TargetType="Span">
+                                        <Style.Triggers>
+                                            <Trigger Property="Tag" Value="CodeSpan">
+                                                <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
+                                                <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Style.Resources>
+                            </Style>
+                        </mdxam:MarkdownScrollViewer.MarkdownStyle>
+                    </mdxam:MarkdownScrollViewer>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TextTemplate" DataType="ListBoxItem">
+            <Border HorizontalAlignment="Left" Background="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBoxItem}},Path=Tag}"
+                    CornerRadius="0 15 15 15" Padding="10">
+                <Grid>
+
+                    <StackPanel Orientation="Horizontal">
+                        <icon:PackIconFontAwesome x:Name="icon" Style="{StaticResource ListBoxItemIcon}"/>
+
+                        <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
+
+                        <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
+                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
+                                            CommandParameter="{Binding ChatCompletion.Text}">
+                            <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
+                        </Button>
+                    </StackPanel>
+
+                    <TextBox Background="Transparent" BorderThickness="0" BorderBrush="Transparent"
+                             SelectionOpacity="0.3" SelectionBrush="{DynamicResource PrimarySubBrush}"
+                             Text="{Binding ChatCompletion.Text,Mode=OneWay}" IsReadOnly="True" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7" TextWrapping="WrapWithOverflow"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </UserControl.Resources>
     
     <Grid>
@@ -66,8 +164,8 @@
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>
                             <Style.Resources>
-                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource PrimarySubColor}" />
-                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{DynamicResource PrimarySubColor}" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource TertiaryBackgroundColor}" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{DynamicResource TertiaryBackgroundColor}" />
                             </Style.Resources>
                         </Style>
                     </ListBox.ItemContainerStyle>
@@ -109,60 +207,76 @@
                 </Grid>
             </Border>
 
-            <ListBox x:Name="messages" BorderThickness="0" Margin="0 50 0 60" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     Background="Transparent"
+            <ListBox x:Name="messages" BorderThickness="0" Margin="0 45 0 57" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     Background="Transparent" 
                      VerticalAlignment="Bottom" ItemsSource="{Binding SelectedChat.Messages}"
                      VirtualizingPanel.ScrollUnit="Pixel"
-                     VirtualizingPanel.VirtualizationMode="Recycling"
-                     Padding="0 0 10 0" ScrollViewer.ScrollChanged="messages_ScrollChanged"
+                     Padding="0 0 10 0" SelectionMode="Multiple"
                      ScrollViewer.CanContentScroll="True">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Border x:Name="border" Height="Auto" CornerRadius="0 15 15 15" Padding="10" Margin="0 0 0 10">
-                            <Grid>
-
-                                <StackPanel Orientation="Horizontal">
-                                    <icon:PackIconFontAwesome x:Name="icon" Width="20" Height="20" Foreground="{DynamicResource PurpleGradient1}">
-                                        <icon:PackIconFontAwesome.Style>
-                                            <Style TargetType="icon:PackIconFontAwesome">
-                                                <Setter Property="Kind" Value="HubspotBrands"/>
-                                                <Setter Property="Tag" Value="Chat GPT"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Role}" Value="User">
-                                                        <Setter Property="Kind" Value="UserRegular"/>
-                                                        <Setter Property="Tag" Value="Me"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </icon:PackIconFontAwesome.Style>
-                                    </icon:PackIconFontAwesome>
-                                    <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
-
-                                    <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
-                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
-                                            CommandParameter="{Binding DynamicResponseCallback.Text}">
-                                        <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
-                                    </Button>
-                                </StackPanel>
-
-                                <TextBlock Text="{Binding DynamicResponseCallback.Text}" Margin="30 25 0 0" Foreground="#fff" Opacity="0.7" TextWrapping="WrapWithOverflow"/>
-                            </Grid>
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Role}" Value="user">
-                                            <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
-
-
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
+                <ListBox.Style>
+                    <Style TargetType="ListBox">
+                        <Setter Property="ItemsControl.ItemTemplate" Value="{StaticResource TextTemplate}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding UsingMarkdown}" Value="True">
+                                <Setter Property="ItemsControl.ItemTemplate" Value="{StaticResource MarkdownTemplate}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.Style>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Margin" Value="2 0 0 10"/>
+                        
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                    <Grid Background="Transparent" MouseLeftButtonDown="Border_PreviewMouseLeftButtonDown" PreviewMouseRightButtonDown="PreviewCancelRightMouseButton">
+                                        <ContentPresenter />
+                                    </Grid>
+                                    
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        
+                        <Setter Property="Tag" Value="{DynamicResource SecondaryBackgroundBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Role}" Value="user">
+                                <Setter Property="Tag" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                            </DataTrigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Tag" Value="{DynamicResource SecondarySubBrush}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
             </ListBox>
+
+            <Border VerticalAlignment="Top" Margin="0 3 0 0" CornerRadius="3" Height="35" Background="#202036">
+                <DockPanel>
+                    <Button VerticalAlignment="Center" Height="30" Width="30" Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Left" Margin="10 0 0 0" IsCancel="True"
+                            Command="{Binding ExitChatCommand}">
+                        <icon:FontAwesome Kind="ArrowLeftSolid"/>
+                    </Button>
+                    <TextBlock Text="{Binding SelectedChat.Name}" Foreground="#FFF" Opacity="0.8"
+                               VerticalAlignment="Center" HorizontalAlignment="Left" Margin="30 0 0 0" FontSize="15"
+                               FontWeight="Medium"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 0 10 0"
+                                Visibility="{Binding ElementName=messages,Path=SelectedIndex,Converter={StaticResource IndexToVisibility}}">
+                        <Button Style="{StaticResource ModernFlatButton}" Background="{DynamicResource PurpleGradient1}" BorderThickness="3"
+                                ContentStringFormat="Delete {0}" Padding="15 5" Height="28" FontWeight="Medium" Width="100" Foreground="#F5F5F5"
+                                Content="{Binding ElementName=messages,Path=SelectedItems.Count}"
+                                Command="{Binding DeleteMessageCommand}"
+                                CommandParameter="{Binding ElementName=messages,Path=SelectedItems}"/>
+
+                        <Button Style="{StaticResource ModernSpinButton}" Width="15" Height="15"
+                        VerticalAlignment="Center" Margin="10 0 0 0" Click="UnselectAllMessages" >
+                            <icon:FontAwesome Kind="TimesSolid" Width="15" Height="15"/>
+                        </Button>
+
+                    </StackPanel>
+                </DockPanel>
+                
+            </Border>
         </Grid>
 
 

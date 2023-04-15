@@ -20,58 +20,25 @@ namespace GPTStudio.MVVM.View.Controls
             viewModel = new MessengerViewModel();
             DataContext = viewModel;
             MessengerViewModel.ChatScrollViewer = Utils.Presentation.GetDescendantByType(messages, typeof(ScrollViewer)) as ScrollViewer;
-            MessengerViewModel.ChatScrollViewer.Loaded += (sender, e) => MessengerViewModel.ChatScrollViewer.ScrollToEnd();
         }
 
-        private async void Button_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void Border_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-           /* await Task.Run(async () =>
+            var IsAlreadySelected = messages.SelectedIndex != -1;
+            if (!IsAlreadySelected && e.ClickCount != 2)
             {
-                var openAiService = new OpenAIService(new OpenAiOptions()
-                {
-                    ApiKey = "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"
-                });
+                e.Handled = true;
+                return;
+            }
 
-                var completionResult = openAiService.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest
-                {
-                    Messages = new List<ChatMessage>
-    {
-                    new(StaticValues.ChatMessageRoles.User, str),
-    },
-                    Model = Models.ChatGpt3_5Turbo,
-                    MaxTokens = 150//optional
-                });
-
-                await foreach (var completion in completionResult)
-                {
-                    if (completion.Successful)
-                    {
-                        Update(completion.Choices.First().Message.Content);
-                    }
-                    else
-                    {
-                        if (completion.Error == null)
-                        {
-                            throw new Exception("Unknown Error");
-                        }
-
-                        Console.WriteLine($"{completion.Error.Code}: {completion.Error.Message}");
-                    }
-                }
-            });*/
-            
+            var s = (sender as Grid).TemplatedParent as ListBoxItem;
+            s.IsSelected = !s.IsSelected;
+            e.Handled = true;
         }
-        private void messages_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-/*            if (MessengerViewModel.ChatScrollViewer.ContentVerticalOffset != 0 && e.VerticalChange != 0 && MessengerViewModel.ChatScrollViewer.ContentVerticalOffset < 300)
-            {
-                messages.ItemsSource = viewModel.SelectedChat.Messages.Take(messages.Items.Count + 10);
-                MessengerViewModel.ChatScrollViewer.ScrollToVerticalOffset(600);
-            }*/
 
+        private void PreviewCancelRightMouseButton(object sender, System.Windows.Input.MouseButtonEventArgs e) => e.Handled = true;
 
-
-        }
+        private void UnselectAllMessages(object sender, RoutedEventArgs e) => messages.UnselectAll();
     }
 
 }
