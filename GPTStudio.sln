@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GPTStudio", "GPTStudio\GPTStudio.csproj", "{5E5735A9-6A36-4D95-BF80-9EE1D22D3B60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPTStudio.Open-AI", "GPTStudio.Open-AI\GPTStudio.Open-AI.csproj", "{12C23EF1-9016-4887-939F-ADD3C72400C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GPTStudio.Open-AI", "GPTStudio.Open-AI\GPTStudio.Open-AI.csproj", "{12C23EF1-9016-4887-939F-ADD3C72400C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

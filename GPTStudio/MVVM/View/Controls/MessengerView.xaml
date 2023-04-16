@@ -7,6 +7,7 @@
              xmlns:local="clr-namespace:GPTStudio.MVVM.View.Controls"
              xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
              xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
+             xmlns:mde="clr-namespace:MdXaml;assembly=MdXaml.Ext"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewmodels:MessengerViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -71,12 +72,41 @@
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
+
                                     <Style TargetType="Span">
                                         <Style.Triggers>
                                             <Trigger Property="Tag" Value="CodeSpan">
                                                 <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
                                                 <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
                                             </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+
+                                    <Style TargetType="Table">
+                                        <Setter Property="CellSpacing" Value="0"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource PurpleGradient1}"/>
+                                    </Style>
+
+                                    <Style TargetType="TableRowGroup">
+                                        <Style.Triggers>
+                                            <Trigger Property="Tag" Value="TableHeader">
+                                                <Setter Property="FontWeight" Value="Medium"/>
+                                                <Setter Property="Background" Value="{DynamicResource PurpleGradient1}"/>
+                                                <Setter Property="Foreground" Value="#fff"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+
+                                    <Style TargetType="TableCell">
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>
+                                        <Setter Property="Padding" Value="2"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TableRow}}, Path=Tag}" Value="EvenTableRow">
+                                                <Setter Property="Background" Value="{DynamicResource PrimarySubBrush}"/>
+                                                <Setter Property="BorderThickness" Value="0"/>
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Style.Resources>
@@ -212,7 +242,8 @@
                      VerticalAlignment="Bottom" ItemsSource="{Binding SelectedChat.Messages}"
                      VirtualizingPanel.ScrollUnit="Pixel"
                      Padding="0 0 10 0" SelectionMode="Multiple"
-                     ScrollViewer.CanContentScroll="True">
+                     ScrollViewer.CanContentScroll="True"
+                     VirtualizingPanel.IsVirtualizing="True">
                 <ListBox.Style>
                     <Style TargetType="ListBox">
                         <Setter Property="ItemsControl.ItemTemplate" Value="{StaticResource TextTemplate}"/>

@@ -14,6 +14,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Windows.Controls;
+using Azure.AI.TextAnalytics;
+using Azure;
+using LanguageDetection;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GPTStudio.MVVM.ViewModels
 {
@@ -135,7 +140,8 @@ namespace GPTStudio.MVVM.ViewModels
         public event Action<string> AssistantResponseCallback;
 
         private AudioRecorder _audioRecorder;
-
+        private LanguageDetector langDetector;
+        private bool isNowListeting;
 
         public bool UsingMarkdown
         {
@@ -200,9 +206,22 @@ namespace GPTStudio.MVVM.ViewModels
             }
         }
 
+        private string GetSpeechVoice(string msg) => langDetector.Detect(msg) switch
+        {
+            "ru" => "ru-RU-SvetlanaNeural",
+            "uk" => "uk-UA-OstapNeural",
+            "en" => "en-US-SteffanNeural",
+            _ => null
+        };
+
         public MessengerViewModel()
         {
-
+            langDetector = new();
+            langDetector.AddLanguages("ru", "uk", "en");
+/*            AzureKeyCredential credentials = new AzureKeyCredential("ec76fe4cefc047f8b745d72645be2327");
+            Uri endpoint = new Uri("https://explynetextanalytics.cognitiveservices.azure.com/");
+            var client = new TextAnalyticsClient(endpoint, credentials);
+            DetectedLanguage detectedLanguage = client.DetectLanguage("Ce document est rédigé en Français.");*/
             Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats");
 
             /*            for (int i = 0; i < 100; i++)
@@ -264,14 +283,15 @@ namespace GPTStudio.MVVM.ViewModels
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText));
                 ChatScrollViewer.ScrollToBottom();
 
-                var request = new ChatRequest(SelectedChat.Messages.TakeLast(5),Model.GPT3_5_Turbo,maxTokens: 550);
+                var request = new ChatRequest(SelectedChat.Messages.TakeLast(10),Model.GPT3_5_Turbo,maxTokens: 550);
 
-                SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ""));
+                SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ". . ."));
 
                 int counter = 0;
                 var current = SelectedChat.Messages[SelectedChat.Messages.Count - 1];
                 TypingMessageText = null;
-                current.ChatCompletion.Append(". . .");
+                List<string> list = new();
+                StringBuilder sentece = new();
 
                 await api.ChatEndpoint.StreamCompletionAsync(request, result =>
                 {
@@ -281,23 +301,73 @@ namespace GPTStudio.MVVM.ViewModels
                     if (counter == 0)
                         current.ChatCompletion.Clear();
 
+                    sentece.Append(result.FirstChoice);
+
                     current.ChatCompletion.Append(result.FirstChoice);
+                    
+                    if (result.FirstChoice == ".")
+                    {
+                        if (!isNowListeting)
+                        {
+                            if(list.Count == 0)
+                                ListenMessageCommand.Execute(sentece.ToString());
+                            else
+                            {
+                                ListenMessageCommand.Execute(list[0]);
+                                list.RemoveAt(0);
+                            }
+                        }
+                        else
+                            list.Add(sentece.ToString());
+                        sentece.Clear();
+                    }
+                    else if(list.Count != 0 && !isNowListeting)
+                    {
+                        ListenMessageCommand.Execute(list[0]);
+                        list.RemoveAt(0);
+                    }
+                        
+
                     App.Current.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
                     counter++;
                 });
+
+                if(list.Count != 0)
+                {
+                    while(true)
+                    {
+                        if(!isNowListeting)
+                        {
+                            ListenMessageCommand.Execute(string.Join("", list));
+                            break;
+                        }
+                        await Task.Delay(300);
+                    }
+                }
+                    
+
                 Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
             });
 
-            ListenMessageCommand = new AsyncRelayCommand(async(o) =>
+            var speechConfig = SpeechConfig.FromSubscription(Config.Properties.AzureAPIKey, Config.Properties.AzureSpeechRegion);
+            ListenMessageCommand = new AsyncRelayCommand(async (o) =>
             {
-                var speechConfig = SpeechConfig.FromSubscription(Config.Properties.AzureAPIKey, Config.Properties.AzureSpeechRegion);
-                speechConfig.SpeechSynthesisVoiceName = "en-US-EricNeural";
 
-
-                using (var speechSynthesizer = new SpeechSynthesizer(speechConfig))
+                isNowListeting = true;
+                var voice = GetSpeechVoice((o as string).Length > 50 ? (o as string)[..50] : o as string);
+                if (voice == null)
                 {
-                    using var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(o as string);
+                    isNowListeting = false;
+                    return;
                 }
+                    
+
+                speechConfig.SpeechSynthesisVoiceName = voice;
+
+                
+                using var speechSynthesizer = new SpeechSynthesizer(speechConfig);
+                using var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(o as string);
+                isNowListeting = false;
             });
 
             ExitChatCommand = new(o => SelectedChat = null);
