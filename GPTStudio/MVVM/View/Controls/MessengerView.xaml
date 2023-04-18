@@ -7,7 +7,6 @@
              xmlns:local="clr-namespace:GPTStudio.MVVM.View.Controls"
              xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
              xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
-             xmlns:mde="clr-namespace:MdXaml;assembly=MdXaml.Ext"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewmodels:MessengerViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -37,7 +36,7 @@
 
                         <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
                                             Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
-                                            CommandParameter="{Binding ChatCompletion.Text}">
+                                            CommandParameter="{Binding}">
                             <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
                         </Button>
 
@@ -127,11 +126,12 @@
 
                         <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
 
-                        <Button Style="{StaticResource ModernFlatButton}" VerticalAlignment="Top" Margin="10 4 0 0"
-                                            Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
-                                            CommandParameter="{Binding ChatCompletion.Text}">
-                            <icon:PackIconFontAwesome Kind="VolumeDownSolid" Height="11" Width="11"/>
-                        </Button>
+
+                        <ToggleButton Style="{StaticResource DynamicContentButton}" Margin="10 4 0 0" 
+                                      Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
+                                      CommandParameter="{Binding}" VerticalAlignment="Top" IsChecked="{Binding IsMessageListening}"
+                                      Tag="{x:Static icon:PackIconFontAwesomeKind.VolumeMuteSolid}" Width="11" Height="11"
+                                      Content="{x:Static icon:PackIconFontAwesomeKind.VolumeDownSolid}" HorizontalAlignment="Right"/>
                     </StackPanel>
 
                     <TextBox Background="Transparent" BorderThickness="0" BorderBrush="Transparent"

@@ -1,24 +1,20 @@
 ﻿using GPTStudio.Infrastructure;
+using GPTStudio.Infrastructure.Azure;
 using GPTStudio.MVVM.Core;
 using GPTStudio.OpenAI;
 using GPTStudio.OpenAI.Chat;
 using GPTStudio.OpenAI.Models;
 using GPTStudio.Utils;
-using Microsoft.CognitiveServices.Speech;
+using LanguageDetection;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Windows.Controls;
-using Azure.AI.TextAnalytics;
-using Azure;
-using LanguageDetection;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace GPTStudio.MVVM.ViewModels
 {
@@ -44,8 +40,22 @@ namespace GPTStudio.MVVM.ViewModels
     }
 
     [Serializable]
-    internal sealed class ChatGPTMessage : IMessage
+    internal sealed class ChatGPTMessage : IMessage, INotifyPropertyChanged
     {
+        [field: NonSerialized]
+        private bool _isMessageListening;
+        [field: NonSerialized]
+        public event PropertyChangedEventHandler PropertyChanged;
+        public bool IsMessageListening
+        {
+            get => _isMessageListening;
+            set
+            {
+                _isMessageListening = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsMessageListening)));
+            }
+        }
+
         public BindableStringBuilder ChatCompletion { get; set; }
         public string Content => ChatCompletion.Text;
         public Role Role { get; set; }
@@ -55,15 +65,16 @@ namespace GPTStudio.MVVM.ViewModels
             this.ChatCompletion = new(content);
         }
 
+        
     }
 
     [Serializable]
     public class BindableStringBuilder : INotifyPropertyChanged
     {
-        private readonly StringBuilder _builder;
-
         [field: NonSerialized]
-        private readonly EventHandler<EventArgs> TextChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private readonly StringBuilder _builder;
         public BindableStringBuilder()            => _builder = new();
         public BindableStringBuilder(string text) => _builder = new(text);
 
@@ -80,53 +91,23 @@ namespace GPTStudio.MVVM.ViewModels
         public void Append(string text)
         {
             _builder.Append(text);
-            TextChanged?.Invoke(this, null);
-            RaisePropertyChanged(() => Text);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Text)));
         }
 
         public void AppendLine(string text)
         {
             _builder.AppendLine(text);
-            TextChanged?.Invoke(this, null);
-            RaisePropertyChanged(() => Text);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Text)));
         }
 
         public void Clear()
         {
             _builder.Clear();
-            TextChanged?.Invoke(this, null);
-            RaisePropertyChanged(() => Text);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Text)));
         }
-
-        #region INotifyPropertyChanged Members
-        [field: NonSerialized]
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void RaisePropertyChanged(string property)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
-        }
-
-        public void RaisePropertyChanged<T>(Expression<Func<T>> propertyExpression)
-        {
-            if (propertyExpression == null)
-            {
-                return;
-            }
-
-            var handler = PropertyChanged;
-
-            if (handler != null)
-            {
-                var body = propertyExpression.Body as MemberExpression;
-                if (body != null)
-                    handler(this, new PropertyChangedEventArgs(body.Member.Name));
-            }
-        }
-
-        #endregion
 
     }
+    
 
     internal sealed class MessengerViewModel : ObservableObject
     {
@@ -141,7 +122,9 @@ namespace GPTStudio.MVVM.ViewModels
 
         private AudioRecorder _audioRecorder;
         private LanguageDetector langDetector;
-        private bool isNowListeting;
+
+        private SpeechHandler speechHandler;
+        private bool IsNowListeting;
 
         public bool UsingMarkdown
         {
@@ -216,6 +199,9 @@ namespace GPTStudio.MVVM.ViewModels
 
         public MessengerViewModel()
         {
+            speechHandler = new(Config.Properties.AzureAPIKey,Config.Properties.AzureSpeechRegion);
+            
+           // speechHandler.GetOAuthToken();
             langDetector = new();
             langDetector.AddLanguages("ru", "uk", "en");
 /*            AzureKeyCredential credentials = new AzureKeyCredential("ec76fe4cefc047f8b745d72645be2327");
@@ -305,34 +291,13 @@ namespace GPTStudio.MVVM.ViewModels
 
                     current.ChatCompletion.Append(result.FirstChoice);
                     
-                    if (result.FirstChoice == ".")
-                    {
-                        if (!isNowListeting)
-                        {
-                            if(list.Count == 0)
-                                ListenMessageCommand.Execute(sentece.ToString());
-                            else
-                            {
-                                ListenMessageCommand.Execute(list[0]);
-                                list.RemoveAt(0);
-                            }
-                        }
-                        else
-                            list.Add(sentece.ToString());
-                        sentece.Clear();
-                    }
-                    else if(list.Count != 0 && !isNowListeting)
-                    {
-                        ListenMessageCommand.Execute(list[0]);
-                        list.RemoveAt(0);
-                    }
                         
 
                     App.Current.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
                     counter++;
                 });
 
-                if(list.Count != 0)
+             /*   if(list.Count != 0)
                 {
                     while(true)
                     {
@@ -343,31 +308,44 @@ namespace GPTStudio.MVVM.ViewModels
                         }
                         await Task.Delay(300);
                     }
-                }
+                }*/
                     
 
                 Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
             });
 
-            var speechConfig = SpeechConfig.FromSubscription(Config.Properties.AzureAPIKey, Config.Properties.AzureSpeechRegion);
+            
             ListenMessageCommand = new AsyncRelayCommand(async (o) =>
             {
-
-                isNowListeting = true;
-                var voice = GetSpeechVoice((o as string).Length > 50 ? (o as string)[..50] : o as string);
-                if (voice == null)
+                var sender = o as ChatGPTMessage;
+                if (speechHandler.IsSpeaking)
                 {
-                    isNowListeting = false;
+                    speechHandler.StopSpeaking();
                     return;
                 }
-                    
+                var voice = GetSpeechVoice(sender.Content.Length > 50 ? sender.Content[..50] : sender.Content);
+                if (voice == null)
+                {
+                    return;
+                }
 
-                speechConfig.SpeechSynthesisVoiceName = voice;
 
-                
-                using var speechSynthesizer = new SpeechSynthesizer(speechConfig);
-                using var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(o as string);
-                isNowListeting = false;
+                /*                speechConfig.SpeechSynthesisVoiceName = voice;
+                                using (var speechSynthesizer = new SpeechSynthesizer(speechConfig))
+                                {
+                                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync("");
+                                }*/
+
+                sender.IsMessageListening = true;
+                speechHandler.SpeakAsync(sender.Content, voice, new Action(() => 
+                {
+                    sender.IsMessageListening = false;
+                })) ;
+
+
+
+                // await speechSynthesizer.StartSpeakingTextAsync();
+
             });
 
             ExitChatCommand = new(o => SelectedChat = null);
@@ -384,6 +362,6 @@ namespace GPTStudio.MVVM.ViewModels
                 Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
             });
         }
-
     }
+
 }

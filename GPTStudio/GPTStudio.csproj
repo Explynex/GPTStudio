@@ -27,11 +27,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.AI.TextAnalytics" Version="5.2.0" />
     <PackageReference Include="LanguageDetection" Version="1.2.0" />
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.11.0" />
     <PackageReference Include="MdXaml" Version="1.17.0" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.27.0" />
     <PackageReference Include="NAudio" Version="2.1.0" />
   </ItemGroup>
 
