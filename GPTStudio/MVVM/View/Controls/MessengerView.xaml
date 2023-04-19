@@ -17,11 +17,13 @@
             <Setter Property="Tag" Value="Chat GPT"/>
             <Setter Property="Width" Value="20"/>
             <Setter Property="Height" Value="20"/>
+            <Setter Property="IsHitTestVisible" Value="True"/>
             <Setter Property="Foreground" Value="{DynamicResource PurpleGradient1}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Role}" Value="User">
                     <Setter Property="Kind" Value="UserRegular"/>
                     <Setter Property="Tag" Value="Me"/>
+                    <Setter Property="IsHitTestVisible" Value="False"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -128,10 +130,12 @@
 
 
                         <ToggleButton Style="{StaticResource DynamicContentButton}" Margin="10 4 0 0" 
+                                      Visibility="{Binding ElementName=icon,Path=IsHitTestVisible,Converter={StaticResource BoolToVis}}"
                                       Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
-                                      CommandParameter="{Binding}" VerticalAlignment="Top" IsChecked="{Binding IsMessageListening}"
-                                      Tag="{x:Static icon:PackIconFontAwesomeKind.VolumeMuteSolid}" Width="11" Height="11"
-                                      Content="{x:Static icon:PackIconFontAwesomeKind.VolumeDownSolid}" HorizontalAlignment="Right"/>
+                                      CommandParameter="{Binding}" IsChecked="{Binding IsMessageListening,Mode=OneWay}"
+                                      Tag="{x:Static icon:PackIconFontAwesomeKind.StopSolid}" Width="11" Height="11"
+                                      Content="{x:Static icon:PackIconFontAwesomeKind.VolumeDownSolid}" 
+                                      HorizontalAlignment="Right" VerticalAlignment="Top"/>
                     </StackPanel>
 
                     <TextBox Background="Transparent" BorderThickness="0" BorderBrush="Transparent"

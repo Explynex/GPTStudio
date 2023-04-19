@@ -1,5 +1,6 @@
 ﻿using GPTStudio.Infrastructure;
 using GPTStudio.Infrastructure.Azure;
+using GPTStudio.Infrastructure.Models;
 using GPTStudio.MVVM.Core;
 using GPTStudio.OpenAI;
 using GPTStudio.OpenAI.Chat;
@@ -13,7 +14,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 
 namespace GPTStudio.MVVM.ViewModels
@@ -78,15 +82,9 @@ namespace GPTStudio.MVVM.ViewModels
         public BindableStringBuilder()            => _builder = new();
         public BindableStringBuilder(string text) => _builder = new(text);
 
-        public string Text
-        {
-            get { return _builder.ToString(); }
-        }
-
-        public int Count
-        {
-            get { return _builder.Length; }
-        }
+        public string Text => _builder.ToString();
+        public int Count => _builder.Length; 
+        
 
         public void Append(string text)
         {
@@ -108,7 +106,6 @@ namespace GPTStudio.MVVM.ViewModels
 
     }
     
-
     internal sealed class MessengerViewModel : ObservableObject
     {
         public RelayCommand ClearSearchBoxCommand { get; private set; }
@@ -118,13 +115,11 @@ namespace GPTStudio.MVVM.ViewModels
         public AsyncRelayCommand ListenMessageCommand { get; private set; }
         public static ScrollViewer ChatScrollViewer { get; set; }
 
-        public event Action<string> AssistantResponseCallback;
 
         private AudioRecorder _audioRecorder;
         private LanguageDetector langDetector;
 
         private SpeechHandler speechHandler;
-        private bool IsNowListeting;
 
         public bool UsingMarkdown
         {
@@ -200,49 +195,15 @@ namespace GPTStudio.MVVM.ViewModels
         public MessengerViewModel()
         {
             speechHandler = new(Config.Properties.AzureAPIKey,Config.Properties.AzureSpeechRegion);
-            
-           // speechHandler.GetOAuthToken();
             langDetector = new();
             langDetector.AddLanguages("ru", "uk", "en");
-/*            AzureKeyCredential credentials = new AzureKeyCredential("ec76fe4cefc047f8b745d72645be2327");
-            Uri endpoint = new Uri("https://explynetextanalytics.cognitiveservices.azure.com/");
-            var client = new TextAnalyticsClient(endpoint, credentials);
-            DetectedLanguage detectedLanguage = client.DetectLanguage("Ce document est rédigé en Français.");*/
             Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats");
-
-            /*            for (int i = 0; i < 100; i++)
-                        {
-                            Chats[0].Messages.Add(new ChatGPTMessage(Role.User, "Конечно, вот пример кода на Python, который выводит на консоль \"Hello World\":\n\n```\nprint(\"Hello World!\")\n```\n\nЭтот код использует функцию `print()` для вывода строки \"Hello World!\" на консоль. Когда вы запустите этот код, вы должны увидеть сообщение \"Hello World!\" в консоли."));
-                        }
-
-                        for (int i = 0; i < 100; i++)
-                        {
-                            Chats[1].Messages.Add(new ChatGPTMessage(Role.User, "\n```\nprint(\"Hello World!\")\n```\n\nЭтот код используе)` для вывода ст апуститеHello World!\\ в консоли."));
-                        }*/
 
             ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
 
             SendMessageCommand = new AsyncRelayCommand(async (o) =>
             {
                 var api = new OpenAIClient(Config.Properties.OpenAIAPIKey);
-                /*                var autoDetectSourceLanguageConfig =
-                                    AutoDetectSourceLanguageConfig.FromLanguages(
-                                        new string[] { "en-US", "de-DE", "zh-CN", "ru-RU" });
-
-                                using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
-                                using (var recognizer = new SpeechRecognizer(
-                                    speechConfig,
-                                    autoDetectSourceLanguageConfig,
-                                    audioConfig))
-                                {
-                                    recognizer.Recognized += (sender, e) => { TypingMessageText += e.Result.Text; };
-                                    await recognizer.StartContinuousRecognitionAsync();
-                                    await Task.Delay(10000);
-                                    await recognizer.StopContinuousRecognitionAsync();
-                                    // var result = await api.EditsEndpoint.CreateEditAsync(new EditRequest(TypingMessageText, "Correct punctuation marks without translation"));
-                                    // TypingMessageText = result.ToString();
-                                    return;
-                                }*/
 
                 if (IsAudioRecording)
                 {
@@ -269,7 +230,7 @@ namespace GPTStudio.MVVM.ViewModels
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText));
                 ChatScrollViewer.ScrollToBottom();
 
-                var request = new ChatRequest(SelectedChat.Messages.TakeLast(10),Model.GPT3_5_Turbo,maxTokens: 550);
+                var request = new ChatRequest(SelectedChat.Messages.TakeLast(20),Model.GPT3_5_Turbo,maxTokens: 550);
 
                 SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ". . ."));
 
@@ -277,7 +238,7 @@ namespace GPTStudio.MVVM.ViewModels
                 var current = SelectedChat.Messages[SelectedChat.Messages.Count - 1];
                 TypingMessageText = null;
                 List<string> list = new();
-                StringBuilder sentece = new();
+                StringBuilder sentence = new();
 
                 await api.ChatEndpoint.StreamCompletionAsync(request, result =>
                 {
@@ -287,15 +248,26 @@ namespace GPTStudio.MVVM.ViewModels
                     if (counter == 0)
                         current.ChatCompletion.Clear();
 
-                    sentece.Append(result.FirstChoice);
+                    sentence.Append(result.FirstChoice);
+                    if(result.FirstChoice.ToString() == ".")
+                    {
+                        speechHandler.TextToSpeechQueue.Enqueue(sentence.ToString());
+                        if (!speechHandler.IsSpeaking)
+                            speechHandler.StartQueueSpeaking("ru-RU-SvetlanaNeural");
+                        sentence.Clear();
+                    }
 
                     current.ChatCompletion.Append(result.FirstChoice);
-                    
-                        
 
                     App.Current.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
                     counter++;
                 });
+
+                if(sentence.Length > 0)
+                {
+                    speechHandler.TextToSpeechQueue.Enqueue(sentence.ToString());
+                    sentence.Clear();
+                }
 
              /*   if(list.Count != 0)
                 {
@@ -320,8 +292,14 @@ namespace GPTStudio.MVVM.ViewModels
                 var sender = o as ChatGPTMessage;
                 if (speechHandler.IsSpeaking)
                 {
-                    speechHandler.StopSpeaking();
-                    return;
+                    
+                    if (sender.IsMessageListening)
+                    {
+                        await speechHandler.StopSpeaking();
+                        return;
+                    }
+                    await speechHandler.StopSpeaking();
+
                 }
                 var voice = GetSpeechVoice(sender.Content.Length > 50 ? sender.Content[..50] : sender.Content);
                 if (voice == null)
@@ -330,22 +308,11 @@ namespace GPTStudio.MVVM.ViewModels
                 }
 
 
-                /*                speechConfig.SpeechSynthesisVoiceName = voice;
-                                using (var speechSynthesizer = new SpeechSynthesizer(speechConfig))
-                                {
-                                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync("");
-                                }*/
-
                 sender.IsMessageListening = true;
-                speechHandler.SpeakAsync(sender.Content, voice, new Action(() => 
+                _ = speechHandler.StartSpeaking(sender.Content, voice, (ResponseCode) => 
                 {
                     sender.IsMessageListening = false;
-                })) ;
-
-
-
-                // await speechSynthesizer.StartSpeakingTextAsync();
-
+                });
             });
 
             ExitChatCommand = new(o => SelectedChat = null);
@@ -362,6 +329,44 @@ namespace GPTStudio.MVVM.ViewModels
                 Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
             });
         }
-    }
 
+
+
+        /*        private async Task LoadOAuthToken()
+        {
+            var path = App.UserdataDirectory + "\\azurespeechtoken";
+            if (_azureToken == null && File.Exists(path))
+            {
+                _azureToken = JsonSerializer.Deserialize<OAuthTokenInfo>(File.ReadAllText(path));
+            }
+            else if(_azureToken == null) _azureToken = new();
+
+            if((DateTimeOffset.UtcNow.ToUnixTimeSeconds() - _azureToken.LastUpdateTimestamp) > 540)
+            {
+                _azureToken.Token               = await speechHandler.GetOAuthToken();
+                _azureToken.LastUpdateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                File.WriteAllText(path,JsonSerializer.Serialize<OAuthTokenInfo>(_azureToken));
+            }
+            speechHandler.OAuthToken = _azureToken.Token;
+        }*/
+
+        /*                var autoDetectSourceLanguageConfig =
+                    AutoDetectSourceLanguageConfig.FromLanguages(
+                        new string[] { "en-US", "de-DE", "zh-CN", "ru-RU" });
+
+                using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+                using (var recognizer = new SpeechRecognizer(
+                    speechConfig,
+                    autoDetectSourceLanguageConfig,
+                    audioConfig))
+                {
+                    recognizer.Recognized += (sender, e) => { TypingMessageText += e.Result.Text; };
+                    await recognizer.StartContinuousRecognitionAsync();
+                    await Task.Delay(10000);
+                    await recognizer.StopContinuousRecognitionAsync();
+                    // var result = await api.EditsEndpoint.CreateEditAsync(new EditRequest(TypingMessageText, "Correct punctuation marks without translation"));
+                    // TypingMessageText = result.ToString();
+                    return;
+                }*/
+    }
 }
