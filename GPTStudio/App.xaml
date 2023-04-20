@@ -16,6 +16,8 @@
             <converters:InvertedBooleanConverter x:Key="BoolInverter" True="False" False="True"/>
             <converters:IndexToVisConverter x:Key="IndexToVisibility"/>
 
+            <CircleEase EasingMode="EaseIn" x:Key="DefaultAnimationFunction"/>
+
             <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
                 <Setter Property="SnapsToDevicePixels" Value="True"/>
                 <Setter Property="OverridesDefaultStyle" Value="true"/>

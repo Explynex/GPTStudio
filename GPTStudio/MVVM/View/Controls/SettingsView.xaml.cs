@@ -3,9 +3,6 @@ using System.Windows.Controls;
 
 namespace GPTStudio.MVVM.View.Controls
 {
-    /// <summary>
-    /// Логика взаимодействия для SettingsView.xaml
-    /// </summary>
     public partial class SettingsView : Grid
     {
         internal static Infrastructure.Models.Properties Properties => Config.Properties;

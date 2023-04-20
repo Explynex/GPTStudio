@@ -5,8 +5,9 @@
     <Brush x:Key="SecondaryBackgroundBrush">#24253a</Brush>
     <Brush x:Key="TertiaryBackgroundBrush">#292848</Brush>
     <Brush x:Key="PrimaryForegroundBrush">#b8b8b8</Brush>
+    <Brush x:Key="SecondaryForegroundBrush">#F5F5F5</Brush>
     <Brush x:Key="PrimarySubBrush">#6232d6</Brush>
-    <Brush x:Key="SecondarySubBrush">#3F3D7C</Brush>
+    <Brush x:Key="SecondarySubBrush">#3F3D7C</Brush> 
 
     <LinearGradientBrush x:Key="PurpleGradient" StartPoint="0,0" EndPoint="1,1" >
         <GradientStop Color="#6232d6" Offset="0.1"/>
@@ -18,6 +19,17 @@
     <LinearGradientBrush x:Key="PurpleGradient1" StartPoint="0,0" EndPoint="1,1" >
         <GradientStop Color="#7222db" Offset="0.1"/>
         <GradientStop Color="#6c5ecf" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="LightBlueGradient"  StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Offset="0" Color="#87CEFA"/>
+        <GradientStop Offset="1" Color="#6c5ecf"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="LightPinkGradient"  StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Offset="0" Color="#6c5ecf"/>
+        <GradientStop Offset="1" Color="#EE82EE"/>
+
     </LinearGradientBrush>
 
 

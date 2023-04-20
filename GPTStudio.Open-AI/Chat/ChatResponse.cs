@@ -32,6 +32,6 @@ namespace GPTStudio.OpenAI.Chat
         public IReadOnlyList<Choice> Choices { get; private set; }
 
         [JsonIgnore]
-        public Choice FirstChoice => Choices.FirstOrDefault();
+        public Choice FirstChoice => Choices.Count > 0 ? Choices[^1] : null;
     }
 }

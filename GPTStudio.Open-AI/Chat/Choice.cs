@@ -23,5 +23,7 @@ namespace GPTStudio.OpenAI.Chat
         public override string ToString() => Message?.Content ?? Delta.Content;
 
         public static implicit operator string(Choice choice) => choice.ToString();
+        
+        public char this[Index index] => this.ToString()[index];
     }
 }
