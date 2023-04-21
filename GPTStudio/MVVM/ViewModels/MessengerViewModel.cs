@@ -1,5 +1,6 @@
 ﻿using GPTStudio.Infrastructure;
 using GPTStudio.Infrastructure.Azure;
+using GPTStudio.Infrastructure.Tokenizer;
 using GPTStudio.MVVM.Core;
 using GPTStudio.MVVM.View.Controls;
 using GPTStudio.OpenAI;
@@ -9,10 +10,10 @@ using GPTStudio.Utils;
 using LanguageDetection;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Windows.Controls;
 
@@ -47,6 +48,19 @@ internal sealed class ChatGPTMessage : IMessage, INotifyPropertyChanged
     private bool _isMessageListening;
     [field: NonSerialized]
     public event PropertyChangedEventHandler PropertyChanged;
+
+    private int _tokens;
+
+    public int Tokens
+    {
+        get => _tokens;
+        set
+        {
+            _tokens = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Tokens)));
+        }
+    }
+
     public bool IsMessageListening
     {
         get => _isMessageListening;
@@ -116,6 +130,7 @@ internal sealed class MessengerViewModel : ObservableObject
 
     private AudioRecorder _audioRecorder;
     private LanguageDetector langDetector;
+    private GPTTokenizer tokenizer;
 
     private SpeechHandler speechHandler;
 
@@ -196,9 +211,10 @@ internal sealed class MessengerViewModel : ObservableObject
     public MessengerViewModel()
     {
         speechHandler = new(Config.Properties.AzureAPIKey,Config.Properties.AzureSpeechRegion);
+        tokenizer = new(File.ReadAllText("merges.txt"));
         langDetector = new();
-        langDetector.AddLanguages("uk", "ru", "en");
-        Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats");
+        langDetector.AddLanguages("ru", "en");
+        Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats") ?? new();
 
         ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
 
@@ -228,14 +244,36 @@ internal sealed class MessengerViewModel : ObservableObject
                 return;
             }
 
-            SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText));
+            SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText) { Tokens = tokenizer.Calculate(TypingMessageText)});
             ChatScrollViewer.ScrollToBottom();
 
-            var request = new ChatRequest(SelectedChat.Messages.TakeLast(20),Model.GPT3_5_Turbo,maxTokens: 550);
+            #region Calculating tokens
+            // 4097 tokens max for GPT-3.5-Turbo
+            int tokensCount = 0;
+            var msgList = new List<ChatGPTMessage>();
+            if (!string.IsNullOrEmpty(SelectedChat.PersonaIdentityPrompt))
+            {
+                msgList.Add(new(Role.System, SelectedChat.PersonaIdentityPrompt));
+                tokensCount = tokenizer.Calculate(SelectedChat.PersonaIdentityPrompt);
+            }
+
+            for (int i = SelectedChat.Messages.Count-1; i >= 0; i--)
+            {
+                var msg = SelectedChat.Messages[i];
+
+                if ((tokensCount + msg.Tokens) > 4097)
+                    break;
+
+                tokensCount += msg.Tokens;
+                msgList.Insert(1,SelectedChat.Messages[i]);
+            } 
+            #endregion
+
+            var request = new ChatRequest(msgList, Model.GPT3_5_Turbo,maxTokens: 550);
 
             SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ". . ."));
 
-            int counter = 0;
+            bool cleanWaiting = false;
             var current = SelectedChat.Messages[^1];
             TypingMessageText = null;
             StringBuilder sentence = new();
@@ -243,46 +281,55 @@ internal sealed class MessengerViewModel : ObservableObject
             speechHandler.CompletionEvent = (response) => current.IsMessageListening = false;
             speechHandler.TextToSpeechQueue.Clear();
 
+            #region Streaming response
             await api.ChatEndpoint.StreamCompletionAsync(request, result =>
+    {
+        if (String.IsNullOrEmpty(result.FirstChoice))
+            return;
+
+        if (!cleanWaiting)
+        {
+            current.ChatCompletion.Clear();
+            cleanWaiting = true;
+        }
+
+        if (Config.Properties.AutoSpeakGPTResponses)
+        {
+            sentence.Append(result.FirstChoice);
+
+            if (sentence.Length > 2 && (result.FirstChoice[^1] == '\n' || Regexes.Sentence().IsMatch(sentence.ToString())))
             {
-                if (String.IsNullOrEmpty(result.FirstChoice))
-                    return;
-
-                if (counter == 0)
-                    current.ChatCompletion.Clear();
-
-                if(Config.Properties.AutoSpeakGPTResponses)
-                {
-                    sentence.Append(result.FirstChoice);
-                    var endChar = result.FirstChoice[^1];
-
-                    if (endChar == '!' || endChar == '?' || endChar == '\n')
-                    {
-                        speechHandler.TextToSpeechQueue.Enqueue(sentence.ToString());
-                        if (!speechHandler.IsSpeaking && GetSpeechVoice(sentence.ToString(), out string voice))
-                        {
-                            current.IsMessageListening = true;
-                            speechHandler.StartQueueSpeaking(voice, (200, 5));
-                        }
-
-                        sentence.Clear();
-                    }
-                }
-
-
-                current.ChatCompletion.Append(result.FirstChoice);
-
-                App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
-                counter++;
-            });
-
-            if(sentence.Length > 0)
-            {
-                speechHandler.TextToSpeechQueue.Enqueue(sentence.ToString());
-                sentence.Clear();
+                var lastSlice = sentence[^1];
+                var textSentence = sentence.Remove(sentence.Length - 1, 1).ToString();
+                SpeechChunk(textSentence);
+                sentence.Append(lastSlice);
             }
+        }
+
+        current.ChatCompletion.Append(result.FirstChoice);
+
+        App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
+    });
+
+            current.Tokens = tokenizer.Calculate(current.ChatCompletion.Text);
+
+            if (sentence.Length > 0)
+                SpeechChunk(sentence.ToString()); 
+            #endregion
 
             Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
+
+
+            void SpeechChunk(string chunk)
+            {
+                speechHandler.TextToSpeechQueue.Enqueue(chunk);
+                if (!speechHandler.IsSpeaking && GetSpeechVoice(chunk, out string voice))
+                {
+                    current.IsMessageListening = true;
+                    speechHandler.StartQueueSpeaking(voice, (200, 10));
+                }
+                sentence.Clear();
+            }
         });
 
         

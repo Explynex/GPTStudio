@@ -1,5 +1,9 @@
-﻿using NTextCat.Commons;
+﻿using GPTStudio.MVVM.ViewModels;
+using GPTStudio.Utils;
+using NTextCat.Commons;
+using System.Collections.ObjectModel;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -32,15 +36,31 @@ namespace GPTStudio.MVVM.View.Controls
             {
                 personaIdentity.Append(AssistantGenderButton.IsChecked == true ? "You are female" : "You are male");
                 if (!string.IsNullOrEmpty(AssistantNameBox.Text))
-                    personaIdentity.Append(",your name is ").Append(AssistantNameBox.Text);
+                    personaIdentity.Append(",your name is ").Append(AssistantNameBox.Text.Replace(" ",""));
                 personaIdentity.Append(",any changes are strictly prohibited.");
                 if (!string.IsNullOrEmpty(InterlocutorNameBox.Text))
                 {
-                    personaIdentity.Append("Call the interlocutor \"").Append(InterlocutorNameBox.Text).Append("\",he is ")
+                    personaIdentity.Append("Call the interlocutor \"").Append(InterlocutorNameBox.Text.Replace(" ", "")).Append("\",he is ")
                         .Append(InterlocutorGenderButton.IsArrangeValid == true ? "male" : "female");
                 }
-                    
             }
+
+            var msgVM = (MainWindowViewModel.MessengerV.DataContext as MessengerViewModel);
+            msgVM.Chats.Add(new Chat(chatNameBox.Text)
+            {
+                SpeecherGender = AssistantGenderButton.IsChecked == true,
+                PersonaIdentityPrompt = personaIdentity.Length > 0 ? personaIdentity.ToString() : null,
+            });
+            Common.BinarySerialize(msgVM.Chats, $"{App.UserdataDirectory}\\chats");
+            MainWindowViewModel.ClosePopup();
+
+        }
+
+        private void NameFilter(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            if(!Utils.Regexes.Name().IsMatch(e.Text))
+                e.Handled = true;
+            
         }
     }
 }

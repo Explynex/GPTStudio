@@ -167,7 +167,8 @@ internal class SpeechHandler : IDisposable
                     for (int i = 0; i < TextToSpeechQueue.Count; i++)
                         msgBuilder.Append(TextToSpeechQueue.Dequeue());
                 }
-
+                else if (TextToSpeechQueue.Peek().Length <= 1) continue;
+                
                 result = await OpenMp3SpeechStream(msgBuilder == null ? TextToSpeechQueue.Dequeue() : msgBuilder.ToString(), speecherName);
                 if (result != ESpeechResponse.OK)
                     break;

@@ -10,7 +10,6 @@ internal sealed class MainWindowViewModel : ObservableObject
     public RelayCommand HomeCommand { get; private set; }
     public RelayCommand BookmarksCommand { get; private set; }
     public RelayCommand SettingsCommand { get; private set; }
-    public RelayCommand ClosePopupCommand { get; private set; }
 
     #region Properties
     private object _currentView;
@@ -38,6 +37,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _isPopupActive, value); 
     }
 
+    public static void ClosePopup() => (App.Current.MainWindow.DataContext as MainWindowViewModel).IsPopupActive = false;
 
     public MainWindowViewModel()
     {
@@ -55,12 +55,6 @@ internal sealed class MainWindowViewModel : ObservableObject
                 return;
             }
             IsPopupActive = true;
-        });
-
-        ClosePopupCommand = new(o =>
-        {
-            (o as SettingsView).Visibility = Visibility.Collapsed;
-            IsPopupActive = false;
         });
     }
 }

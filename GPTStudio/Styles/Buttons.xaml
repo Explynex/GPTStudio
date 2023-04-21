@@ -36,29 +36,25 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
                     <Grid Background="Transparent">
-                        <icon:PackIconFontAwesome x:Name="Content" Kind="{TemplateBinding Content}" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
-                        <icon:PackIconFontAwesome x:Name="Content2" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Kind="{TemplateBinding Tag}"/>
+                        <icon:PackIconFontAwesome x:Name="Content" Kind="{TemplateBinding Content}" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Opacity="1"/>
+                        <icon:PackIconFontAwesome x:Name="Content2" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Kind="{TemplateBinding Tag}" Opacity="0"/>
 
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Checked">
                                     <Storyboard>
                                         <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="Content2" 
-                                                                    Storyboard.TargetProperty="Opacity"
-                                                               From="0"  To="1"/>
+                                                                    Storyboard.TargetProperty="Opacity" To="1"/>
                                         <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="Content" 
-                                                                    Storyboard.TargetProperty="Opacity"
-                                                               From="1"  To="0"/>
+                                                                    Storyboard.TargetProperty="Opacity" To="0"/>
                                     </Storyboard>
                                 </VisualState>
                                 <VisualState x:Name="Unchecked">
                                     <Storyboard>
                                         <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="Content2" 
-                                                                    Storyboard.TargetProperty="Opacity"
-                                                               From="1"  To="0"/>
+                                                                    Storyboard.TargetProperty="Opacity" To="0"/>
                                         <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="Content" 
-                                                                    Storyboard.TargetProperty="Opacity"
-                                                               From="0"  To="1"/>
+                                                                    Storyboard.TargetProperty="Opacity"  To="1"/>
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>

@@ -26,6 +26,9 @@ namespace GPTStudio.Utils
 
         public static T BinaryDeserialize<T>(string fullPath)
         {
+            if (!File.Exists(fullPath))
+                return default;
+
             using var file = new FileStream(fullPath, FileMode.Open);
             return (T)ReadObjectFromStream(file);
         }

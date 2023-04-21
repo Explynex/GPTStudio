@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GPTStudio.MVVM.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -83,11 +84,18 @@ namespace GPTStudio.MVVM.View.Extensions
             MarginCloseAnimation = new(new Thickness(0, -300, 0, 0), AnimationsDuration) { EasingFunction = EasingFunction };
 
             OpacityAnimation.Completed += (sender, e) => 
-            { 
-                if(!IsOpen) Visibility = Visibility.Collapsed;
+            {
+                if (!IsOpen)
+                {
+                    Visibility = Visibility.Collapsed;
+                    (App.Current.MainWindow.DataContext as MainWindowViewModel).PopupContent = null;
+                }
             };
         }
 
-        private void HidePopup(object sender, MouseButtonEventArgs e) => IsOpen = false;
+        private void HidePopup(object sender, MouseButtonEventArgs e)
+        {
+            IsOpen = false;
+        }
     }
 }

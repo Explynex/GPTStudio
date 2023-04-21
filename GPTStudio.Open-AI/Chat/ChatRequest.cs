@@ -89,7 +89,9 @@ namespace GPTStudio.OpenAI.Chat
                 throw new ArgumentException($"{Model} is not supported", nameof(model));
             }
 
-            Messages = messages?.ToList();
+            if(messages is not List<IMessage>)
+                Messages = messages?.ToList();
+
             if (Messages?.Count == 0)
             {
                 throw new ArgumentNullException(nameof(messages), $"Missing required {nameof(messages)} parameter");

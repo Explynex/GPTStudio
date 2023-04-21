@@ -123,20 +123,24 @@
                     CornerRadius="0 15 15 15" Padding="10">
                 <Grid>
 
-                    <StackPanel Orientation="Horizontal">
+                    <DockPanel  VerticalAlignment="Top">
                         <icon:PackIconFontAwesome x:Name="icon" Style="{StaticResource ListBoxItemIcon}"/>
 
                         <TextBlock Text="{Binding ElementName=icon,Path=Tag}" Foreground="#fff" FontSize="14" FontWeight="Medium" Margin="10 0 0 0"/>
 
 
-                        <ToggleButton Style="{StaticResource DynamicContentButton}" Margin="10 4 0 0" 
+                        <ToggleButton Style="{StaticResource DynamicContentButton}" Margin="10 4 0 0" d:IsChecked="False"
                                       Visibility="{Binding ElementName=icon,Path=IsHitTestVisible,Converter={StaticResource BoolToVis}}"
                                       Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ListenMessageCommand}"
                                       CommandParameter="{Binding}" IsChecked="{Binding IsMessageListening,Mode=OneWay}"
                                       Tag="{x:Static icon:PackIconFontAwesomeKind.StopSolid}" Width="11" Height="11"
                                       Content="{x:Static icon:PackIconFontAwesomeKind.VolumeDownSolid}" 
                                       HorizontalAlignment="Right" VerticalAlignment="Top"/>
-                    </StackPanel>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="9" Margin="10 0 3 2" Foreground="{DynamicResource PrimaryForegroundBrush}">
+                            <Run Text="Tokens:"/>
+                            <Run Text="{Binding Tokens,Mode=OneWay}" d:Text="125" Foreground="{DynamicResource LightBlueGradient}"/>
+                        </TextBlock>
+                    </DockPanel>
 
                     <TextBox Background="Transparent" BorderThickness="0" BorderBrush="Transparent"
                              SelectionOpacity="0.3" SelectionBrush="{DynamicResource PrimarySubBrush}"
@@ -152,11 +156,20 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-
         <Border Background="{DynamicResource SecondaryBackgroundBrush}">
             <Grid>
                 <TextBox x:Name="ChatSearchBox" Padding="0 0 23 0" MaxLength="60" Text="{Binding SearchBoxText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Tag="Search . . ." Style="{StaticResource ModernTextBox}" Margin="12 35 12 12" VerticalAlignment="Top"/>
 
+                <StackPanel VerticalAlignment="Bottom" d:Visibility="Visible"
+                    Margin="0 0 0 15" Opacity="{Binding ElementName=createNewChatBorder,Path=Tag}"
+                    Visibility="{Binding Chats.Count,Converter={StaticResource BoolToVisInverted}}">
+                    <TextBlock Text="No chats yet, add a new one" Width="130" TextWrapping="Wrap"
+                       HorizontalAlignment="Center" TextAlignment="Center"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}"
+                       FontWeight="Bold" FontSize="18"/>
+                    <icon:PackIconFontAwesome Kind="ArrowDownSolid" HorizontalAlignment="Center" Margin="0 10 0 0"/>
+                </StackPanel>
+                
                 <Button Visibility="{Binding ElementName=ChatSearchBox,Path=Text.Length,Converter={StaticResource BoolToVis}}"
                         Style="{StaticResource ModernSpinButton}" Width="15" Height="15"
                         VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0 47.5 25 0"
@@ -211,6 +224,7 @@
                         <Style TargetType="Border">
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Tag" Value="0"/>
                                     <Trigger.EnterActions>
                                         <BeginStoryboard>
                                             <Storyboard>
@@ -236,13 +250,16 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+                                <Trigger Property="IsMouseOver" Value="False">
+                                    <Setter Property="Tag" Value="0.7"/>
+                                </Trigger>
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
                 </Border>
             </Grid>
         </Border>
-        
+
         <GridSplitter BorderThickness="0" FocusVisualStyle="{x:Null}" Grid.Column="0" Width="3" Background="Transparent"/>
 
         <Grid Grid.Column="1" Margin="3 0 0 3" Visibility="{Binding ElementName=Chat,Path=Visibility,Converter={StaticResource BoolToVis}}">
@@ -251,6 +268,7 @@
                 <Grid>
                     <TextBox x:Name="messageBox" Style="{StaticResource ModernTextBox}" Background="Transparent" Tag="Send a message . . ."
                      TextWrapping="Wrap" Height="Auto" IsHitTestVisible="{Binding IsAudioRecording,Converter={StaticResource BoolInverter}}"
+                             MaxLength="3000"
                              Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
 
                     <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
@@ -279,7 +297,7 @@
             </Border>
 
             <ListBox x:Name="messages" BorderThickness="0" Margin="0 45 0 57" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     Background="Transparent" 
+                     Background="Transparent" d:ItemsSource="{d:SampleData ItemCount=2}"
                      VerticalAlignment="Bottom" ItemsSource="{Binding SelectedChat.Messages}"
                      VirtualizingPanel.ScrollUnit="Pixel"
                      Padding="0 0 10 0" SelectionMode="Multiple"

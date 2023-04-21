@@ -89,43 +89,13 @@
             <DockPanel Grid.ColumnSpan="2"  Background="Transparent" HorizontalAlignment="Left">
                 <Button Style="{StaticResource CircleButton}" Background="#ea6161" Width="12" Height="12"
                         HorizontalAlignment="Left" Margin="12 0 0 0" Cursor="Hand" Click="WindowShutdown"/>
-                
+
                 <Button Style="{StaticResource CircleButton}" Background="#ffd236" Width="12" Height="12"
                         HorizontalAlignment="Left" Margin="6 0 0 0" Click="WindowMaximize"/>
-                
+
                 <Button Style="{StaticResource CircleButton}" Background="#6c5ecf" Width="12" Height="12"
                         HorizontalAlignment="Left" Margin="6 0 0 0" Click="WindowMinimize"/>
             </DockPanel>
-
-            <!--             <Border x:Name="splashBorder" Background="Black" CornerRadius="3" Grid.RowSpan="2" Grid.ColumnSpan="2" >
-                <Border.InputBindings>
-                    <MouseBinding MouseAction="LeftClick" Command="{Binding ClosePopupCommand}"
-                                  CommandParameter="{Binding ElementName=settingsPopup}"/>
-                </Border.InputBindings>
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Opacity" Value="0"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsPopupActive}" Value="True">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.3"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-            </Border> -->
 
             <ext:ModenPopup Grid.ColumnSpan="2" Grid.RowSpan="2" PopupContent="{Binding PopupContent}"  IsOpen="{Binding IsPopupActive,UpdateSourceTrigger=PropertyChanged}">
             </ext:ModenPopup>

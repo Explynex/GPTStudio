@@ -20,7 +20,7 @@
                     HorizontalAlignment="Left" Margin="0 0 10 0">
                 <icon:PackIconFontAwesome Kind="CommentDotsSolid" Foreground="White"/>
             </Border>
-            <TextBox x:Name="chatNameBox" Height="35"  Style="{StaticResource ModernTextBox}"/>
+            <TextBox x:Name="chatNameBox" MaxLength="50" Height="35" Style="{StaticResource ModernTextBox}"/>
         </DockPanel>
 
         <DockPanel  Margin="10 12 0 0">
@@ -63,7 +63,7 @@
                     HorizontalAlignment="Left" Margin="0 0 10 0">
                     <icon:PackIconFontAwesome Kind="UserAstronautSolid" Foreground="White"/>
                 </Border>
-                <TextBox x:Name="AssistantNameBox" Height="35"  Style="{StaticResource ModernTextBox}"/>
+                <TextBox x:Name="AssistantNameBox" AcceptsReturn="False" PreviewTextInput="NameFilter" MaxLength="20" Height="35"  Style="{StaticResource ModernTextBox}"/>
             </DockPanel>
 
             <TextBlock Text="Interlocutor name" FontSize="14" Foreground="#6c5eb3" 
@@ -73,7 +73,7 @@
                     HorizontalAlignment="Left" Margin="0 0 10 0">
                     <icon:PackIconFontAwesome Kind="UserAltSolid" Foreground="White"/>
                 </Border>
-                <TextBox x:Name="InterlocutorNameBox" Height="35"  Style="{StaticResource ModernTextBox}"/>
+                <TextBox x:Name="InterlocutorNameBox" AcceptsReturn="False" PreviewTextInput="NameFilter" MaxLength="20" Height="35"  Style="{StaticResource ModernTextBox}"/>
             </DockPanel>
 
             <DockPanel HorizontalAlignment="Center">
