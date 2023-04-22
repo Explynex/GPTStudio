@@ -28,15 +28,27 @@ internal sealed class Chat
     [field: NonSerialized]
     public double CachedScrollOffset { get; set; } = -1d;
 
+    private string _name;
     public string ID { get; private set; }
     public string CreatedTimestamp { get; private set; }
-    public string Name { get; set; }
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (string.IsNullOrEmpty(value) || string.Equals(value,_name))
+                return;
+            _name = value;
+
+            Common.BinarySerialize((MainWindowViewModel.MessengerV.DataContext as MessengerViewModel).Chats, $"{App.UserdataDirectory}\\chats");
+        }
+    }
     public bool SpeecherGender { get; set; }
     public string PersonaIdentityPrompt { get; set; }
 
     public Chat(string name)
     {
-        Name     = name;
+        _name    = name;
         ID       = Common.GenerateRandomHash(name);
     }
 }
@@ -84,7 +96,7 @@ internal sealed class ChatGPTMessage : IMessage, INotifyPropertyChanged
 }
 
 [Serializable]
-public class BindableStringBuilder : INotifyPropertyChanged
+internal sealed class BindableStringBuilder : INotifyPropertyChanged
 {
     [field: NonSerialized]
     public event PropertyChangedEventHandler PropertyChanged;
@@ -125,6 +137,8 @@ internal sealed class MessengerViewModel : ObservableObject
     public RelayCommand AddNewChatCommand { get; private set; }
     public AsyncRelayCommand SendMessageCommand { get; private set; }
     public AsyncRelayCommand ListenMessageCommand { get; private set; }
+    public RelayCommand DeleteChatCommand { get; private set; }
+    public RelayCommand ClearMessagesCommand { get; private set; }
     public static ScrollViewer ChatScrollViewer { get; set; }
 
 
@@ -257,7 +271,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 tokensCount = tokenizer.Calculate(SelectedChat.PersonaIdentityPrompt);
             }
 
-            for (int i = SelectedChat.Messages.Count-1; i >= 0; i--)
+            for (int i = SelectedChat.Messages.Count-1,insertIndex = tokensCount == 0 ? 0 : 1; i >= 0; i--)
             {
                 var msg = SelectedChat.Messages[i];
 
@@ -265,7 +279,7 @@ internal sealed class MessengerViewModel : ObservableObject
                     break;
 
                 tokensCount += msg.Tokens;
-                msgList.Insert(1,SelectedChat.Messages[i]);
+                msgList.Insert(insertIndex, SelectedChat.Messages[i]);
             } 
             #endregion
 
@@ -283,33 +297,35 @@ internal sealed class MessengerViewModel : ObservableObject
 
             #region Streaming response
             await api.ChatEndpoint.StreamCompletionAsync(request, result =>
-    {
-        if (String.IsNullOrEmpty(result.FirstChoice))
-            return;
-
-        if (!cleanWaiting)
-        {
-            current.ChatCompletion.Clear();
-            cleanWaiting = true;
-        }
-
-        if (Config.Properties.AutoSpeakGPTResponses)
-        {
-            sentence.Append(result.FirstChoice);
-
-            if (sentence.Length > 2 && (result.FirstChoice[^1] == '\n' || Regexes.Sentence().IsMatch(sentence.ToString())))
             {
-                var lastSlice = sentence[^1];
-                var textSentence = sentence.Remove(sentence.Length - 1, 1).ToString();
-                SpeechChunk(textSentence);
-                sentence.Append(lastSlice);
-            }
-        }
+                if (String.IsNullOrEmpty(result.FirstChoice))
+                    return;
 
-        current.ChatCompletion.Append(result.FirstChoice);
+                if (!cleanWaiting)
+                {
+                    current.ChatCompletion.Clear();
+                    cleanWaiting = true;
+                }
 
-        App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
-    });
+                if (Config.Properties.AutoSpeakGPTResponses)
+                {
+                    sentence.Append(result.FirstChoice);
+
+                    if (sentence.Length > 2 && (result.FirstChoice[^1] == '\n' || Regexes.Sentence().IsMatch(sentence.ToString())))
+                    {
+                        var chunkIndex   = sentence.IndexOf(' ', true);
+                        var chunk        = sentence.ToString(chunkIndex+1, (sentence.Length - chunkIndex)-1);
+                        var textSentence = sentence.Remove(chunkIndex, sentence.Length - chunkIndex).ToString();
+
+                        SpeechChunk(textSentence);
+                        sentence.Append(chunk);
+                    }
+                }
+
+                current.ChatCompletion.Append(result.FirstChoice);
+
+                App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
+            });
 
             current.Tokens = tokenizer.Calculate(current.ChatCompletion.Text);
 
@@ -320,13 +336,13 @@ internal sealed class MessengerViewModel : ObservableObject
             Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
 
 
-            void SpeechChunk(string chunk)
+            void SpeechChunk(string chunk)  
             {
                 speechHandler.TextToSpeechQueue.Enqueue(chunk);
                 if (!speechHandler.IsSpeaking && GetSpeechVoice(chunk, out string voice))
                 {
                     current.IsMessageListening = true;
-                    speechHandler.StartQueueSpeaking(voice, (200, 10));
+                    speechHandler.StartQueueSpeaking(voice, (200, 8));
                 }
                 sentence.Clear();
             }
@@ -370,6 +386,31 @@ internal sealed class MessengerViewModel : ObservableObject
             }
 
             Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
+        });
+
+        DeleteChatCommand = new(o => 
+        {
+            Presentation.OpenChoicePopup($"Deleting chat «{(o as Chat).Name}»",
+                "Are you sure you want to delete this chat? It will be impossible to undo the action.",
+                DeleteAction);
+            
+            void DeleteAction()
+            {
+                Chats.Remove(o as Chat);
+                Common.BinarySerialize(Chats, $"{App.UserdataDirectory}\\chats");
+            }
+        });
+
+        ClearMessagesCommand = new(o =>
+        {
+
+            if (o is Chat chat)
+            {
+                chat.Messages?.Clear();
+                chat.CachedScrollOffset = -1d;
+                if (File.Exists(App.UserdataDirectory + chat.ID))
+                    File.Delete(App.UserdataDirectory + chat.ID);
+            }
         });
 
         AddNewChatCommand = new(o =>

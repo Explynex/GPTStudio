@@ -1,0 +1,33 @@
+﻿<Grid x:Class="GPTStudio.MVVM.View.Controls.ChoiceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+      mc:Ignorable="d" Height="Auto" Width="300"
+             d:Background="{DynamicResource SecondaryBackgroundBrush}">
+    <StackPanel>
+        <TextBlock x:Name="Title"  HorizontalAlignment="Center"
+                   Foreground="#fff" d:Text="Deleting 'TestChat'"
+                   FontWeight="Medium" FontSize="18"/>
+        <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3" Margin="0 10 0 5"/>
+
+        <DockPanel Margin="10 10 10 0">
+            <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left" Width="30" Height="30" VerticalAlignment="Top" Margin="0 2 0 0">
+                <icon:PackIconFontAwesome Kind="QuestionSolid" Foreground="White"/>
+            </Border>
+            <TextBlock x:Name="ContentText" Text="Are you sure you want to delete this chat? It will be impossible to undo the action." VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14" TextWrapping="Wrap"
+                       FontWeight="Medium"/>
+        </DockPanel>
+
+        <DockPanel Margin="10 25 10 15" HorizontalAlignment="Center" Height="27" >
+            <Button Style="{StaticResource ModernFlatButton}" Width="100" Margin="0 0 30 0" 
+                    IsDefault="True" Background="{DynamicResource LightBlueGradient}" Click="Yes_Click"
+                    Foreground="{DynamicResource SecondaryBackgroundBrush}" FontWeight="Medium">Yes</Button>
+            <Button Style="{StaticResource ModernFlatButton}" FontWeight="Medium" Foreground="{DynamicResource SecondaryBackgroundBrush}"
+                    Width="100" IsCancel="True" Background="{DynamicResource LightBlueGradient}" Click="No_Click">No</Button>
+        </DockPanel>
+    </StackPanel>
+</Grid>

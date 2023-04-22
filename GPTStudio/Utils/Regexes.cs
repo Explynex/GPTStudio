@@ -12,6 +12,9 @@ internal static partial class Regexes
     [GeneratedRegex("[\\w]")]
     public static partial Regex Name();
 
-    [GeneratedRegex("(?<=[.?!])\\s+(?=[\\p{Lu}\\p{Lo}])")]
+    [GeneratedRegex("(?<=[^\\s][.?!])\\s+(?=[\\p{Lu}\\p{Lo}])")]
     public static partial Regex Sentence();
+
+    [GeneratedRegex("[\\~#%&*{}/:<>?|\"-]")]
+    public static partial Regex WindowsFileName();
 }

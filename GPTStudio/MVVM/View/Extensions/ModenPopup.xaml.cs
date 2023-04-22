@@ -33,6 +33,7 @@ namespace GPTStudio.MVVM.View.Extensions
         private readonly ThicknessAnimation MarginCloseAnimation;
         private readonly Duration AnimationsDuration    = new(TimeSpan.FromSeconds(0.4));
         private readonly IEasingFunction EasingFunction = new CircleEase { EasingMode = EasingMode.EaseInOut };
+        private bool locked = false;
 
         public bool IsOpen
         {
@@ -89,13 +90,17 @@ namespace GPTStudio.MVVM.View.Extensions
                 {
                     Visibility = Visibility.Collapsed;
                     (App.Current.MainWindow.DataContext as MainWindowViewModel).PopupContent = null;
+                    locked = false;
                 }
             };
         }
 
         private void HidePopup(object sender, MouseButtonEventArgs e)
         {
+            if (locked) return;
+
             IsOpen = false;
+            locked = true;
         }
     }
 }

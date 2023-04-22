@@ -21,7 +21,8 @@ namespace GPTStudio.MVVM.View.Controls
             DataContext = viewModel;
             MessengerViewModel.ChatScrollViewer = Utils.Presentation.GetDescendantByType(messages, typeof(ScrollViewer)) as ScrollViewer;
         }
-
+        
+        
         private void Border_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var IsAlreadySelected = messages.SelectedIndex != -1;

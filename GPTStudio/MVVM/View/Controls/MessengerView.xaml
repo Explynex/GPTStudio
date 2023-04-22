@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:local="clr-namespace:GPTStudio.MVVM.View.Controls"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
              xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              mc:Ignorable="d" 
@@ -181,14 +181,15 @@
                          VirtualizingPanel.CacheLengthUnit="Item"
                          VirtualizingPanel.CacheLength="1,1" VirtualizingPanel.ScrollUnit="Pixel"
                          VirtualizingPanel.VirtualizationMode="Recycling"
-                         ScrollViewer.CanContentScroll="True" 
+                         ScrollViewer.CanContentScroll="True" d:ItemsSource="{d:SampleData ItemCount=2}"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          SelectedItem="{Binding SelectedChat,Mode=TwoWay}"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          BorderThickness="0" ItemsSource="{Binding Chats}" HorizontalContentAlignment="Stretch">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Grid>
+                            <Grid Tag="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
+                                  Background="Transparent" PreviewMouseRightButtonDown="PreviewCancelRightMouseButton" Height="68">
                                 <Border CornerRadius="50" Background="{DynamicResource PurpleGradient1}" HorizontalAlignment="Left"
                                            Margin="10 0 0 0" Height="40" Width="40">
                                     <TextBlock Text="{Binding Name[0]}" VerticalAlignment="Center"
@@ -197,15 +198,37 @@
                                 </Border>
 
                                 <TextBlock Text="{Binding Name}" FontSize="14" Foreground="#fff" VerticalAlignment="Top"
-                                           Margin="60 -5 15 0" TextTrimming="CharacterEllipsis" 
+                                           Margin="60 10 15 0" TextTrimming="CharacterEllipsis" 
                                            TextWrapping="NoWrap" FontWeight="Medium" Opacity="0.85"/>
 
+                                <Grid.ContextMenu>
+                                    <ContextMenu MinWidth="150" MaxWidth="220">
+                                        <MenuItem StaysOpenOnClick="True" Tag="{x:Static Brushes.Transparent}" BorderBrush="{x:Static Brushes.Transparent}"
+                                                  Cursor="Arrow" Icon="{x:Static icon:PackIconFontAwesomeKind.FileSignatureSolid}">
+                                            <MenuItem.Header>
+                                                <TextBox Text="{Binding Name,UpdateSourceTrigger=LostFocus}" BorderThickness="0"  
+                                                 SelectionBrush="{DynamicResource SecondarySubBrush}" MaxLength="50"
+                                                 FontWeight="Medium" Background="Transparent" FontSize="13.5" CaretBrush="{DynamicResource SecondaryForegroundBrush}"/>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <Separator Style="{StaticResource FillSeparator}" Height="3" Margin="0 6 0 6" Background="{DynamicResource PrimaryBackgroundBrush}"/>
+
+                                        <MenuItem Header="Clear chat" Icon="{x:Static icon:PackIconFontAwesomeKind.BackspaceSolid}"
+                                                  Command="{Binding PlacementTarget.Tag.ClearMessagesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                  CommandParameter="{Binding}"/>
+
+                                        <MenuItem Header="Delete chat" Icon="{x:Static icon:PackIconFontAwesomeKind.TrashAltSolid}" Foreground="PaleVioletRed" 
+                                                  FontWeight="Medium" Command="{Binding PlacementTarget.Tag.DeleteChatCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                  CommandParameter="{Binding}"/>
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
+
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
-                            <Setter Property="Height" Value="68"/>
                             <Setter Property="BorderThickness" Value="0 0 0 3"/>
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>

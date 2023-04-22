@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
+﻿using GPTStudio.MVVM.View.Controls;
+using GPTStudio.MVVM.ViewModels;
+using System;
 using System.Windows;
+using System.Windows.Media;
 
 namespace GPTStudio.Utils
 {
     internal static class Presentation
     {
+        private static ChoiceView choicePopup = null;
         public static Visual GetDescendantByType(Visual element, Type type)
         {
             if (element == null)
@@ -35,6 +34,16 @@ namespace GPTStudio.Utils
                 }
             }
             return foundElement;
+        }
+
+        public static void OpenChoicePopup(string title,string text,Action successChoiceAction = null)
+        {
+            (App.Current.MainWindow.DataContext as MainWindowViewModel).PopupContent = choicePopup ??= new();
+
+            choicePopup.SuccessAction    = successChoiceAction;
+            choicePopup.Title.Text       = title;
+            choicePopup.ContentText.Text = text;
+            (App.Current.MainWindow.DataContext as MainWindowViewModel).IsPopupActive = true;
         }
     }
 }

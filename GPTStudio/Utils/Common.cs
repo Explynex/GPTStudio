@@ -15,7 +15,7 @@ namespace GPTStudio.Utils
             byte[] hashBytes = MD5.HashData(inputBytes);
             byte[] buff = RandomNumberGenerator.GetBytes(8);
             // Return a Base64 string representation of the random number.
-            return FileNameRegex().Replace($"{Convert.ToHexString(hashBytes) + "/"}{Convert.ToBase64String(buff)}", "$1");
+            return Regexes.WindowsFileName().Replace($"{Convert.ToHexString(hashBytes) + "/"}{Convert.ToBase64String(buff)}", "$1");
         }
 
         public static void BinarySerialize(object obj, string fullPath)
@@ -38,8 +38,15 @@ namespace GPTStudio.Utils
         public static object ReadObjectFromStream(Stream inputStream)           => new BinaryFormatter().Deserialize(inputStream);
 #pragma warning restore SYSLIB0011
 
+        public static int IndexOf(this StringBuilder builder,char findChar,bool fromEnd = false)
+        {
+            for (int i = 0; i < builder.Length; i++)
+            {
+                if (builder[fromEnd ? ^(i+1) : i] == findChar)
+                    return fromEnd ? builder.Length-(i+1) : i;
+            }
 
-        [GeneratedRegex("[\\~#%&*{}/:<>?|\"-]")]
-        private static partial Regex FileNameRegex();
+            return -1;
+        }
     }
 }

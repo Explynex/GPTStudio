@@ -1,6 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <CircleEase EasingMode="EaseIn" x:Key="DefaultAnimationFunction"/>
+
     <Style x:Key="ModernTextBox" TargetType="{x:Type TextBox}">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Height" Value="40"/>
@@ -53,6 +55,16 @@
         </Setter>
     </Style>
 
+    <Style x:Key="FillSeparator" TargetType="Separator">
+        <Setter Property="Height" Value="3"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Rectangle Fill="{TemplateBinding Background}" Height="{TemplateBinding Height}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 
 </ResourceDictionary>
