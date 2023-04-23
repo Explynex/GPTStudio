@@ -127,7 +127,6 @@
 
     <Style x:Key="ModernFlatButton" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundBrush}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="BorderBrush" Value="#fff"/>
@@ -136,16 +135,16 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}" >
-                        <ContentPresenter x:Name="content" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ContentPresenter  VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="content" Property="TextBlock.Foreground" Value="{Binding Path=BorderBrush,RelativeSource={RelativeSource FindAncestor,AncestorType=Button}}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="#fff" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="ModernSpinButton" TargetType="{x:Type Button}" BasedOn="{StaticResource ModernFlatButton}">

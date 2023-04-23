@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
-        xmlns:controls="clr-namespace:GPTStudio.MVVM.View.Controls"
         xmlns:ext="clr-namespace:GPTStudio.MVVM.View.Extensions"
         xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
         mc:Ignorable="d"

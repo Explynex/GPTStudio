@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:viewmodels="clr-namespace:GPTStudio.MVVM.ViewModels" 
              xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              mc:Ignorable="d" 
@@ -152,7 +151,7 @@
     
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition  Width="260" MinWidth="250" MaxWidth="360"/>
+            <ColumnDefinition  Width="260" MinWidth="220" MaxWidth="360"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -173,23 +172,25 @@
                 <Button Visibility="{Binding ElementName=ChatSearchBox,Path=Text.Length,Converter={StaticResource BoolToVis}}"
                         Style="{StaticResource ModernSpinButton}" Width="15" Height="15"
                         VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0 47.5 25 0"
-                        Command="{Binding ClearSearchBoxCommand}">
+                        Command="{Binding ClearSearchBoxCommand}" >
                     <icon:FontAwesome Kind="TimesSolid" Width="15" Height="15"/>
                 </Button>
 
-                <ListBox Margin="0 90 0 0" Background="Transparent" 
+                <ListBox x:Name="chats"  Margin="0 90 0 0" Background="Transparent" 
                          VirtualizingPanel.CacheLengthUnit="Item"
                          VirtualizingPanel.CacheLength="1,1" VirtualizingPanel.ScrollUnit="Pixel"
                          VirtualizingPanel.VirtualizationMode="Recycling"
                          ScrollViewer.CanContentScroll="True" d:ItemsSource="{d:SampleData ItemCount=2}"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          SelectedItem="{Binding SelectedChat,Mode=TwoWay}"
+                         PreviewMouseLeftButtonDown="PreviewCancelRightMouseButton"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          BorderThickness="0" ItemsSource="{Binding Chats}" HorizontalContentAlignment="Stretch">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Tag="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}"
-                                  Background="Transparent" PreviewMouseRightButtonDown="PreviewCancelRightMouseButton" Height="68">
+                                  Background="Transparent" PreviewMouseRightButtonDown="PreviewCancelRightMouseButton" Height="68"
+                                  MouseLeftButtonUp="ListBox_MouseLeftButtonUp" Cursor="Hand">
                                 <Border CornerRadius="50" Background="{DynamicResource PurpleGradient1}" HorizontalAlignment="Left"
                                            Margin="10 0 0 0" Height="40" Width="40">
                                     <TextBlock Text="{Binding Name[0]}" VerticalAlignment="Center"
@@ -232,10 +233,16 @@
                             <Setter Property="BorderThickness" Value="0 0 0 3"/>
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>
+          
                             <Style.Resources>
                                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource TertiaryBackgroundColor}" />
                                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{DynamicResource TertiaryBackgroundColor}" />
                             </Style.Resources>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#25263e"/>
+                                </Trigger>
+                            </Style.Triggers>
                         </Style>
                     </ListBox.ItemContainerStyle>
                 </ListBox>
@@ -292,7 +299,7 @@
                     <TextBox x:Name="messageBox" Style="{StaticResource ModernTextBox}" Background="Transparent" Tag="Send a message . . ."
                      TextWrapping="Wrap" Height="Auto" IsHitTestVisible="{Binding IsAudioRecording,Converter={StaticResource BoolInverter}}"
                              MaxLength="3000"
-                             Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+                             Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding SelectedChat.TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
 
                     <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
                         Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"

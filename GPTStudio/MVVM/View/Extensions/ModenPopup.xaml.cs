@@ -17,9 +17,6 @@ using System.Windows.Shapes;
 
 namespace GPTStudio.MVVM.View.Extensions
 {
-    /// <summary>
-    /// Логика взаимодействия для ModenPopup.xaml
-    /// </summary>
     public partial class ModenPopup : Grid
     {
         public static readonly DependencyProperty IsOpenProperty =

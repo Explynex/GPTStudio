@@ -8,9 +8,6 @@ using System.Windows;
 
 namespace GPTStudio.MVVM.View.Controls
 {
-    /// <summary>
-    /// Логика взаимодействия для MessengerView.xaml
-    /// </summary>
     public partial class MessengerView : UserControl
     {
         private MessengerViewModel viewModel;
@@ -40,6 +37,11 @@ namespace GPTStudio.MVVM.View.Controls
         private void PreviewCancelRightMouseButton(object sender, System.Windows.Input.MouseButtonEventArgs e) => e.Handled = true;
 
         private void UnselectAllMessages(object sender, RoutedEventArgs e) => messages.UnselectAll();
+
+        private void ListBox_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            chats.SelectedItem = (sender as FrameworkElement).DataContext;
+        }
     }
 
 }

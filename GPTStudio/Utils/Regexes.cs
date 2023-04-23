@@ -12,7 +12,7 @@ internal static partial class Regexes
     [GeneratedRegex("[\\w]")]
     public static partial Regex Name();
 
-    [GeneratedRegex("(?<=[^\\s][.?!])\\s+(?=[\\p{Lu}\\p{Lo}])")]
+    [GeneratedRegex("(?<=[\\w]{3,}[.?!])\\s+(?=[\\p{Lu}\\p{Lo}])")]
     public static partial Regex Sentence();
 
     [GeneratedRegex("[\\~#%&*{}/:<>?|\"-]")]

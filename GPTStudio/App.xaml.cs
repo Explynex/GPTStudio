@@ -4,34 +4,36 @@ using System.IO;
 using System.Reflection;
 using System.Windows;
 
-namespace GPTStudio
+namespace GPTStudio;
+
+public partial class App : Application
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    internal static readonly string WorkingDirectory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+    internal static readonly string UserdataDirectory = $"{WorkingDirectory}\\.userdata\\";
+    protected override void OnStartup(StartupEventArgs e)
     {
-        internal static readonly string WorkingDirectory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        internal static readonly string UserdataDirectory = $"{WorkingDirectory}\\.userdata\\";
-        protected override void OnStartup(StartupEventArgs e)
+        DispatcherUnhandledException += (sender, arg) =>
         {
-            if (!Directory.Exists(UserdataDirectory))
-            {
-                DirectoryInfo dir = Directory.CreateDirectory(UserdataDirectory);
-                dir.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
-            }
+            MessageBox.Show(arg.Exception.ToString());
+            Shutdown();
+        };
 
-            Config.Load();
-            new MainWindow().Show();
+        if (!Directory.Exists(UserdataDirectory))
+        {
+            DirectoryInfo dir = Directory.CreateDirectory(UserdataDirectory);
+            dir.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
         }
 
-        public static new void Shutdown()
-        {
-            if (Config.NeedToUpdate)
-                Config.Save();
+        Config.Load();
+        new MainWindow().Show();
+    }
+
+    public static new void Shutdown()
+    {
+        if (Config.NeedToUpdate)
+            Config.Save();
 
 
-            Application.Current.Shutdown();
-        }
+        Application.Current.Shutdown();
     }
 }

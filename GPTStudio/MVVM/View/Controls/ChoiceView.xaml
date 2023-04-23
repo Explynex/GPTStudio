@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+       xmlns:ext="clr-namespace:GPTStudio.MVVM.View.Extensions"
       mc:Ignorable="d" Height="Auto" Width="300"
              d:Background="{DynamicResource SecondaryBackgroundBrush}">
     <StackPanel>
@@ -23,11 +24,12 @@
         </DockPanel>
 
         <DockPanel Margin="10 25 10 15" HorizontalAlignment="Center" Height="27" >
-            <Button Style="{StaticResource ModernFlatButton}" Width="100" Margin="0 0 30 0" 
+            <ext:HoverButton Width="100" Margin="0 0 30 0" Content="Yes"
                     IsDefault="True" Background="{DynamicResource LightBlueGradient}" Click="Yes_Click"
-                    Foreground="{DynamicResource SecondaryBackgroundBrush}" FontWeight="Medium">Yes</Button>
-            <Button Style="{StaticResource ModernFlatButton}" FontWeight="Medium" Foreground="{DynamicResource SecondaryBackgroundBrush}"
-                    Width="100" IsCancel="True" Background="{DynamicResource LightBlueGradient}" Click="No_Click">No</Button>
+                    Foreground="{DynamicResource SecondaryBackgroundBrush}" FontWeight="Medium"/>
+
+            <ext:HoverButton Style="{StaticResource ModernFlatButton}" FontWeight="Medium" Foreground="{DynamicResource SecondaryBackgroundBrush}"
+                    Width="100" IsCancel="True" Background="{DynamicResource LightBlueGradient}" Click="No_Click">No</ext:HoverButton>
         </DockPanel>
     </StackPanel>
 </Grid>

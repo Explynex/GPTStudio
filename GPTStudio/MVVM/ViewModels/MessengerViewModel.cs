@@ -26,6 +26,18 @@ internal sealed class Chat
     public ObservableCollection<ChatGPTMessage> Messages { get; set; }
 
     [field: NonSerialized]
+    private string _typingMessageText;
+    public string TypingMessageText 
+    {
+        get => _typingMessageText;
+        set
+        {
+            _typingMessageText = value;
+
+        }
+    }
+
+    [field: NonSerialized]
     public double CachedScrollOffset { get; set; } = -1d;
 
     private string _name;
@@ -147,6 +159,7 @@ internal sealed class MessengerViewModel : ObservableObject
     private GPTTokenizer tokenizer;
 
     private SpeechHandler speechHandler;
+    private bool IsBusy;
 
     public bool UsingMarkdown
     {
@@ -166,13 +179,6 @@ internal sealed class MessengerViewModel : ObservableObject
     {
         get => _searchBoxText;
         set => SetProperty(ref _searchBoxText, value);
-    }
-
-    private string _typingMessageText;
-    public string TypingMessageText
-    {
-        get => _typingMessageText;
-        set => SetProperty(ref _typingMessageText, value);
     }
 
     private ObservableCollection<Chat> _chats;
@@ -234,6 +240,9 @@ internal sealed class MessengerViewModel : ObservableObject
 
         SendMessageCommand = new AsyncRelayCommand(async (o) =>
         {
+            if (IsBusy) return;
+            var currentChat = SelectedChat;
+
             var api = new OpenAIClient(Config.Properties.OpenAIAPIKey);
 
             if (IsAudioRecording)
@@ -245,12 +254,12 @@ internal sealed class MessengerViewModel : ObservableObject
                 _audioRecorder.MemoryStream.Position = 0;
                 var audioResult = await api.AudioEndpoint.CreateTranscriptionAsync(new OpenAI.Audio.AudioTranscriptionRequest(_audioRecorder.MemoryStream, "hello.wav"));
 
-                TypingMessageText = audioResult;
+                currentChat.TypingMessageText = audioResult;
 
                 _audioRecorder.Dispose();
                 return;
             }
-            else if (string.IsNullOrEmpty(TypingMessageText))
+            else if (string.IsNullOrEmpty(currentChat.TypingMessageText))
             {
                 _audioRecorder = new();
                 _audioRecorder.Start();
@@ -258,7 +267,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 return;
             }
 
-            SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, TypingMessageText) { Tokens = tokenizer.Calculate(TypingMessageText)});
+            SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, currentChat.TypingMessageText) { Tokens = tokenizer.Calculate(currentChat.TypingMessageText)});
             ChatScrollViewer.ScrollToBottom();
 
             #region Calculating tokens
@@ -288,14 +297,16 @@ internal sealed class MessengerViewModel : ObservableObject
             SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ". . ."));
 
             bool cleanWaiting = false;
-            var current = SelectedChat.Messages[^1];
-            TypingMessageText = null;
+            var currentMsg = currentChat.Messages[^1];
+            currentChat.TypingMessageText = null;
+            OnPropertyChanged(nameof(SelectedChat));
             StringBuilder sentence = new();
 
-            speechHandler.CompletionEvent = (response) => current.IsMessageListening = false;
+            speechHandler.CompletionEvent = (response) => currentMsg.IsMessageListening = false;
             speechHandler.TextToSpeechQueue.Clear();
 
             #region Streaming response
+            IsBusy = true;
             await api.ChatEndpoint.StreamCompletionAsync(request, result =>
             {
                 if (String.IsNullOrEmpty(result.FirstChoice))
@@ -303,7 +314,7 @@ internal sealed class MessengerViewModel : ObservableObject
 
                 if (!cleanWaiting)
                 {
-                    current.ChatCompletion.Clear();
+                    currentMsg.ChatCompletion.Clear();
                     cleanWaiting = true;
                 }
 
@@ -311,7 +322,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 {
                     sentence.Append(result.FirstChoice);
 
-                    if (sentence.Length > 2 && (result.FirstChoice[^1] == '\n' || Regexes.Sentence().IsMatch(sentence.ToString())))
+                    if (sentence.Length > 2 &&  Regexes.Sentence().IsMatch(sentence.ToString()))
                     {
                         var chunkIndex   = sentence.IndexOf(' ', true);
                         var chunk        = sentence.ToString(chunkIndex+1, (sentence.Length - chunkIndex)-1);
@@ -320,20 +331,24 @@ internal sealed class MessengerViewModel : ObservableObject
                         SpeechChunk(textSentence);
                         sentence.Append(chunk);
                     }
+                    else if(result.FirstChoice[^1] == '\n')
+                        SpeechChunk(sentence.ToString());
+                    
                 }
 
-                current.ChatCompletion.Append(result.FirstChoice);
+                currentMsg.ChatCompletion.Append(result.FirstChoice);
 
                 App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
             });
 
-            current.Tokens = tokenizer.Calculate(current.ChatCompletion.Text);
+            currentMsg.Tokens = tokenizer.Calculate(currentMsg.ChatCompletion.Text);
 
             if (sentence.Length > 0)
-                SpeechChunk(sentence.ToString()); 
+                SpeechChunk(sentence.ToString());
             #endregion
 
-            Common.BinarySerialize(SelectedChat.Messages, App.UserdataDirectory + SelectedChat.ID);
+            IsBusy = false;
+            Common.BinarySerialize(currentChat.Messages, App.UserdataDirectory + currentChat.ID);
 
 
             void SpeechChunk(string chunk)  
@@ -341,7 +356,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 speechHandler.TextToSpeechQueue.Enqueue(chunk);
                 if (!speechHandler.IsSpeaking && GetSpeechVoice(chunk, out string voice))
                 {
-                    current.IsMessageListening = true;
+                    currentMsg.IsMessageListening = true;
                     speechHandler.StartQueueSpeaking(voice, (200, 8));
                 }
                 sentence.Clear();
