@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 
 namespace GPTStudio.MVVM.View.Controls
 {
@@ -22,6 +23,21 @@ namespace GPTStudio.MVVM.View.Controls
         
         private void Border_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (!string.IsNullOrEmpty(ChatSearchBox.Text))
+            {
+                if (e.ClickCount != 2)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                var item = (sender as FrameworkElement).DataContext;
+                (this.DataContext as MessengerViewModel).RefreshCollection();
+                messages.ScrollIntoView(item);
+                return;
+            }
+
+            var s = (sender as Grid).TemplatedParent as ListBoxItem;
             var IsAlreadySelected = messages.SelectedIndex != -1;
             if (!IsAlreadySelected && e.ClickCount != 2)
             {
@@ -29,7 +45,6 @@ namespace GPTStudio.MVVM.View.Controls
                 return;
             }
 
-            var s = (sender as Grid).TemplatedParent as ListBoxItem;
             s.IsSelected = !s.IsSelected;
             e.Handled = true;
         }

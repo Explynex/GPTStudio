@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace GPTStudio.MVVM.ViewModels;
 
@@ -157,8 +158,9 @@ internal sealed class MessengerViewModel : ObservableObject
     private AudioRecorder _audioRecorder;
     private LanguageDetector langDetector;
     private GPTTokenizer tokenizer;
-
+    private ICollectionView SearchFilter;
     private SpeechHandler speechHandler;
+
     private bool IsBusy;
 
     public bool UsingMarkdown
@@ -178,7 +180,13 @@ internal sealed class MessengerViewModel : ObservableObject
     public string SearchBoxText
     {
         get => _searchBoxText;
-        set => SetProperty(ref _searchBoxText, value);
+        set
+        {
+            SetProperty(ref _searchBoxText, value);
+
+            if(value != null)
+                SearchFilter.Refresh();
+        }
     }
 
     private ObservableCollection<Chat> _chats;
@@ -212,6 +220,9 @@ internal sealed class MessengerViewModel : ObservableObject
                     ChatScrollViewer.ScrollToVerticalOffset(value.CachedScrollOffset);
                 else
                     ChatScrollViewer.ScrollToBottom();
+                SearchBoxText       = null;
+                SearchFilter        = CollectionViewSource.GetDefaultView(value.Messages);
+                SearchFilter.Filter = FilterPredicate;
             }
 
             SetProperty(ref _selectedChat, value);
@@ -226,7 +237,27 @@ internal sealed class MessengerViewModel : ObservableObject
             "en" => "en-US-SteffanNeural",
             _ => null,
         }) != null;
-    
+
+    private bool FilterPredicate(object value)
+    {
+        if (String.IsNullOrEmpty(_searchBoxText))
+            return true;
+
+        if ((value is Chat chat && chat.Name.Contains(_searchBoxText,StringComparison.InvariantCultureIgnoreCase))
+            || value is ChatGPTMessage msg && msg.Content.Contains(_searchBoxText, StringComparison.InvariantCultureIgnoreCase))
+        {
+           return true;
+        }
+
+        return false;
+    }
+
+    public void RefreshCollection()
+    {
+        SearchBoxText = null;
+        if((SearchFilter as ListCollectionView).Count != (SearchFilter.SourceCollection as IList).Count)
+            SearchFilter.Refresh();
+    }
 
     public MessengerViewModel()
     {
@@ -235,10 +266,11 @@ internal sealed class MessengerViewModel : ObservableObject
         langDetector = new();
         langDetector.AddLanguages("ru", "en");
         Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats") ?? new();
+        SearchFilter = CollectionViewSource.GetDefaultView(Chats);
+        SearchFilter.Filter = FilterPredicate;
 
-        ClearSearchBoxCommand = new RelayCommand(o => SearchBoxText = null);
-
-        SendMessageCommand = new AsyncRelayCommand(async (o) =>
+        ClearSearchBoxCommand = new(o =>  RefreshCollection());
+        SendMessageCommand    = new(async (o) =>
         {
             if (IsBusy) return;
             var currentChat = SelectedChat;
@@ -363,9 +395,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 sentence.Clear();
             }
         });
-
-        
-        ListenMessageCommand = new AsyncRelayCommand(async (o) =>
+        ListenMessageCommand  = new(async (o) =>
         {
             var sender = o as ChatGPTMessage;
             if (speechHandler.IsSpeaking)
@@ -390,7 +420,12 @@ internal sealed class MessengerViewModel : ObservableObject
             _ = speechHandler.StartSpeaking(sender.Content, voice);
         });
 
-        ExitChatCommand = new(o => SelectedChat = null);
+        ExitChatCommand = new(o => 
+        {
+            SelectedChat = null;
+            SearchFilter = CollectionViewSource.GetDefaultView(Chats);
+            RefreshCollection();
+        });
 
         DeleteMessageCommand = new(o =>
         {
