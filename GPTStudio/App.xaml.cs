@@ -8,7 +8,7 @@ namespace GPTStudio;
 
 public partial class App : Application
 {
-    internal static readonly string WorkingDirectory = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+    internal static readonly string WorkingDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
     internal static readonly string UserdataDirectory = $"{WorkingDirectory}\\.userdata\\";
     protected override void OnStartup(StartupEventArgs e)
     {

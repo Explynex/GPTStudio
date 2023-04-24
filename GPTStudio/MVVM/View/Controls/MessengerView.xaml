@@ -293,40 +293,16 @@
         <GridSplitter BorderThickness="0" FocusVisualStyle="{x:Null}" Grid.Column="0" Width="3" Background="Transparent"/>
 
         <Grid Grid.Column="1" Margin="3 0 0 3" Visibility="{Binding ElementName=Chat,Path=Visibility,Converter={StaticResource BoolToVis}}">
-            <Border  Background="{DynamicResource SecondaryBackgroundBrush}"
-                VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150"  CornerRadius="3">
-                <Grid>
-                    <TextBox x:Name="messageBox" Style="{StaticResource ModernTextBox}" Background="Transparent" Tag="Send a message . . ."
-                     TextWrapping="Wrap" Height="Auto" IsHitTestVisible="{Binding IsAudioRecording,Converter={StaticResource BoolInverter}}"
-                             MaxLength="3000"
-                             Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding SelectedChat.TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition MinHeight="50" MaxHeight="150" Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-                    <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
-                        Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"
-                        IsDefault="True" Command="{Binding SendMessageCommand}" 
-                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                        
-                        <icon:PackIconFontAwesome  Spin="False" Width="20" Height="20">
-                            <icon:PackIconFontAwesome.Style>
-                                <Style TargetType="icon:PackIconFontAwesome">
-                                    <Setter Property="Kind" Value="PaperPlaneRegular"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ElementName=messageBox,Path=Text.Length}" Value="0">
-                                            <Setter Property="Kind" Value="MicrophoneSolid"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsAudioRecording}" Value="True">
-                                            <Setter Property="Kind" Value="StopSolid"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </icon:PackIconFontAwesome.Style>
-                        </icon:PackIconFontAwesome>
-                            
-                    </Button>
-                </Grid>
-            </Border>
-
-            <ListBox x:Name="messages" BorderThickness="0" Margin="0 45 0 57" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            <ListBox x:Name="messages" BorderThickness="0" Margin="0 45 0 0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      Background="Transparent" d:ItemsSource="{d:SampleData ItemCount=2}"
                      VerticalAlignment="Bottom" ItemsSource="{Binding SelectedChat.Messages}"
                      VirtualizingPanel.ScrollUnit="Pixel"
@@ -371,7 +347,7 @@
                 </ListBox.ItemContainerStyle>
             </ListBox>
 
-            <Border VerticalAlignment="Top" Margin="0 3 0 0" CornerRadius="3" Height="35" Background="#202036">
+            <Border VerticalAlignment="Top" Grid.ColumnSpan="2" Margin="0 3 0 0" CornerRadius="3" Height="35" Background="#202036">
                 <DockPanel>
                     <Button VerticalAlignment="Center" Height="30" Width="30" Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Left" Margin="10 0 0 0" IsCancel="True"
                             Command="{Binding ExitChatCommand}">
@@ -380,7 +356,9 @@
                     <TextBlock Text="{Binding SelectedChat.Name}" Foreground="#FFF" Opacity="0.8"
                                VerticalAlignment="Center" HorizontalAlignment="Left" Margin="30 0 0 0" FontSize="15"
                                FontWeight="Medium"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 0 10 0"
+
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="0 0 10 0"
                                 Visibility="{Binding ElementName=messages,Path=SelectedIndex,Converter={StaticResource IndexToVisibility}}">
                         <Button Style="{StaticResource ModernFlatButton}" Background="{DynamicResource PurpleGradient1}" BorderThickness="3"
                                 ContentStringFormat="Delete {0}" Padding="15 5" Height="28" FontWeight="Medium" Width="100" Foreground="{DynamicResource SecondaryForegroundBrush}"
@@ -392,11 +370,78 @@
                         VerticalAlignment="Center" Margin="10 0 0 0" Click="UnselectAllMessages" >
                             <icon:FontAwesome Kind="TimesSolid" Width="15" Height="15"/>
                         </Button>
-
                     </StackPanel>
+
+                    <ToggleButton VerticalAlignment="Center" Height="17" Width="17" Margin="0 0 10 0"
+                           Style="{StaticResource DynamicContentButton}" HorizontalAlignment="Right"
+                          Content="{x:Static icon:PackIconFontAwesomeKind.OutdentSolid}"
+                          Tag="{x:Static icon:PackIconFontAwesomeKind.IndentSolid}">
+                        <ToggleButton.Triggers>
+                            <EventTrigger RoutedEvent="ToggleButton.Checked">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="rightBorder" Storyboard.TargetProperty="Width"
+                                                                     To="200" Duration="0:0:0:0.40">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CircleEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="ToggleButton.Unchecked">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="rightBorder" Storyboard.TargetProperty="Width"
+                                                                     To="0" Duration="0:0:0:0.40">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CircleEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ToggleButton.Triggers>
+                    </ToggleButton>
                 </DockPanel>
-                
             </Border>
+
+            <Border x:Name="rightBorder" Grid.Column="2" CornerRadius="3 0 0 3" Margin="0 40 0 2" Width="0"
+                    Background="#202036"/>
+
+            <Border  Grid.ColumnSpan="2" Background="{DynamicResource SecondaryBackgroundBrush}" Grid.Row="1"
+                VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150"  CornerRadius="3">
+                <Grid>
+                    <TextBox x:Name="messageBox" Style="{StaticResource ModernTextBox}" Background="Transparent" Tag="Send a message . . ."
+                     TextWrapping="Wrap" Height="Auto" IsHitTestVisible="{Binding IsAudioRecording,Converter={StaticResource BoolInverter}}"
+                             MaxLength="3000"  
+                             Margin="0 0 50 0" VerticalScrollBarVisibility="Auto" Text="{Binding SelectedChat.TypingMessageText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Button Style="{StaticResource ModernFlatButton}" HorizontalAlignment="Right"
+                        Width="35" Height="35" Margin="0 0 10 7" VerticalAlignment="Bottom"
+                        IsDefault="True" Command="{Binding SendMessageCommand}" 
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+
+                        <icon:PackIconFontAwesome  Spin="False" Width="20" Height="20">
+                            <icon:PackIconFontAwesome.Style>
+                                <Style TargetType="icon:PackIconFontAwesome">
+                                    <Setter Property="Kind" Value="PaperPlaneRegular"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ElementName=messageBox,Path=Text.Length}" Value="0">
+                                            <Setter Property="Kind" Value="MicrophoneSolid"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsAudioRecording}" Value="True">
+                                            <Setter Property="Kind" Value="StopSolid"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </icon:PackIconFontAwesome.Style>
+                        </icon:PackIconFontAwesome>
+
+                    </Button>
+                </Grid>
+            </Border>
+
         </Grid>
 
 

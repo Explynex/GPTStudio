@@ -255,6 +255,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 var audioResult = await api.AudioEndpoint.CreateTranscriptionAsync(new OpenAI.Audio.AudioTranscriptionRequest(_audioRecorder.MemoryStream, "hello.wav"));
 
                 currentChat.TypingMessageText = audioResult;
+                OnPropertyChanged(nameof(SelectedChat));
 
                 _audioRecorder.Dispose();
                 return;
