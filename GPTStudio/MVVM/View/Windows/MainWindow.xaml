@@ -12,6 +12,7 @@
         AllowsTransparency="True"
         WindowStartupLocation="CenterScreen"
         Background="Transparent"
+        WindowState="Normal"
         d:DataContext="{d:DesignInstance viewmodels:MainWindowViewModel}">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="1"/>

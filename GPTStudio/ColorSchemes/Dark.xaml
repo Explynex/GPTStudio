@@ -36,6 +36,11 @@
         <GradientStop Offset="1" Color="#EE82EE"/>
     </LinearGradientBrush>
 
+    <LinearGradientBrush x:Key="LightCyanGradient"  StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Offset="0" Color="#6c5ecf"/>
+        <GradientStop Offset="1" Color="Cyan"/>
+    </LinearGradientBrush>
+
     <DropShadowEffect x:Key="LightShadow" BlurRadius="3" Opacity="0.35"
                                       ShadowDepth="1"/>
 

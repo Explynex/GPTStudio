@@ -9,6 +9,7 @@
                 <ResourceDictionary Source="ColorSchemes/Dark.xaml"/>
                 <ResourceDictionary Source="Styles/Buttons.xaml"/>
                 <ResourceDictionary Source="Styles/ContextMenu.xaml"/>
+                <ResourceDictionary Source="Styles/Slider.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>

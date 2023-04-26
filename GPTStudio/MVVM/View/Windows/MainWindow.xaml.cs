@@ -20,6 +20,7 @@ namespace GPTStudio.MVVM.View.Windows
             if(WindowState == WindowState.Maximized)
             {
                 WindowState      = WindowState.Normal;
+                ResizeMode       = ResizeMode.CanResize;
                 var position     = Utils.Win32.GetMousePosition();
                 Left             = position.X - this.Width / 2;
                 Top              = position.Y - 30;

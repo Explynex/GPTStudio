@@ -411,7 +411,35 @@
                     <RowDefinition Height="300"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                
+
+
+                <StackPanel Margin="10">
+
+                    <TextBlock Text="Model settings" FontSize="13" Foreground="{DynamicResource LightBlueGradient}" FontWeight="Medium"/>
+                    <Slider  VerticalAlignment="Top" Minimum="1" Maximum="2048" Tag="Maximum length"
+                         Value="512" SmallChange="1" LargeChange="1" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:#}}"
+                            Style="{StaticResource Horizontal_Slider}"/>
+
+                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Temperature"
+                         Value="0.7" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                            Style="{StaticResource Horizontal_Slider}" />
+
+                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Top P"
+                         Value="1" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                            Style="{StaticResource Horizontal_Slider}"/>
+
+                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Frequency penalty"
+                         Value="0" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                            Style="{StaticResource Horizontal_Slider}"/>
+
+                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Presence penalty"
+                         Value="0" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                            Style="{StaticResource Horizontal_Slider}"/>
+
+                </StackPanel>
+                    
+       
+
                 <TextBlock Text="System message" FontSize="13" Foreground="{DynamicResource LightBlueGradient}" 
                            Margin="10 0 0 0" FontWeight="Medium" VerticalAlignment="Bottom"/>
                
