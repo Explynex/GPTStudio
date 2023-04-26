@@ -10,6 +10,7 @@
         <Setter Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource PrimarySubBrush}"/>
         <Setter Property="CaretBrush" Value="{DynamicResource PrimaryForegroundBrush}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Cursor" Value="IBeam"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -18,13 +19,13 @@
                 <ControlTemplate TargetType="{x:Type TextBox}">
                     <Grid Background="Transparent">
                         <Border x:Name="border" CornerRadius="8" Background="{TemplateBinding Background}" Width="{TemplateBinding Width}"
-                                Height="{TemplateBinding Height}" Padding="10 5 10 5" BorderThickness="1.25">
-                            <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Padding="{TemplateBinding Padding}"
+                                Height="{TemplateBinding Height}" Padding="10 5 10 5" BorderThickness="0">
+                            <ScrollViewer x:Name="PART_ContentHost" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" Padding="{TemplateBinding Padding}"
                             Focusable="false" Background="Transparent" VerticalScrollBarVisibility="Hidden" />
                         </Border>
-                        <TextBlock x:Name="hint" Foreground="{TemplateBinding Foreground}" 
-                                       FontSize="{TemplateBinding FontSize}" Padding="14 5 10 5"
-                                       Visibility="Collapsed" Text="{TemplateBinding Tag}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="hint" Foreground="{TemplateBinding Foreground}" Margin="13 5 10 5"
+                                       FontSize="{TemplateBinding FontSize}" Padding="{TemplateBinding Padding}"
+                                       Visibility="Collapsed" Text="{TemplateBinding Tag}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Text" Value="{x:Static sys:String.Empty}">

@@ -405,8 +405,23 @@
                 </DockPanel>
             </Border>
 
-            <Border x:Name="rightBorder" Grid.Column="2" CornerRadius="3 0 0 3" Margin="0 40 0 2" Width="0"
-                    Background="#202036"/>
+            <Grid x:Name="rightBorder" Grid.Column="2" Margin="0 40 0 2" Width="0"
+                    Background="#202036" d:Width="200">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="300"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Text="System message" FontSize="13" Foreground="{DynamicResource LightBlueGradient}" 
+                           Margin="10 0 0 0" FontWeight="Medium" VerticalAlignment="Bottom"/>
+               
+                <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3"
+                           VerticalAlignment="Bottom" Margin="0 0 0 22"/>
+                
+                <TextBox Style="{StaticResource ModernTextBox}" Grid.Row="1" TextWrapping="Wrap" Background="Transparent"
+                         Padding="0 3 0 0" Width="Auto" Height="Auto" VerticalContentAlignment="Stretch"
+                         Margin="0 0 3 7" VerticalScrollBarVisibility="Auto" Tag="Message prompt . . .&#13;«You are helpful assistant»"/>
+            </Grid>
 
             <Border  Grid.ColumnSpan="2" Background="{DynamicResource SecondaryBackgroundBrush}" Grid.Row="1"
                 VerticalAlignment="Bottom" MinHeight="50" MaxHeight="150"  CornerRadius="3">

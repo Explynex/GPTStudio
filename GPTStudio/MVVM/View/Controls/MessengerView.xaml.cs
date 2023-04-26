@@ -32,7 +32,7 @@ namespace GPTStudio.MVVM.View.Controls
                 }
 
                 var item = (sender as FrameworkElement).DataContext;
-                (this.DataContext as MessengerViewModel).RefreshCollection();
+                (this.DataContext as MessengerViewModel).RefreshCollection(false);
                 messages.ScrollIntoView(item);
                 return;
             }

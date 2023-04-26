@@ -39,7 +39,7 @@ internal sealed class Chat
     }
 
     [field: NonSerialized]
-    public double CachedScrollOffset { get; set; } = -1d;
+    public double CachedScrollOffset { get; set; }
 
     private string _name;
     public string ID { get; private set; }
@@ -252,11 +252,15 @@ internal sealed class MessengerViewModel : ObservableObject
         return false;
     }
 
-    public void RefreshCollection()
+    public void RefreshCollection(bool autoscroll = true)
     {
         SearchBoxText = null;
         if((SearchFilter as ListCollectionView).Count != (SearchFilter.SourceCollection as IList).Count)
             SearchFilter.Refresh();
+        if(SelectedChat != null && autoscroll)
+        {
+            ChatScrollViewer.ScrollToEnd();
+        }
     }
 
     public MessengerViewModel()
