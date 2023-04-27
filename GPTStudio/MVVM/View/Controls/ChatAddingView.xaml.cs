@@ -1,9 +1,7 @@
-﻿using GPTStudio.MVVM.ViewModels;
+﻿using GPTStudio.Infrastructure.Models;
+using GPTStudio.MVVM.ViewModels;
 using GPTStudio.Utils;
-using NTextCat.Commons;
-using System.Collections.ObjectModel;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -41,7 +39,7 @@ namespace GPTStudio.MVVM.View.Controls
                 if (!string.IsNullOrEmpty(InterlocutorNameBox.Text))
                 {
                     personaIdentity.Append("Call the interlocutor \"").Append(InterlocutorNameBox.Text.Replace(" ", "")).Append("\",he is ")
-                        .Append(InterlocutorGenderButton.IsArrangeValid == true ? "male" : "female");
+                        .Append(InterlocutorGenderButton.IsArrangeValid == true ? "male." : "female.");
                 }
             }
 

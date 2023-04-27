@@ -417,23 +417,23 @@
 
                     <TextBlock Text="Model settings" FontSize="13" Foreground="{DynamicResource LightBlueGradient}" FontWeight="Medium"/>
                     <Slider  VerticalAlignment="Top" Minimum="1" Maximum="2048" Tag="Maximum length"
-                         Value="512" SmallChange="1" LargeChange="1" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:#}}"
+                         Value="{Binding SelectedChat.Tokens,UpdateSourceTrigger=LostFocus}" SmallChange="1" LargeChange="1" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:#}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
                     <Slider VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Temperature"
-                         Value="0.7" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                         Value="{Binding SelectedChat.Temperature,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}" />
 
                     <Slider VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Top P"
-                         Value="1" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                         Value="{Binding SelectedChat.TopP,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
                     <Slider VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Frequency penalty"
-                         Value="0" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                         Value="{Binding SelectedChat.FreqPenalty,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
                     <Slider VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Presence penalty"
-                         Value="0" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
+                         Value="{Binding SelectedChat.PresPenalty,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
                 </StackPanel>
@@ -447,7 +447,8 @@
                            VerticalAlignment="Bottom" Margin="0 0 0 22"/>
                 
                 <TextBox Style="{StaticResource ModernTextBox}" Grid.Row="1" TextWrapping="Wrap" Background="Transparent"
-                         Padding="0 3 0 0" Width="Auto" Height="Auto" VerticalContentAlignment="Stretch"
+                         Text="{Binding SelectedChat.SystemMessagePrompt,UpdateSourceTrigger=LostFocus}"
+                         Padding="0 3 0 0" Width="Auto" Height="Auto" VerticalContentAlignment="Stretch" MaxLength="500"
                          Margin="0 0 3 7" VerticalScrollBarVisibility="Auto" Tag="Message prompt . . .&#13;«You are helpful assistant»"/>
             </Grid>
 

@@ -1,5 +1,7 @@
 ﻿using GPTStudio.Infrastructure;
+using GPTStudio.Infrastructure.Models;
 using GPTStudio.MVVM.View.Windows;
+using GPTStudio.MVVM.ViewModels;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -33,6 +35,8 @@ public partial class App : Application
         if (Config.NeedToUpdate)
             Config.Save();
 
+        if (Chat.NeedToUpdate)
+            Chat.Save();
 
         Application.Current.Shutdown();
     }

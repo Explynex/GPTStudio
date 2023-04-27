@@ -1,5 +1,6 @@
 ﻿using GPTStudio.Infrastructure;
 using GPTStudio.Infrastructure.Azure;
+using GPTStudio.Infrastructure.Models;
 using GPTStudio.Infrastructure.Tokenizer;
 using GPTStudio.MVVM.Core;
 using GPTStudio.MVVM.View.Controls;
@@ -19,94 +20,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace GPTStudio.MVVM.ViewModels;
-
-[Serializable]
-internal sealed class Chat 
-{
-    [field: NonSerialized]
-    public ObservableCollection<ChatGPTMessage> Messages { get; set; }
-
-    [field: NonSerialized]
-    private string _typingMessageText;
-    public string TypingMessageText 
-    {
-        get => _typingMessageText;
-        set
-        {
-            _typingMessageText = value;
-
-        }
-    }
-
-    [field: NonSerialized]
-    public double CachedScrollOffset { get; set; }
-
-    private string _name;
-    public string ID { get; private set; }
-    public string CreatedTimestamp { get; private set; }
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (string.IsNullOrEmpty(value) || string.Equals(value,_name))
-                return;
-            _name = value;
-
-            Common.BinarySerialize((MainWindowViewModel.MessengerV.DataContext as MessengerViewModel).Chats, $"{App.UserdataDirectory}\\chats");
-        }
-    }
-    public bool SpeecherGender { get; set; }
-    public string PersonaIdentityPrompt { get; set; }
-
-    public Chat(string name)
-    {
-        _name    = name;
-        ID       = Common.GenerateRandomHash(name);
-    }
-}
-
-[Serializable]
-internal sealed class ChatGPTMessage : IMessage, INotifyPropertyChanged
-{
-    [field: NonSerialized]
-    private bool _isMessageListening;
-    [field: NonSerialized]
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private int _tokens;
-
-    public int Tokens
-    {
-        get => _tokens;
-        set
-        {
-            _tokens = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Tokens)));
-        }
-    }
-
-    public bool IsMessageListening
-    {
-        get => _isMessageListening;
-        set
-        {
-            _isMessageListening = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsMessageListening)));
-        }
-    }
-
-    public BindableStringBuilder ChatCompletion { get; set; }
-    public string Content => ChatCompletion.Text;
-    public Role Role { get; set; }
-    public ChatGPTMessage(Role role, string content)
-    {
-        this.Role = role;
-        this.ChatCompletion = new(content);
-    }
-
-    
-}
 
 [Serializable]
 internal sealed class BindableStringBuilder : INotifyPropertyChanged
@@ -311,9 +224,9 @@ internal sealed class MessengerViewModel : ObservableObject
             // 4097 tokens max for GPT-3.5-Turbo
             int tokensCount = 0;
             var msgList = new List<ChatGPTMessage>();
-            if (!string.IsNullOrEmpty(SelectedChat.PersonaIdentityPrompt))
+            if (!string.IsNullOrEmpty(SelectedChat.PersonaIdentityPrompt) || !string.IsNullOrEmpty(SelectedChat.SystemMessagePrompt))
             {
-                msgList.Add(new(Role.System, SelectedChat.PersonaIdentityPrompt));
+                msgList.Add(new(Role.System, SelectedChat.PersonaIdentityPrompt + SelectedChat.SystemMessagePrompt));
                 tokensCount = tokenizer.Calculate(SelectedChat.PersonaIdentityPrompt);
             }
 
@@ -329,7 +242,7 @@ internal sealed class MessengerViewModel : ObservableObject
             } 
             #endregion
 
-            var request = new ChatRequest(msgList, Model.GPT3_5_Turbo,maxTokens: 550);
+            var request = new ChatRequest(msgList, Model.GPT3_5_Turbo,SelectedChat.Temperature,SelectedChat.TopP,null,null,SelectedChat.Tokens,SelectedChat.PresPenalty,SelectedChat.FreqPenalty);
 
             SelectedChat.Messages.Add(new ChatGPTMessage(Role.Assistant, ". . ."));
 
