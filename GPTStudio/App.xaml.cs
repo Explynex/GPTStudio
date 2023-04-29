@@ -1,7 +1,6 @@
 ﻿using GPTStudio.Infrastructure;
 using GPTStudio.Infrastructure.Models;
 using GPTStudio.MVVM.View.Windows;
-using GPTStudio.MVVM.ViewModels;
 using System.IO;
 using System.Reflection;
 using System.Windows;

@@ -35,6 +35,31 @@
                 </Setter>
             </Style>
 
+            <Style TargetType="{x:Type ToolTip}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Placement" Value="Top"/>
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToolTip">
+                            <Border CornerRadius="5" Padding="7" Margin="0 0 0 7" Background="{DynamicResource PurpleGradient1}">
+                                <TextBlock Text="{TemplateBinding Property=Content}" FontSize="12" Foreground="#fff" TextWrapping="Wrap"
+                                           MaxWidth="200"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="0.8" Duration="0:0:0.4"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Style.Triggers>
+            </Style>
+
             <ControlTemplate x:Key="VerticalScrollBar" TargetType="{x:Type ScrollBar}">
                 <Border Margin="-11 5 0 5" Background="Transparent" CornerRadius="10" Opacity="1">
                     <Track Name="PART_Track" IsDirectionReversed="true">

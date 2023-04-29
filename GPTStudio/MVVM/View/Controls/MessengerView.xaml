@@ -8,7 +8,9 @@
              xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewmodels:MessengerViewModel}"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             ToolTipService.InitialShowDelay="350"
+             ToolTipService.BetweenShowDelay="500">
     <UserControl.Resources>
 
         <Style x:Key="ListBoxItemIcon" TargetType="icon:PackIconFontAwesome">
@@ -416,23 +418,23 @@
                 <StackPanel Margin="10">
 
                     <TextBlock Text="Model settings" FontSize="13" Foreground="{DynamicResource LightBlueGradient}" FontWeight="Medium"/>
-                    <Slider  VerticalAlignment="Top" Minimum="1" Maximum="2048" Tag="Maximum length"
+                    <Slider ToolTip="The maximum number of tokens to generate." ToolTipService.InitialShowDelay="300"  VerticalAlignment="Top" Minimum="1" Maximum="2048" Tag="Maximum length"
                          Value="{Binding SelectedChat.Tokens,UpdateSourceTrigger=LostFocus}" SmallChange="1" LargeChange="1" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:#}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
-                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Temperature"
+                    <Slider ToolTip="Controls randomless: Lowering results in less random completions. As the temperature approaches zero, the model will become deterministic and repetitive." VerticalAlignment="Top" ToolTipService.InitialShowDelay="300" Minimum="0" Maximum="1" Tag="Temperature"
                          Value="{Binding SelectedChat.Temperature,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}" />
 
-                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Top P"
+                    <Slider ToolTip="Controls diversity via nucleus sampling: 0.5 means half of all likelihood - weighted options are considered." VerticalAlignment="Top" Minimum="0" Maximum="1" Tag="Top P"
                          Value="{Binding SelectedChat.TopP,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
-                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Frequency penalty"
+                    <Slider ToolTip="How much to penalize new tokens based on their existing frequency in the text so far. Decreases the model`s likelihood to repeat the same line verbatim." VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Frequency penalty"
                          Value="{Binding SelectedChat.FreqPenalty,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
-                    <Slider VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Presence penalty"
+                    <Slider ToolTip="How much to penalize new tokens based on whether they appear in te text so far. Increases the model`s likelihood to talk about new topics." VerticalAlignment="Top" Minimum="0" Maximum="2" Tag="Presence penalty"
                          Value="{Binding SelectedChat.PresPenalty,UpdateSourceTrigger=LostFocus}" LargeChange="0.01" SmallChange="0.01" Margin="0 30 0 0" Uid="{Binding RelativeSource={RelativeSource Self}, Path=Value,StringFormat={}{0:0.00}}"
                             Style="{StaticResource Horizontal_Slider}"/>
 
