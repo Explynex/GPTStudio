@@ -4,9 +4,21 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace GPTStudio.Infrastructure.Azure;
+
+internal class SpeecherInfo
+{
+    public string Gender { get; set; }
+    public string ShortName { get; set; }
+    public string DisplayName { get; set; }
+    public string LocaleName { get; set; }
+
+    public override string ToString() =>  $"{LocaleName} | {DisplayName} | {Gender}";
+    
+}
 
 internal class SpeechHandler : IDisposable
 {
@@ -199,6 +211,8 @@ internal class SpeechHandler : IDisposable
     public async Task GetVoicesListAsync()
     {
         var result = await Client.GetAsync(VoicesListEndpoint);
+        System.IO.File.WriteAllText(App.UserdataDirectory+ "voices",
+            JsonSerializer.Serialize(JsonSerializer.Deserialize<List<SpeecherInfo>>(await result.Content.ReadAsStringAsync())));
     }
 
     public async Task<string> GetOAuthToken()

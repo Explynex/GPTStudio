@@ -1,8 +1,11 @@
 ﻿using GPTStudio.Infrastructure;
 using GPTStudio.Infrastructure.Models;
 using GPTStudio.MVVM.View.Windows;
+using GPTStudio.MVVM.ViewModels;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 
 namespace GPTStudio;
@@ -33,6 +36,9 @@ public partial class App : Application
     {
         if (Config.NeedToUpdate)
             Config.Save();
+
+        if (SettingsViewModel.NeedLanguagesConfigUpdate)
+            File.WriteAllText(UserdataDirectory+ "LangConfig", JsonSerializer.Serialize((MainWindowViewModel.SettingsV.DataContext as SettingsViewModel).Languages));
 
         if (Chat.NeedToUpdate)
             Chat.Save();

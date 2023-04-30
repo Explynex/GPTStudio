@@ -179,6 +179,10 @@ internal sealed class MessengerViewModel : ObservableObject
     public MessengerViewModel()
     {
         speechHandler = new(Config.Properties.AzureAPIKey,Config.Properties.AzureSpeechRegion);
+
+        if (!File.Exists($"{App.UserdataDirectory}voices"))
+            _ = speechHandler.GetVoicesListAsync();
+
         tokenizer = new(File.ReadAllText("merges.txt"));
         langDetector = new();
         langDetector.AddLanguages("ru", "en");

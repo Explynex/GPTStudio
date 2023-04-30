@@ -47,4 +47,5 @@
 
     <Color x:Key="PrimarySubColor">#6232d6</Color>
     <Color x:Key="TertiaryBackgroundColor">#292848</Color>
+    <Color x:Key="SecondarySubColor">#3F3D7C</Color>
 </ResourceDictionary>

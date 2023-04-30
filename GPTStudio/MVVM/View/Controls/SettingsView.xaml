@@ -10,10 +10,9 @@
     <StackPanel>
         <TextBlock HorizontalAlignment="Center"
                    Foreground="#fff"
-                   FontWeight="Medium" FontSize="18" 
-                   >Settings</TextBlock>
+                   FontWeight="Medium" FontSize="18">Settings</TextBlock>
         <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3" Margin="0 10 0 5"/>
-        <ScrollViewer VerticalAlignment="Top" MaxHeight="325">
+        <ScrollViewer VerticalAlignment="Top" MaxHeight="325" VirtualizingPanel.IsVirtualizing="True">
             <StackPanel >
                 <TextBlock Text="Global" FontSize="14" Foreground="#6c5eb3" 
                            Margin="10 0 0 7" FontWeight="Medium"/>
@@ -65,76 +64,126 @@
                 <TextBlock Text="Chat" FontSize="14" Foreground="#6c5eb3" 
                            Margin="10 3 0 7" FontWeight="Medium"/>
 
-                <ListBox Margin="10 0 10 10"  Background="Transparent" 
-                         BorderBrush="Transparent" BorderThickness="0" Height="Auto"
+                <DockPanel Margin="10 0 10 10">
+                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
+                    HorizontalAlignment="Left">
+                        <icon:PackIconFontAwesome Kind="SpellCheckSolid" Foreground="White"/>
+                    </Border>
+
+                    <TextBlock Text="Language settings" VerticalAlignment="Center" Margin="10 0 0 0"
+                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
+                       FontWeight="Medium"/>
+
+                    <ToggleButton x:Name="langExpander"  Style="{StaticResource DynamicContentButton}" Margin="0 0 10 0"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center" Height="17" Width="17"
+                                  Tag="{x:Static icon:PackIconFontAwesomeKind.AngleUpSolid}" Command="{Binding LoadVoicesCommand}"
+                                  Content="{x:Static icon:PackIconFontAwesomeKind.AngleDownSolid}"/>
+                </DockPanel>
+
+                <Grid d:Visibility="Visible" Visibility="{Binding ElementName=langExpander,Path=IsChecked,Converter={StaticResource BoolToVis}}">
+
+                    <Border Margin="177 6 0 15" HorizontalAlignment="Left" CornerRadius="3" Width="6"
+                            Background="{DynamicResource PrimaryBackgroundBrush}" Opacity="0.5"/>
+
+                    <ListBox Margin="35 0 10 10"  Background="Transparent"  HorizontalAlignment="Left"
+                         BorderBrush="Transparent" BorderThickness="0" Height="145" MinWidth="150"
                          d:ItemsSource="{d:SampleData ItemCount=10}" ItemsSource="{Binding Languages}">
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Width="450"  IsItemsHost="True"/>
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <ToggleButton IsChecked="{Binding Selected,Mode=OneWayToSource}" >
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton">
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border x:Name="border" Width="Auto" Padding="7 7 12 7" Height="30"
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <ToggleButton>
+                                    <ToggleButton.Style>
+                                        <Style TargetType="ToggleButton">
+                                            <Setter Property="IsChecked" Value="{Binding Value.Selected,Mode=OneWay}"/>
+                                            <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.SelectLanguageCommand}"/>
+                                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ToggleButton">
+                                                        <Border x:Name="border" Width="Auto" Padding="12 7 12 7" Height="30"
                                                             Background="{DynamicResource TertiaryBackgroundBrush}" CornerRadius="15" Margin="3" >
-                                                        <DockPanel VerticalAlignment="Center">
-                                                            <icon:PackIconFontAwesome x:Name="CheckIcon" 
+                                                            <DockPanel VerticalAlignment="Center">
+                                                                <icon:PackIconFontAwesome x:Name="CheckIcon" 
                                                                                       Kind="CheckSolid" Width="0" VerticalAlignment="Center"
                                                                                       Margin="0 0 5 0" Foreground="{DynamicResource LightCyanGradient}"/>
-                                                            <TextBlock Text="{Binding CountryName}" d:Text="{Binding}"/>
-                                                           
-                                                        </DockPanel>
-                                                        <VisualStateManager.VisualStateGroups>
-                                                            <VisualStateGroup x:Name="CommonStates">
-                                                                <VisualState x:Name="Checked">
+                                                                <TextBlock Text="{Binding Value.CountryName}" d:Text="{Binding}" Margin="0 0 5 0"/>
+
+                                                                <Button Style="{StaticResource ModernSpinButton}" 
+                                                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ConfigureVoiceCommand}"
+                                                                        CommandParameter="{Binding}">
+                                                                    <icon:PackIconFontAwesome Kind="CogSolid" Width="{Binding ElementName=CheckIcon,Path=Width}" />
+                                                                </Button>
+                                                            </DockPanel>
+                                                            <VisualStateManager.VisualStateGroups>
+                                                                <VisualStateGroup x:Name="CommonStates">
+                                                                    <VisualState x:Name="Checked">
+                                                                        <Storyboard>
+                                                                            <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="CheckIcon" Storyboard.TargetProperty="Width" To="12"/>
+                                                                        </Storyboard>
+                                                                    </VisualState>
+                                                                    <VisualState x:Name="Unchecked"/>
+                                                                </VisualStateGroup>
+                                                            </VisualStateManager.VisualStateGroups>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsChecked" Value="True">
+                                                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SecondarySubBrush}"/>
+                                                            </Trigger>
+                                                            <EventTrigger RoutedEvent="ToggleButton.Unchecked">
+                                                                <BeginStoryboard>
                                                                     <Storyboard>
                                                                         <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="CheckIcon" 
-                                                                    Storyboard.TargetProperty="Width" To="12"/>
-                                                                    </Storyboard>
-                                                                </VisualState>
-                                                                <VisualState x:Name="Unchecked"/>
-                                                            </VisualStateGroup>
-                                                        </VisualStateManager.VisualStateGroups>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsChecked" Value="True">
-                                                            <Setter TargetName="border" Property="Background" Value="{DynamicResource SecondarySubBrush}"/>
-                                                        </Trigger>
-                                                        <EventTrigger RoutedEvent="ToggleButton.Unchecked">
-                                                            <BeginStoryboard>
-                                                                <Storyboard>
-                                                                    <DoubleAnimation Duration="0:0:0.4" Storyboard.TargetName="CheckIcon" 
                                                                     Storyboard.TargetProperty="Width" To="0"/>
-                                                                </Storyboard>
-                                                            </BeginStoryboard>
-                                                        </EventTrigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                            <Style.Resources>
-                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
-                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
-                            </Style.Resources>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                </ListBox>
-                
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ToggleButton.Style>
+                                </ToggleButton>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                <Style.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                                </Style.Resources>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+
+                    <StackPanel Margin="195 0 0 0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <TextBlock  FontSize="13" FontWeight="Medium"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}">
+                            <Run Text="Configure:"/>
+                            <Run Text="{Binding SelectedLang.Value,Mode=OneWay}" d:Text="English" Foreground="{DynamicResource PrimarySubBrush}"/>
+                        </TextBlock>
+                        <TextBlock Text="Speech voice" FontSize="12"
+                                 Foreground="{DynamicResource PrimaryForegroundBrush}" Margin="3 3 0 3"/>
+
+                        <ComboBox MinWidth="130" MaxWidth="240" Height="30" 
+                                  SelectedIndex="{Binding VoiceIndex}"
+                                  ItemsSource="{Binding VoicesList,Mode=OneWay}"/>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="IsHitTestVisible" Value="True"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedLang}" Value="{x:Null}">
+                                        <Setter Property="IsHitTestVisible" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                           
+                        </StackPanel.Style>
+                    </StackPanel>
+
+                </Grid>
+
                 <DockPanel Margin="10 0 10 0">
                     <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
                     HorizontalAlignment="Left">
@@ -171,16 +220,6 @@
                     <ToggleButton Style="{StaticResource ModernSwitchToggleButton}" IsChecked="{Binding UsingMarkdown}"/>
                 </DockPanel>
 
-                <DockPanel Margin="10 10 10 0">
-                    <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
-                    HorizontalAlignment="Left">
-                        <icon:PackIconFontAwesome Kind="SpellCheckSolid" Foreground="White"/>
-                    </Border>
-
-                    <TextBlock Text="Voice recognition" VerticalAlignment="Center" Margin="10 0 0 0"
-                       Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
-                       FontWeight="Medium"/>
-                </DockPanel>
 
                 <DockPanel Margin="10 10 10 0">
                     <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
@@ -197,7 +236,7 @@
 
                 <TextBlock Text="Other" FontSize="14" Foreground="#6c5eb3" 
                            Margin="10 3 0 7" FontWeight="Medium"/>
-                
+
                 <DockPanel Margin="10 0 10 0">
                     <Border Padding="7" CornerRadius="3" Background="{DynamicResource PurpleGradient1}"
                     HorizontalAlignment="Left">
