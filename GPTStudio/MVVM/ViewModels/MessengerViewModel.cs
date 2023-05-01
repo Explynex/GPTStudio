@@ -69,7 +69,6 @@ internal sealed class MessengerViewModel : ObservableObject
 
 
     private AudioRecorder _audioRecorder;
-    private LanguageDetector langDetector;
     private GPTTokenizer tokenizer;
     private ICollectionView SearchFilter;
     private SpeechHandler speechHandler;
@@ -143,7 +142,7 @@ internal sealed class MessengerViewModel : ObservableObject
     }
 
     private bool GetSpeechVoice(string msg, out string voice) =>
-        (voice = langDetector.Detect(msg.Length > 70 ? msg[..70] : msg) switch
+        (voice = Config.LangDetector.Detect(msg.Length > 70 ? msg[..70] : msg) switch
         {
             "ru" => "ru-RU-SvetlanaNeural",
             "uk" => "uk-UA-OstapNeural",
@@ -184,8 +183,7 @@ internal sealed class MessengerViewModel : ObservableObject
             _ = speechHandler.GetVoicesListAsync();
 
         tokenizer = new(File.ReadAllText("merges.txt"));
-        langDetector = new();
-        langDetector.AddLanguages("ru", "en");
+
         Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats") ?? new();
         SearchFilter = CollectionViewSource.GetDefaultView(Chats);
         SearchFilter.Filter = FilterPredicate;

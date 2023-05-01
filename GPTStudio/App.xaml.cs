@@ -38,7 +38,7 @@ public partial class App : Application
             Config.Save();
 
         if (SettingsViewModel.NeedLanguagesConfigUpdate)
-            File.WriteAllText(UserdataDirectory+ "LangConfig", JsonSerializer.Serialize((MainWindowViewModel.SettingsV.DataContext as SettingsViewModel).Languages));
+            File.WriteAllText(UserdataDirectory+ "LangConfig", JsonSerializer.Serialize(Config.LanguagesConfig));
 
         if (Chat.NeedToUpdate)
             Chat.Save();

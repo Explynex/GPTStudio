@@ -87,7 +87,7 @@
 
                     <ListBox Margin="35 0 10 10"  Background="Transparent"  HorizontalAlignment="Left"
                          BorderBrush="Transparent" BorderThickness="0" Height="145" MinWidth="150"
-                         d:ItemsSource="{d:SampleData ItemCount=10}" ItemsSource="{Binding Languages}">
+                         d:ItemsSource="{d:SampleData ItemCount=10}" ItemsSource="{Binding LanguagesList}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <ToggleButton>

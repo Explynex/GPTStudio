@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿using GPTStudio.Infrastructure.Models;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -8,17 +9,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace GPTStudio.Infrastructure.Azure;
-
-internal class SpeecherInfo
-{
-    public string Gender { get; set; }
-    public string ShortName { get; set; }
-    public string DisplayName { get; set; }
-    public string LocaleName { get; set; }
-
-    public override string ToString() =>  $"{LocaleName} | {DisplayName} | {Gender}";
-    
-}
 
 internal class SpeechHandler : IDisposable
 {

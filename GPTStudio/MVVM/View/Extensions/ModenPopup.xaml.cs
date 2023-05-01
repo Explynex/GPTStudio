@@ -14,11 +14,14 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace GPTStudio.MVVM.View.Extensions
 {
     public partial class ModenPopup : Grid
     {
+        public static Action ClosingAction;
+
         public static readonly DependencyProperty IsOpenProperty =
            DependencyProperty.Register("IsOpen", typeof(bool), typeof(ModenPopup), new FrameworkPropertyMetadata(false,FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, new PropertyChangedCallback(OnPropertyChanged)));
 
@@ -83,11 +86,20 @@ namespace GPTStudio.MVVM.View.Extensions
 
             OpacityAnimation.Completed += (sender, e) => 
             {
-                if (!IsOpen)
+                if (IsOpen)
+                    return;
+
+
+                Visibility = Visibility.Collapsed;
+                (App.Current.MainWindow.DataContext as MainWindowViewModel).PopupContent = null;
+                ClosingAction?.Invoke();
+                ClosingAction = null;
+                locked = false;
+
+                if (ClosingAction != null)
                 {
-                    Visibility = Visibility.Collapsed;
-                    (App.Current.MainWindow.DataContext as MainWindowViewModel).PopupContent = null;
-                    locked = false;
+                    ClosingAction.Invoke();
+                    ClosingAction = null;
                 }
             };
         }
