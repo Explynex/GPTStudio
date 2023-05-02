@@ -7,6 +7,7 @@ namespace GPTStudio.MVVM.View.Controls;
 public partial class ChoiceView : Grid
 {
     public Action SuccessAction { get; set; }
+    public bool AutoClose { get; set; } = true;
     public ChoiceView() => InitializeComponent();
     private void No_Click(object sender, System.Windows.RoutedEventArgs e) => MainWindowViewModel.ClosePopup();
     
@@ -14,6 +15,7 @@ public partial class ChoiceView : Grid
     private void Yes_Click(object sender, System.Windows.RoutedEventArgs e)
     {
         SuccessAction?.Invoke();
-        MainWindowViewModel.ClosePopup();
+        if(AutoClose)
+            MainWindowViewModel.ClosePopup();
     }
 }

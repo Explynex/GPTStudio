@@ -1,4 +1,5 @@
-﻿using GPTStudio.MVVM.Core;
+﻿using GPTStudio.Infrastructure;
+using GPTStudio.MVVM.Core;
 using GPTStudio.MVVM.View.Controls;
 using System.Windows;
 
@@ -40,7 +41,7 @@ internal sealed class MainWindowViewModel : ObservableObject
     public static void ClosePopup() => (App.Current.MainWindow.DataContext as MainWindowViewModel).IsPopupActive = false;
 
     public MainWindowViewModel()
-    {
+    {  
         CurrentView = MessengerV;
 
         MessengerCommand = new (o => CurrentView = MessengerV);
@@ -49,11 +50,6 @@ internal sealed class MainWindowViewModel : ObservableObject
         SettingsCommand = new(o =>
         {
             PopupContent = SettingsV ??= new SettingsView();
-            if (IsPopupActive)
-            {
-                IsPopupActive = false;
-                return;
-            }
             IsPopupActive = true;
         });
     }

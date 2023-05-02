@@ -1,4 +1,5 @@
 ﻿using GPTStudio.Infrastructure.Models;
+using GPTStudio.OpenAI;
 using LanguageDetection;
 using System.Collections.Generic;
 using System.IO;
@@ -15,12 +16,14 @@ internal static class Config
     public static Dictionary<string, LanguageInfo> LanguagesConfig { get; private set; }
 
     public static LanguageDetector LangDetector { get; set; }
+    public static OpenAIClient OpenAIClientApi { get; set; } 
 
     private static readonly string Path = App.WorkingDirectory + "\\properties.json";
     public static bool NeedToUpdate { get; set; }
 
     static Config()
     {
+
         if (File.Exists(App.UserdataDirectory + "LangConfig"))
         {
             Config.LanguagesConfig = JsonSerializer.Deserialize<Dictionary<string, LanguageInfo>>(File.ReadAllText(App.UserdataDirectory + "LangConfig"));
@@ -28,17 +31,23 @@ internal static class Config
         }
         else
         {
-            LangDetector = new();
             InitDefaultLanguages();
+            Config.LangDetector = new();
+            LangDetector.AddLanguages("en");
         }
     }
 
     public static void UpdateLangDetector()
     {
-        Config.LangDetector = new();
+        Config.LangDetector = null;
+
         var selectedLang = Config.LanguagesConfig.Where(o => o.Value.Selected)?.Select(o => o.Key).ToArray();
         if (selectedLang?.Length > 0)
+        {
+            Config.LangDetector = new();
             LangDetector.AddLanguages(selectedLang);
+        }    
+            
     }
 
     public static bool Load()
@@ -85,7 +94,7 @@ internal static class Config
         { "da", new("Danish") },
         { "de", new("German") },
         { "el", new("Greek") },
-        { "en", new("English") },
+        { "en", new("English"){ Selected = true, SelectedSpeecher = "en-US-SaraNeural" } },
         { "es", new("Spanish") },
         { "et", new("Estonian") },
         { "fa", new("Persian") },

@@ -1,5 +1,4 @@
 ﻿using GPTStudio.Infrastructure;
-using GPTStudio.Infrastructure.Azure;
 using GPTStudio.Infrastructure.Models;
 using GPTStudio.MVVM.Core;
 using GPTStudio.MVVM.View.Extensions;
@@ -17,6 +16,8 @@ internal class SettingsViewModel : ObservableObject
     public RelayCommand SelectLanguageCommand { get; set; }
     public RelayCommand LoadVoicesCommand { get; set; }
     public RelayCommand ConfigureVoiceCommand { get; set; }
+
+
     public static Infrastructure.Models.Properties Properties => Config.Properties;
     public SpeecherInfo[] VoicesList                          => Config.AviableVoices;
     public Dictionary<string, LanguageInfo> LanguagesList     => Config.LanguagesConfig;

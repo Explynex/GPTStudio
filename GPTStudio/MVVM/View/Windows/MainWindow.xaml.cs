@@ -1,4 +1,5 @@
-﻿using GPTStudio.MVVM.ViewModels;
+﻿using GPTStudio.Infrastructure;
+using GPTStudio.MVVM.ViewModels;
 using System.Windows;
 
 namespace GPTStudio.MVVM.View.Windows
@@ -9,6 +10,15 @@ namespace GPTStudio.MVVM.View.Windows
         {
             InitializeComponent();
             DataContext = new MainWindowViewModel();
+            Loaded += InitialValidation;
+        }
+
+        private void InitialValidation(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(Config.Properties.OpenAIAPIKey))
+                Utils.Presentation.OpenChoicePopup("OpenAI key not found", "API key OpenAI services not found, work is not possible without it. Open settings?",
+                    () => (DataContext as MainWindowViewModel).SettingsCommand.Execute(null), false);
+            else Config.OpenAIClientApi = new(Config.Properties.OpenAIAPIKey);
         }
 
         private void WindowDragMove(object sender, System.Windows.Input.MouseButtonEventArgs e)

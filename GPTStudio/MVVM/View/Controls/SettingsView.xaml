@@ -27,8 +27,8 @@
                        Foreground="{DynamicResource PrimaryForegroundBrush}" FontSize="14"
                        FontWeight="Medium"/>
 
-                    <TextBox HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190"
-                             Text="{Binding Properties.OpenAIAPIKey,UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox x:Name="openAIKeyBox" HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190" 
+                             Text="{Binding Properties.OpenAIAPIKey,Mode=OneWay}" TextChanged="openAIKeyBox_TextChanged" BorderThickness="1"/>
                 </DockPanel>
 
                 <DockPanel  Margin="10 10 10 0">
@@ -42,7 +42,7 @@
                        FontWeight="Medium"/>
 
                     <TextBox HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190"
-                             Text="{Binding Properties.AzureAPIKey,UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding Properties.AzureAPIKey,UpdateSourceTrigger=PropertyChanged}" BorderThickness="1"/>
                 </DockPanel>
 
                 <DockPanel  Margin="10 10 10 0">
@@ -56,7 +56,7 @@
                        FontWeight="Medium"/>
 
                     <TextBox HorizontalAlignment="Right" Style="{StaticResource ModernTextBox}" Height="30" Width="190"
-                             Text="{Binding Properties.AzureSpeechRegion,UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding Properties.AzureSpeechRegion,UpdateSourceTrigger=PropertyChanged}" BorderThickness="1"/>
                 </DockPanel>
 
                 <Rectangle Fill="{DynamicResource PrimaryBackgroundBrush}" Height="3" Margin="0 10 0 0"/>

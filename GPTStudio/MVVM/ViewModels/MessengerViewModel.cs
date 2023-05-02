@@ -4,11 +4,9 @@ using GPTStudio.Infrastructure.Models;
 using GPTStudio.Infrastructure.Tokenizer;
 using GPTStudio.MVVM.Core;
 using GPTStudio.MVVM.View.Controls;
-using GPTStudio.OpenAI;
 using GPTStudio.OpenAI.Chat;
 using GPTStudio.OpenAI.Models;
 using GPTStudio.Utils;
-using LanguageDetection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -141,14 +139,19 @@ internal sealed class MessengerViewModel : ObservableObject
         }
     }
 
-    private bool GetSpeechVoice(string msg, out string voice) =>
-        (voice = Config.LangDetector.Detect(msg.Length > 70 ? msg[..70] : msg) switch
+    private static bool GetSpeechVoice(string msg, out string voice)
+    {
+        var lang = Config.LangDetector?.Detect(msg.Length > 70 ? msg[..70] : msg);
+
+        if (lang == null)
         {
-            "ru" => "ru-RU-SvetlanaNeural",
-            "uk" => "uk-UA-OstapNeural",
-            "en" => "en-US-SteffanNeural",
-            _ => null,
-        }) != null;
+            voice = null;
+            return false;
+        }
+            
+        voice = Config.LanguagesConfig[lang].SelectedSpeecher;
+        return true;
+    }
 
     private bool FilterPredicate(object value)
     {
@@ -162,6 +165,12 @@ internal sealed class MessengerViewModel : ObservableObject
         }
 
         return false;
+    }
+
+    private void InvalidOpenAIKey()
+    {
+            Utils.Presentation.OpenChoicePopup("Invalid OpenAI API-key", "Incorrect API key from OpenAI services specified. Open settings?",
+                () => (App.Current.MainWindow.DataContext as MainWindowViewModel).SettingsCommand.Execute(null), false);
     }
 
     public void RefreshCollection(bool autoscroll = true)
@@ -192,9 +201,13 @@ internal sealed class MessengerViewModel : ObservableObject
         SendMessageCommand    = new(async (o) =>
         {
             if (IsBusy) return;
-            var currentChat = SelectedChat;
 
-            var api = new OpenAIClient(Config.Properties.OpenAIAPIKey);
+            if (Config.OpenAIClientApi == null)
+            {
+                InvalidOpenAIKey();
+                return;
+            }
+            var currentChat = SelectedChat;
 
             if (IsAudioRecording)
             {
@@ -203,7 +216,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 // File.WriteAllBytes("D:\\output.mp3", _audioRecorder.MemoryStream.ToArray());
 
                 _audioRecorder.MemoryStream.Position = 0;
-                var audioResult = await api.AudioEndpoint.CreateTranscriptionAsync(new OpenAI.Audio.AudioTranscriptionRequest(_audioRecorder.MemoryStream, "hello.wav"));
+                var audioResult = await Config.OpenAIClientApi.AudioEndpoint.CreateTranscriptionAsync(new OpenAI.Audio.AudioTranscriptionRequest(_audioRecorder.MemoryStream, "hello.wav"));
 
                 currentChat.TypingMessageText = audioResult;
                 OnPropertyChanged(nameof(SelectedChat));
@@ -259,7 +272,7 @@ internal sealed class MessengerViewModel : ObservableObject
 
             #region Streaming response
             IsBusy = true;
-            await api.ChatEndpoint.StreamCompletionAsync(request, result =>
+            await Config.OpenAIClientApi.ChatEndpoint.StreamCompletionAsync(request, result =>
             {
                 if (String.IsNullOrEmpty(result.FirstChoice))
                     return;
@@ -330,9 +343,10 @@ internal sealed class MessengerViewModel : ObservableObject
             }
 
             if(!GetSpeechVoice(sender.Content,out string voice))
+            {
+                sender.IsMessageListening = false;
                 return;
-            
-
+            }
 
             sender.IsMessageListening = true;
             speechHandler.CompletionEvent = (Response) => sender.IsMessageListening = false;

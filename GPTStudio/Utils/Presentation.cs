@@ -36,13 +36,14 @@ namespace GPTStudio.Utils
             return foundElement;
         }
 
-        public static void OpenChoicePopup(string title,string text,Action successChoiceAction = null)
+        public static void OpenChoicePopup(string title,string text,Action successChoiceAction = null,bool autoClose = true)
         {
             (App.Current.MainWindow.DataContext as MainWindowViewModel).PopupContent = choicePopup ??= new();
 
             choicePopup.SuccessAction    = successChoiceAction;
             choicePopup.Title.Text       = title;
             choicePopup.ContentText.Text = text;
+            choicePopup.AutoClose        = autoClose;
             (App.Current.MainWindow.DataContext as MainWindowViewModel).IsPopupActive = true;
         }
     }

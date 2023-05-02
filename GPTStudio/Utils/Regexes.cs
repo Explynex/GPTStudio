@@ -17,4 +17,7 @@ internal static partial class Regexes
 
     [GeneratedRegex("[\\~#%&*{}/:<>?|\"-]")]
     public static partial Regex WindowsFileName();
+
+    [GeneratedRegex("sk-([a-zA-Z0-9]{48})+$")]
+    public static partial Regex OpenAIApiKey();
 }
