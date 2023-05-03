@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -272,39 +273,52 @@ internal sealed class MessengerViewModel : ObservableObject
 
             #region Streaming response
             IsBusy = true;
-            await Config.OpenAIClientApi.ChatEndpoint.StreamCompletionAsync(request, result =>
+
+            try
             {
-                if (String.IsNullOrEmpty(result.FirstChoice))
-                    return;
-
-                if (!cleanWaiting)
+                await Config.OpenAIClientApi.ChatEndpoint.StreamCompletionAsync(request, result =>
                 {
-                    currentMsg.ChatCompletion.Clear();
-                    cleanWaiting = true;
-                }
+                    if (String.IsNullOrEmpty(result.FirstChoice))
+                        return;
 
-                if (Config.Properties.AutoSpeakGPTResponses)
-                {
-                    sentence.Append(result.FirstChoice);
-
-                    if (sentence.Length > 2 &&  Regexes.Sentence().IsMatch(sentence.ToString()))
+                    if (!cleanWaiting)
                     {
-                        var chunkIndex   = sentence.IndexOf(' ', true);
-                        var chunk        = sentence.ToString(chunkIndex+1, (sentence.Length - chunkIndex)-1);
-                        var textSentence = sentence.Remove(chunkIndex, sentence.Length - chunkIndex).ToString();
-
-                        SpeechChunk(textSentence);
-                        sentence.Append(chunk);
+                        currentMsg.ChatCompletion.Clear();
+                        cleanWaiting = true;
                     }
-                    else if(result.FirstChoice[^1] == '\n')
-                        SpeechChunk(sentence.ToString());
-                    
-                }
 
-                currentMsg.ChatCompletion.Append(result.FirstChoice);
+                    if (Config.Properties.AutoSpeakGPTResponses)
+                    {
+                        sentence.Append(result.FirstChoice);
 
-                App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
-            });
+                        if (sentence.Length > 2 && Regexes.Sentence().IsMatch(sentence.ToString()))
+                        {
+                            var chunkIndex = sentence.IndexOf(' ', true);
+                            var chunk = sentence.ToString(chunkIndex + 1, (sentence.Length - chunkIndex) - 1);
+                            var textSentence = sentence.Remove(chunkIndex, sentence.Length - chunkIndex).ToString();
+
+                            SpeechChunk(textSentence);
+                            sentence.Append(chunk);
+                        }
+                        else if (result.FirstChoice[^1] == '\n')
+                            SpeechChunk(sentence.ToString());
+
+                    }
+
+                    currentMsg.ChatCompletion.Append(result.FirstChoice);
+
+                    App.Current?.Dispatcher.Invoke(() => ChatScrollViewer.ScrollToBottom());
+                });
+            }
+            catch(HttpRequestException e)
+            {
+                if(e.StatusCode == System.Net.HttpStatusCode.Unauthorized && e.Message.Contains("\"code\": \"invalid_api_key\""))
+                    InvalidOpenAIKey();
+                
+                SelectedChat.Messages.Remove(SelectedChat.Messages[^1]);
+                IsBusy = false;
+                return;
+            }
 
             currentMsg.Tokens = tokenizer.Calculate(currentMsg.ChatCompletion.Text);
 

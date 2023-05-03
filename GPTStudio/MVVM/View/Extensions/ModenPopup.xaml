@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:GPTStudio.MVVM.View.Extensions"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              Visibility="Collapsed"
@@ -15,7 +14,7 @@
                 Margin="0 -300 0 0" x:Name="PopupPresenter" Width="Auto" Height="Auto"
                 VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="5">
         <Grid>
-            <Rectangle  VerticalAlignment="Top" HorizontalAlignment="Left" RadiusX="50" RadiusY="50"
+            <Rectangle FocusVisualStyle="{x:Null}" x:Name="cancel" Focusable="True"  VerticalAlignment="Top" HorizontalAlignment="Left" RadiusX="50" RadiusY="50"
                 Margin="10" Fill="#ea6161" Width="12" Height="12" MouseLeftButtonDown="HidePopup"
                         Cursor="Hand"/>
 

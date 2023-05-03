@@ -46,6 +46,7 @@ namespace GPTStudio.MVVM.View.Extensions
                     Visibility = Visibility.Visible;
                     OpacityAnimation.From = 0;
                     OpacityAnimation.To = 1;
+                    cancel.Focus();
                     PopupPresenter.BeginAnimation(ContentPresenter.MarginProperty, MarginOpenAnimation);
                     this.BeginAnimation(UserControl.OpacityProperty, OpacityAnimation);
                 }
@@ -79,6 +80,15 @@ namespace GPTStudio.MVVM.View.Extensions
         public ModenPopup()
         {
             InitializeComponent();
+
+            PreviewKeyDown += (sender, e) =>
+            {
+                if (e.Key == System.Windows.Input.Key.Escape)
+                {
+                    HidePopup(null, null);
+                    e.Handled = true;
+                }    
+            };
 
             OpacityAnimation     = new(1, 0, new Duration(TimeSpan.FromSeconds(0.4)));
             MarginOpenAnimation  = new(new Thickness(0), AnimationsDuration) { EasingFunction = EasingFunction }; ;

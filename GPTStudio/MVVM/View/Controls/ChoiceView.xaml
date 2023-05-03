@@ -29,7 +29,7 @@
                     Foreground="{DynamicResource SecondaryBackgroundBrush}" FontWeight="Medium"/>
 
             <ext:HoverButton Style="{StaticResource ModernFlatButton}" FontWeight="Medium" Foreground="{DynamicResource SecondaryBackgroundBrush}"
-                    Width="100" IsCancel="True" Background="{DynamicResource LightBlueGradient}" Click="No_Click">No</ext:HoverButton>
+                    Width="100" Background="{DynamicResource LightBlueGradient}" Click="No_Click">No</ext:HoverButton>
         </DockPanel>
     </StackPanel>
 </Grid>
