@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace GPTStudio.Infrastructure.Tokenizer;
+namespace GPTStudio.OpenAI.Tokenizer;
 
 [DebuggerDisplay("Count = {Count}")]
 unsafe internal sealed class Vocab : IReadOnlyDictionary<NativeString, int>, IDisposable {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace GPTStudio.Infrastructure.Tokenizer;
+namespace GPTStudio.OpenAI.Tokenizer;
 
 [DebuggerDisplay("{ToString(),raw}")]
 unsafe internal readonly struct NativeString : IEquatable<NativeString>

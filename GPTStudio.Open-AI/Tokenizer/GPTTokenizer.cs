@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 
-namespace GPTStudio.Infrastructure.Tokenizer;
+namespace GPTStudio.OpenAI.Tokenizer;
 
 [DebuggerDisplay("Count = {vocab.Count}")]
 public sealed partial class GPTTokenizer : IDisposable

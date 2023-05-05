@@ -1,11 +1,11 @@
 ﻿using GPTStudio.Infrastructure;
 using GPTStudio.Infrastructure.Azure;
 using GPTStudio.Infrastructure.Models;
-using GPTStudio.Infrastructure.Tokenizer;
 using GPTStudio.MVVM.Core;
 using GPTStudio.MVVM.View.Controls;
 using GPTStudio.OpenAI.Chat;
 using GPTStudio.OpenAI.Models;
+using GPTStudio.OpenAI.Tokenizer;
 using GPTStudio.Utils;
 using System;
 using System.Collections;
@@ -242,8 +242,9 @@ internal sealed class MessengerViewModel : ObservableObject
             var msgList = new List<ChatGPTMessage>();
             if (!string.IsNullOrEmpty(SelectedChat.PersonaIdentityPrompt) || !string.IsNullOrEmpty(SelectedChat.SystemMessagePrompt))
             {
-                msgList.Add(new(Role.System, SelectedChat.PersonaIdentityPrompt + SelectedChat.SystemMessagePrompt));
-                tokensCount = tokenizer.Calculate(SelectedChat.PersonaIdentityPrompt);
+                var system = SelectedChat.PersonaIdentityPrompt + SelectedChat.SystemMessagePrompt;
+                msgList.Add(new(Role.System, system));
+                tokensCount = tokenizer.Calculate(system);
             }
 
             for (int i = SelectedChat.Messages.Count-1,insertIndex = tokensCount == 0 ? 0 : 1; i >= 0; i--)
