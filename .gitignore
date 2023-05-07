@@ -363,5 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /TestProj/TestProj.csproj
 
-GPTStudio.TelegramProvider/
 /GPTStudio/MVVM/View/Controls/SettingsView.xaml
