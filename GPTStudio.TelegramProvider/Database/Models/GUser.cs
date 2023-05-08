@@ -1,9 +1,4 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GPTStudio.TelegramProvider.Database.Models;
 
@@ -26,4 +21,15 @@ internal class GUser
 
     [BsonIgnoreIfNull]
     public string? Username { get; set; }
+
+    [BsonIgnoreIfNull]
+    [BsonElement("LocaleCode")]
+    private string? localeCode;
+
+    [BsonIgnore]
+    public string LocaleCode
+    {
+        get =>  localeCode ?? "en";
+        set => localeCode = value;
+    }
 }

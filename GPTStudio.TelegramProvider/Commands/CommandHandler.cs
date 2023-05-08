@@ -1,5 +1,6 @@
 ﻿using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
+using GPTStudio.TelegramProvider.Globalization;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
@@ -34,53 +35,71 @@ internal static class CommandHandler
 
     private static async Task MainMenuButtonsHandler(CallbackQuery query,char buttonNum, GUser user)
     {
+        var locale = Locale.Cultures[user.LocaleCode];
         switch(buttonNum)
         {
             case '1':
-                await Env.Client.SendTextMessageAsync(query.Message.Chat.Id, "I am virtual assistant GPTStudio. How can I assist you today?");
+                await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, locale[Strings.StartChattingMsg]);
                 break;
             case '2':
-                await OpenMenuContent(query.Message, "Settings", KeyboardBuilder.SettingsMenuMarkup);
+                await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
                 break;
             case '3':
-                await OpenMenuContent(query.Message,
-                       $"📊 User statistics for: @{query.From.Username},{query.From.FirstName}\n│\n├🗓 <b>Member since:</b> {DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n" +
-                       $"├🌀 <b>Tokens generated:</b> {user.TotalTokensGenerated}\n└🔁 <b>Total requests:</b> {user.TotalRequests}",new(KeyboardBuilder.BackButton));
+                await OpenMenuContent(query.Message!,
+                       $"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n" +
+                       $"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}",new(KeyboardBuilder.BackToMainButton(user.LocaleCode)));
                 break;
             case '5' when user.IsAdmin == true:
                 {
                     using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Users.Find(o => o.Id != 0).ToList(),Formatting.Indented));
-                    await Env.Client.SendDocumentAsync(query.Message.Chat.Id, new(stream, $"Users {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"👥 Users database for {DateTime.UtcNow:R}");
+                    await Env.Client.SendDocumentAsync(query.Message!.Chat.Id, new(stream, $"Users {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"👥 Users database for {DateTime.UtcNow:R}");
                     break;
                 }
             case '6' when user.IsAdmin == true:
                 {
                     using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Chats.Find("{}").ToList(), Formatting.Indented));
-                    await Env.Client.SendDocumentAsync(query.Message.Chat.Id, new(stream, $"Chats {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"),caption: $"📚 Chats database for {DateTime.UtcNow:R}");
+                    await Env.Client.SendDocumentAsync(query.Message!.Chat.Id, new(stream, $"Chats {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"),caption: $"📚 Chats database for {DateTime.UtcNow:R}");
                     break;
                 }
 
         }
     }
 
-    private static async Task SettingsMenuButtonsHandler(CallbackQuery query, char buttonNum)
+    private static async Task SettingsMenuButtonsHandler(CallbackQuery query, char buttonNum, GUser user)
     {
         switch (buttonNum)
         {
-
+            case '3':
+                await OpenMenuContent(query.Message!, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
+                    KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
+                break;
         }
     }
+
 
     public static async Task HandleCallbackQuery(CallbackQuery query,GUser user)
     {
         if (query == null) return;
 
-        if (query.Data[0] == '1')
-            await MainMenuButtonsHandler(query, query.Data[^1], user);
+        if (query.Data![0] == '1')
+            await MainMenuButtonsHandler(query, query.Data[^1], user).ConfigureAwait(false);
         else if (query.Data[0] == '2')
-            await SettingsMenuButtonsHandler(query, query.Data[^1]);
+            await SettingsMenuButtonsHandler(query, query.Data[^1],user).ConfigureAwait(false);
         else if (query.Data == "back1")
-            await OpenMainMenu(query.Message, user);
+            await OpenMainMenu(query.Message!, user).ConfigureAwait(false);
+        else if (query.Data == "back2")
+            await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
+        else if (query.Data.StartsWith("lang"))
+        {
+            var lang = query.Data.Split('.');
+
+            if (user.LocaleCode == lang[^1])
+                return;
+
+            Connection.Users.UpdateOne(
+                new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.LocaleCode), lang[^1]));
+            await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, $"{Locale.Cultures[lang[^1]][Strings.SuccessChangeLang]}{lang[^2]}").ConfigureAwait(false);
+        }
         else if (query.Data.StartsWith("img"))
             return;
         
@@ -88,21 +107,27 @@ internal static class CommandHandler
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static async Task OpenMainMenu(Message msg, GUser user) =>
-        await OpenMenuContent(msg, "📃 Use the buttons <b>below</b> to navigate and setting",
-                   user.IsAdmin == true ? KeyboardBuilder.MainAdminMenuMarkup : KeyboardBuilder.MainMenuMarkup);
-    
+        await OpenMenuContent(msg, Locale.Cultures[user.LocaleCode][Strings.MainMenuTitle],
+                    KeyboardBuilder.MainMenuMarkup(user.LocaleCode,user.IsAdmin)).ConfigureAwait(false);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static async Task OpensSettingsMenu(Message msg, GUser user) =>
+        await OpenMenuContent(msg, Locale.Cultures[user.LocaleCode][Strings.SettingsTitle],
+                            KeyboardBuilder.SettingsMenuMarkup(user.LocaleCode)).ConfigureAwait(false);
+
     public static async Task HandleCommand(Message command,GUser user)
     {
-     //   GChat.PushMessage(command.Chat.Id, new(command.MessageId, command.Text, user.Id, GMessageType.Command));
-        switch (command.Text.Split(' ').First())
+        switch (command.Text!.Split(' ').First())
         {
             case "/menu" or "/start":
-                await OpenMainMenu(command,user);
+                await OpenMainMenu(command,user).ConfigureAwait(false);
                 break;
 
             case "/image":
                 if (command.Text.Length < 5)
                     return;
+
+                GChat.PushMessage(command.Chat.Id, new(command.MessageId, command.Text, user.Id, GMessageType.Command));
 
                 var count = 1;
                 int startWith = 7;

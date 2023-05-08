@@ -3,9 +3,11 @@ using GPTStudio.OpenAI.Models;
 using GPTStudio.TelegramProvider.Commands;
 using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
+using GPTStudio.TelegramProvider.Globalization;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Globalization;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -51,11 +53,13 @@ internal class App
 
         if (!Connection.Users.FindFirst(o => o.Id == senderUser.Id, out GUser user))
         {
-            if(chatId != null)
-                await Env.Client.SendTextMessageAsync(chatId, $"Hello! Nice to meet you, {senderUser.FirstName}.");
+            var isSupportedLang = Globalization.Locale.SupportedLocales.Contains(senderUser.LanguageCode);
 
             Logger.Print("OnUpdateHandler() | Joined new user: @" + senderUser.Username + " , ID: " + senderUser.Id);
-            Connection.Users.InsertOne(user = new GUser(senderUser.Id));
+            Connection.Users.InsertOne(user = new GUser(senderUser.Id) { LocaleCode = isSupportedLang ? senderUser.LanguageCode : null});
+
+            if (chatId != null)
+                await Env.Client.SendTextMessageAsync(chatId, $"{Locale.Cultures[user.LocaleCode!][Strings.FirstHelloMsg]} {senderUser.FirstName} ?");
         }
         else if(senderUser.Username != user.Username)
         {
