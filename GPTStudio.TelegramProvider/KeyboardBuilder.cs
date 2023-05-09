@@ -1,4 +1,5 @@
-﻿using GPTStudio.TelegramProvider.Globalization;
+﻿using GPTStudio.TelegramProvider.Database.Models;
+using GPTStudio.TelegramProvider.Globalization;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace GPTStudio.TelegramProvider;
@@ -52,18 +53,18 @@ internal static class KeyboardBuilder
     }
 
 
-    public static InlineKeyboardMarkup SettingsMenuMarkup(string locale)
+    public static InlineKeyboardMarkup SettingsMenuMarkup(GUser user)
     {
-        var culture = Locale.Cultures[locale];
+        var culture = Locale.Cultures[user.LocaleCode];
         return new(new[]
         {
-            new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsGenMode],"2.1") },
+            new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsGenMode] + culture[user.GenFullyMode == true ? Strings.FullyGenModeMsg : Strings.StreamGenModeMsg ],"2.1") },
             new[] 
             {
                 InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsModelsSettings], "2.2"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsLanguage], "2.3"),
             },
-            new[] { BackToMainButton(locale) },
+            new[] { BackToMainButton(user.LocaleCode) },
         });
     }
 

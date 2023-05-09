@@ -23,11 +23,19 @@ internal enum Strings
     BackToMainTitle,
 
     StartChattingMsg,
+    StopGenerationMsg,
+    ResponseGenMsg,
+    StreamGenModeMsg,
+    FullyGenModeMsg,
+    ErrorWhileGenMsg,
 
     SummaryForMsg,
     SummaryMemberSince,
     SummaryTokensGen,
     SummaryRequests,
+    
+
+    
 
 }
 

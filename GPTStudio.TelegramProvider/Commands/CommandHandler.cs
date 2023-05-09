@@ -25,11 +25,20 @@ internal static class CommandHandler
             return;
         }
 
-        if (chat.LastMenuMessageId != null && (msg.Date - DateTime.UtcNow) < TimeSpan.FromHours(48))
-            await Env.Client.DeleteMessageAsync(chat.Id, chat.LastMenuMessageId.Value);
+        if (chat.LastMenuMessageId != null)
+        {
+            try
+            {
+                await Env.Client.DeleteMessageAsync(chat.Id, chat.LastMenuMessageId.Value);
+            }
+            catch { await Env.Client.EditMessageTextAsync(chat.Id,chat.LastMenuMessageId.Value,"Command expired."); }
+        }
+
+            
+        
         await Env.Client.SendTextMessageAsync(chat.Id, subMessage, ParseMode.Html, replyMarkup: markup);
 
-        Connection.Chats.UpdateOne(new BsonDocument("_id", chat.Id), Builders<GChat>.Update.Set("LastMenuMessageId", msg.MessageId + 1));
+        Connection.Chats.UpdateOne(new BsonDocument("_id", chat.Id), Builders<GChat>.Update.Set(nameof(GChat.LastMenuMessageId), msg.MessageId + 1));
 
     }
 
@@ -69,6 +78,11 @@ internal static class CommandHandler
     {
         switch (buttonNum)
         {
+            case '1':
+                user.GenFullyMode = !(user.GenFullyMode ?? false);
+                Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
+                await OpensSettingsMenu(query.Message!,user).ConfigureAwait(false);
+                break;
             case '3':
                 await OpenMenuContent(query.Message!, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
                     KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
@@ -84,11 +98,13 @@ internal static class CommandHandler
         if (query.Data![0] == '1')
             await MainMenuButtonsHandler(query, query.Data[^1], user).ConfigureAwait(false);
         else if (query.Data[0] == '2')
-            await SettingsMenuButtonsHandler(query, query.Data[^1],user).ConfigureAwait(false);
+            await SettingsMenuButtonsHandler(query, query.Data[^1], user).ConfigureAwait(false);
         else if (query.Data == "back1")
             await OpenMainMenu(query.Message!, user).ConfigureAwait(false);
         else if (query.Data == "back2")
             await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
+        else if (query.Data.StartsWith("stop"))
+            App.NowGeneration.Remove(Convert.ToInt64(query.Data.Split('.').Last()));
         else if (query.Data.StartsWith("lang"))
         {
             var lang = query.Data.Split('.');
@@ -113,7 +129,7 @@ internal static class CommandHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static async Task OpensSettingsMenu(Message msg, GUser user) =>
         await OpenMenuContent(msg, Locale.Cultures[user.LocaleCode][Strings.SettingsTitle],
-                            KeyboardBuilder.SettingsMenuMarkup(user.LocaleCode)).ConfigureAwait(false);
+                            KeyboardBuilder.SettingsMenuMarkup(user)).ConfigureAwait(false);
 
     public static async Task HandleCommand(Message command,GUser user)
     {

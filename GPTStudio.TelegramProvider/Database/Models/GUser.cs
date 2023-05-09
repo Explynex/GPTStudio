@@ -32,4 +32,6 @@ internal class GUser
         get =>  localeCode ?? "en";
         set => localeCode = value;
     }
+
+    public bool? GenFullyMode { get; set; }
 }

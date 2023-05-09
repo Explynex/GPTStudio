@@ -8,6 +8,11 @@ internal class EN
         {Strings.FirstHelloMsg, "👾 Hello! Glad you have joined us. I am a virtual assistant of GPTStudio, how can I help you, " },
         {Strings.StartChattingMsg,"👾 I am virtual assistant GPTStudio. How can I assist you?" },
         {Strings.SuccessChangeLang,"🔸 Language successfully changed to: " },
+        {Strings.StopGenerationMsg,"▫️ Stop generation" },
+        {Strings.ResponseGenMsg,"⏳ Generating response. . ." },
+        {Strings.StreamGenModeMsg,"Stream" },
+        {Strings.FullyGenModeMsg,"Fully" },
+        {Strings.ErrorWhileGenMsg,"❌ An error occurred during generation" },
 
         {Strings.MainMenuTitle,$"🔸 <b>Main menu</b> {MenuTitleTip}" },
         {Strings.MainMenuStartChatting, "💬  Start chatting" },

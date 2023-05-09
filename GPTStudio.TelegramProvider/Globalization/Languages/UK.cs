@@ -8,6 +8,11 @@ internal class UK
         {Strings.FirstHelloMsg, "👾 Вітаю! Радий, що Ви приєдналися до нас. Я - віртуальний помічник GPTStudio, чим я можу бути корисним, " },
         {Strings.StartChattingMsg,"👾 Я віртуальний помічник GPTStudio. Як я можу вам допомогти?" },
         {Strings.SuccessChangeLang,"🔸 Мова успішно змінена на: " },
+        {Strings.StopGenerationMsg,"▫️ Зупинити генерацію" },
+        {Strings.ResponseGenMsg,"⏳ Генерація відповіді. . ." },
+        {Strings.StreamGenModeMsg,"Потоком" },
+        {Strings.FullyGenModeMsg,"Цілком" },
+        {Strings.ErrorWhileGenMsg,"❌ Під час генерації виникла помилка" },
 
         {Strings.MainMenuTitle,$"🔸 <b>Головне меню</b> {MenuTitleTip}" },
         {Strings.MainMenuStartChatting, "💬  Розпочати чат" },

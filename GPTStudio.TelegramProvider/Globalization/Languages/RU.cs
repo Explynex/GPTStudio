@@ -8,6 +8,11 @@ internal class RU
         {Strings.FirstHelloMsg, "👾 Здравствуйте! Рад, что Вы присоединились к нам. Я - виртуальный ассистент GPTStudio, чем я могу быть полезен, " },
         {Strings.StartChattingMsg,"👾 Я виртуальный помощник GPTStudio. Чем я могу вам помочь?" },
         {Strings.SuccessChangeLang,"🔸 Язык успешно изменён на: " },
+        {Strings.StopGenerationMsg,"▫️ Остановить генерацию" },
+        {Strings.ResponseGenMsg,"⏳ Генерация ответа. . ." },
+        {Strings.StreamGenModeMsg,"Потоком" },
+        {Strings.FullyGenModeMsg,"Целиком" },
+        {Strings.ErrorWhileGenMsg,"❌ Во время генерации произошла ошибка" },
 
         {Strings.MainMenuTitle,$"🔸 <b>Главное меню</b> {MenuTitleTip}" },
         {Strings.MainMenuStartChatting, "💬  Начать чат" },

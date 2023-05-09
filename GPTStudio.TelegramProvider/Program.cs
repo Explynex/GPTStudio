@@ -7,18 +7,19 @@ using GPTStudio.TelegramProvider.Globalization;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Globalization;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 namespace GPTStudio.TelegramProvider;
 
 
 internal class App
 {
-    private static bool IsError = false;
+    public static bool IsShuttingDown                  = false;
+    public static readonly HashSet<long> NowGeneration = new();
 
     static void Main(string[] args)
     {
@@ -33,13 +34,12 @@ internal class App
         Env.Client.StartReceiving(OnUpdateHandler, OnErrorHandler);
         Logger.Print($"Telegram update callback processing...");
 
-        while(!IsError)
+        while(!IsShuttingDown)
         {
             Logger.Print("Command: /",false);
             var cmd = Console.ReadLine();
             if (!string.IsNullOrEmpty(cmd))
                 ConsoleHandler.HandleConsoleCommand(cmd);
-
         }
     }
 
@@ -72,7 +72,7 @@ internal class App
             return;
         }
         
-        if (e.Message.Type == MessageType.Voice)
+        if (e.Message!.Type == MessageType.Voice)
         {
             e.Message.Text = await Utils.VoiceRecognizer.RecognizeVoice(e.Message.Voice!);
         }
@@ -88,7 +88,8 @@ internal class App
                 if (e.Message.Text?.StartsWith('/') == true)
                     await CommandHandler.HandleCommand(e.Message,user);
                 else
-                    await HandleTextMessage(e.Message, chat);
+                    HandleTextMessage(e.Message, chat,user);
+                    
                 break;
         }
     }
@@ -119,8 +120,13 @@ internal class App
         }
     }
 
-    private static async Task HandleTextMessage(Telegram.Bot.Types.Message msg, GChat chat)
+    private static async void HandleTextMessage(Telegram.Bot.Types.Message msg, GChat chat,GUser user)
     {
+        if (NowGeneration.Contains(msg.From!.Id))
+            return;
+
+        NowGeneration.Add(msg.From.Id);
+
         #region Calculation tokens
         var totalTokens = Env.Tokenizer.Calculate(msg.Text);
         if (totalTokens > 4000)
@@ -143,53 +149,79 @@ internal class App
             msgList.Insert(insertIndex, chat.Messages[i]);
         }
 
-        msgList.Add(lastMsg); 
+        msgList.Add(lastMsg);
         #endregion
 
-        var request = new ChatRequest(msgList, Model.GPT3_5_Turbo, maxTokens: 2048);
+        var button            = InlineKeyboardButton.WithCallbackData(Locale.Cultures[user.LocaleCode][Strings.StopGenerationMsg], $"stop.{msg.From.Id}");
+        var request           = new ChatRequest(msgList, Model.GPT3_5_Turbo, maxTokens: 2048);
         var response          = new StringBuilder();
-        var sendedMsg         = await Env.Client.SendTextMessageAsync(msg.Chat.Id, ". . .").ConfigureAwait(false);
+        var sendedMsg         = user.GenFullyMode == true ?
+              await Env.Client.SendTextMessageAsync(msg.Chat.Id, Locale.Cultures[user.LocaleCode][Strings.ResponseGenMsg], replyToMessageId: msg.MessageId,replyMarkup: new InlineKeyboardMarkup(button)).ConfigureAwait(false)
+            : await Env.Client.SendTextMessageAsync(msg.Chat.Id, ". . .",replyToMessageId: msg.MessageId).ConfigureAwait(false);
+
         var lastEdit          = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
         var lastEditMsgLength = 0;
+        using var cancelToken = new CancellationTokenSource();
 
-        await Env.GPTClient.ChatEndpoint.StreamCompletionAsync(request, result =>
+        try
         {
-            if (String.IsNullOrEmpty(result.FirstChoice))
-                return;
-
-            response.Append(result.FirstChoice);
-
-            var offset = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
-            if ((offset - lastEdit) >= 1)
+            await Env.GPTClient.ChatEndpoint.StreamCompletionAsync(request, result =>
             {
-                lastEdit          = offset;
-                lastEditMsgLength = response.Length;
-                Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, response.ToString());
-            }
+                if (!NowGeneration.Contains(msg.From.Id))
+                {
+                    cancelToken.Cancel();
+                    return;
+                }
 
-        });
 
-        var responseContent = response.ToString();
-        var responseTokens = Env.Tokenizer.Calculate(responseContent);
+                if (String.IsNullOrEmpty(result.FirstChoice))
+                    return;
 
-        if (response.Length != lastEditMsgLength)
-            await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, responseContent, parseMode: ParseMode.Markdown).ConfigureAwait(false);
+                response.Append(result.FirstChoice);
 
-        GChat.PushMessage(msg.Chat.Id, lastMsg);
-        GChat.PushMessage(msg.Chat.Id,new(sendedMsg.MessageId, responseContent, null) 
+                if (user.GenFullyMode == true)
+                    return;
+
+                var offset = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
+                if ((offset - lastEdit) >= 1)
+                {
+                    lastEdit = offset;
+                    lastEditMsgLength = response.Length;
+                    Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, response.ToString(), replyMarkup: button);
+                }
+
+            }, cancelToken.Token).ConfigureAwait(false);
+
+            var responseContent = response.ToString();
+            var responseTokens = Env.Tokenizer.Calculate(responseContent);
+
+            if (response.Length != lastEditMsgLength || cancelToken.IsCancellationRequested)
+                await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId,
+                    cancelToken.IsCancellationRequested ? response.Append(". . .").ToString() : responseContent,
+                    parseMode: ParseMode.Markdown).ConfigureAwait(false);
+
+            GChat.PushMessage(msg.Chat.Id, lastMsg);
+            GChat.PushMessage(msg.Chat.Id, new(sendedMsg.MessageId, responseContent, null)
+            {
+                Tokens = responseTokens,
+                Role = Role.Assistant
+            });
+
+            var userDocument = new BsonDocument("_id", msg.From.Id);
+            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
+            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalRequests", 1));
+        }
+        catch
         {
-            Tokens = responseTokens,
-            Role = Role.Assistant
-        });
+            await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, Locale.Cultures[user.LocaleCode][Strings.ErrorWhileGenMsg]).ConfigureAwait(false);
+        }
 
-        var userDocument = new BsonDocument("_id", msg.From.Id);
-        Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
-        Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalRequests", 1));
+
+        NowGeneration.Remove(msg.From.Id);
     }
 
     private async static Task OnErrorHandler(ITelegramBotClient sender, Exception e, CancellationToken cancellationToken)
     {
-        Logger.PrintError(e.ToString());
-        Console.ReadLine();
+        Logger.PrintError('\n' + e.ToString());
     }
 }

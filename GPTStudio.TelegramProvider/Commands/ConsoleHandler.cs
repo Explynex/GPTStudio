@@ -3,11 +3,6 @@ using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace GPTStudio.TelegramProvider.Commands;
@@ -47,6 +42,11 @@ internal static class ConsoleHandler
                     Logger.Print($"Administrator rights for user {id} have been revoked.",color: ConsoleColor.Green);
                 }
                     
+                break;
+
+            case "stop":
+                Logger.Print("Shutting down...", color: ConsoleColor.DarkYellow);
+                App.IsShuttingDown = true;
                 break;
         }
     }
