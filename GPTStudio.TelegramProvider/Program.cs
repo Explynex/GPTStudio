@@ -129,7 +129,7 @@ internal class App
 
         #region Calculation tokens
         var totalTokens = Env.Tokenizer.Calculate(msg.Text);
-        if (totalTokens > 4000)
+        if (totalTokens > 3000)
             return;
 
         var lastMsg = new GChatMessage(msg.MessageId, msg.Text, msg.From.Id) { Tokens = totalTokens, Role = Role.User };
@@ -142,7 +142,7 @@ internal class App
 
             if (gMsg.MessageType != GMessageType.Text)
                 continue;
-            if ((totalTokens + gMsg.Tokens) > 4048)
+            if ((totalTokens + gMsg.Tokens) > 3000)
                 break;
 
             totalTokens += gMsg.Tokens;
@@ -211,8 +211,9 @@ internal class App
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalRequests", 1));
         }
-        catch
+        catch(Exception e)
         {
+            Logger.PrintError(e.ToString());
             await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, Locale.Cultures[user.LocaleCode][Strings.ErrorWhileGenMsg]).ConfigureAwait(false);
         }
 
@@ -222,6 +223,6 @@ internal class App
 
     private async static Task OnErrorHandler(ITelegramBotClient sender, Exception e, CancellationToken cancellationToken)
     {
-        Logger.PrintError('\n' + e.ToString());
+        Logger.PrintError(e.ToString());
     }
 }

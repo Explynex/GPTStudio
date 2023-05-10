@@ -168,7 +168,7 @@
                        HorizontalAlignment="Center" TextAlignment="Center"
                        Foreground="{DynamicResource PrimaryForegroundBrush}"
                        FontWeight="Bold" FontSize="18"/>
-                    <icon:PackIconFontAwesome Kind="ArrowDownSolid" HorizontalAlignment="Center" Margin="0 10 0 0"/>
+                    <icon:PackIconFontAwesome Kind="ArrowDownSolid" Foreground="{DynamicResource TertiaryForegroundBrush}"  HorizontalAlignment="Center" Margin="0 10 0 0"/>
                 </StackPanel>
                 
                 <Button Visibility="{Binding ElementName=ChatSearchBox,Path=Text.Length,Converter={StaticResource BoolToVis}}"
@@ -232,19 +232,25 @@
 
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
-                            <Setter Property="BorderThickness" Value="0 0 0 3"/>
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBackgroundBrush}"/>
-          
-                            <Style.Resources>
-                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource TertiaryBackgroundColor}" />
-                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{DynamicResource TertiaryBackgroundColor}" />
-                            </Style.Resources>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#25263e"/>
-                                </Trigger>
-                            </Style.Triggers>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="border" BorderThickness="0 0 0 3" Background="Transparent"
+                                                BorderBrush="{DynamicResource PrimaryBackgroundBrush}">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="#25263e"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                     </ListBox.ItemContainerStyle>
                 </ListBox>

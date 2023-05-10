@@ -19,7 +19,7 @@ internal static class Logger
     public static void PrintError(string value)
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write(DateTime.Now + "\t| ");
+        Console.Write("\n" + DateTime.Now + "\t| ");
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(value);
         Console.ForegroundColor = ConsoleColor.White;

@@ -82,12 +82,14 @@
 
                 <Grid d:Visibility="Visible" Visibility="{Binding ElementName=langExpander,Path=IsChecked,Converter={StaticResource BoolToVis}}">
 
-                    <Border Margin="177 6 0 15" HorizontalAlignment="Left" CornerRadius="3" Width="6"
-                            Background="{DynamicResource PrimaryBackgroundBrush}" Opacity="0.5"/>
-
                     <ListBox Margin="35 0 10 10"  Background="Transparent"  HorizontalAlignment="Left"
                          BorderBrush="Transparent" BorderThickness="0" Height="145" MinWidth="150"
                          d:ItemsSource="{d:SampleData ItemCount=10}" ItemsSource="{Binding LanguagesList}">
+                        <ListBox.Resources>
+                            <Style TargetType="ScrollBar"  BasedOn="{StaticResource {x:Type ScrollBar}}">
+                                <Setter Property="Background" Value="#1f2135"/>
+                            </Style>
+                        </ListBox.Resources>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <ToggleButton>
@@ -100,13 +102,14 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="ToggleButton">
-                                                        <Border x:Name="border" Width="Auto" Padding="12 7 12 7" Height="30"
+                                                        <Border x:Name="border" Width="Auto" Padding="12 7 12 7" Height="30" HorizontalAlignment="Left"
                                                             Background="{DynamicResource TertiaryBackgroundBrush}" CornerRadius="15" Margin="3" >
                                                             <DockPanel VerticalAlignment="Center">
                                                                 <icon:PackIconFontAwesome x:Name="CheckIcon" 
                                                                                       Kind="CheckSolid" Width="0" VerticalAlignment="Center"
                                                                                       Margin="0 0 5 0" Foreground="{DynamicResource LightCyanGradient}"/>
-                                                                <TextBlock Text="{Binding Value.CountryName}" d:Text="{Binding}" Margin="0 0 5 0"/>
+                                                                <TextBlock Text="{Binding Value.CountryName}" d:Text="{Binding}" Margin="0 0 5 0"
+                                                                          Foreground="{DynamicResource TertiaryForegroundBrush}" />
 
                                                                 <Button Style="{StaticResource ModernSpinButton}" 
                                                                         Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext.ConfigureVoiceCommand}"
@@ -149,10 +152,13 @@
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                                <Style.Resources>
-                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
-                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
-                                </Style.Resources>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter/>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
                             </Style>
                         </ListBox.ItemContainerStyle>
                     </ListBox>

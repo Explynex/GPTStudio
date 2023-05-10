@@ -6,6 +6,7 @@
     <Brush x:Key="TertiaryBackgroundBrush">#292848</Brush>
     <Brush x:Key="PrimaryForegroundBrush">#b8b8b8</Brush>
     <Brush x:Key="SecondaryForegroundBrush">#F5F5F5</Brush>
+    <Brush x:Key="TertiaryForegroundBrush">#dedede</Brush>
     <Brush x:Key="PrimarySubBrush">#6232d6</Brush>
     <Brush x:Key="SecondarySubBrush">#3F3D7C</Brush> 
 

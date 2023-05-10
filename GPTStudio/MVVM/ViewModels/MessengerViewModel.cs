@@ -118,7 +118,10 @@ internal sealed class MessengerViewModel : ObservableObject
                 if(value.Messages == null)
                 {
                     if (File.Exists(App.UserdataDirectory + value.ID))
+                    {
                         value.Messages = Utils.Common.BinaryDeserialize<ObservableCollection<ChatGPTMessage>>(App.UserdataDirectory + value.ID);
+
+                    }
                     else
                         value.Messages = new();
                 }

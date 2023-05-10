@@ -27,9 +27,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Thumb}">
-                            <Border Background="Transparent" Margin="2" Width="8">
-                                <Border HorizontalAlignment="Center" CornerRadius="3" Background="{TemplateBinding Background}" Width="4.5"/>
-                            </Border>
+                            <Border HorizontalAlignment="Center" CornerRadius="3" Background="{TemplateBinding Background}" Width="4.5"/>
 
                         </ControlTemplate>
                     </Setter.Value>
@@ -61,33 +59,62 @@
                 </Style.Triggers>
             </Style>
 
+            <Style x:Key="ScrollBarPageButton" TargetType="{x:Type RepeatButton}">
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="IsTabStop" Value="false" />
+                <Setter Property="Focusable" Value="false" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type RepeatButton}">
+                            <Border Background="Transparent" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <ControlTemplate x:Key="VerticalScrollBar" TargetType="{x:Type ScrollBar}">
-                <Border Margin="-11 5 0 5" Background="Transparent" CornerRadius="10" Opacity="1">
-                    <Track Name="PART_Track" IsDirectionReversed="true">
-                        <Track.Thumb>
-                            <Thumb Style="{StaticResource ScrollBarThumb}"  Background="{StaticResource PrimaryForegroundBrush}"/>
-                        </Track.Thumb>
-                    </Track>
+                <Grid Margin="-11 0 0 0" Width="12" Background="Transparent">
+                    
+                    <Border  Background="{TemplateBinding Background}" CornerRadius="5" Width="7" Padding="0 2 0 2">
+                        <Track  Name="PART_Track" IsDirectionReversed="true" Opacity="0.5" HorizontalAlignment="Center" >
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageUpCommand" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource ScrollBarThumb}"  Background="{StaticResource PrimaryForegroundBrush}"/>
+                            </Track.Thumb>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="ScrollBar.PageDownCommand" />
+                            </Track.IncreaseRepeatButton>
+                        </Track>
+                    </Border>
+                    
                     <VisualStateManager.VisualStateGroups>
                         <VisualStateGroup x:Name="CommonStates">
                             <VisualState x:Name="MouseOver">
                                 <Storyboard>
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" FillBehavior="HoldEnd">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_Track" Storyboard.TargetProperty="Opacity" FillBehavior="HoldEnd">
                                         <DoubleKeyFrameCollection>
                                             <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
-                                            <SplineDoubleKeyFrame KeyTime="0:0:0.7" Value="0.3" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.7" Value="0.5" />
                                         </DoubleKeyFrameCollection>
                                     </DoubleAnimationUsingKeyFrames>
                                 </Storyboard>
                             </VisualState>
                             <VisualState x:Name="Normal">
                                 <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.4" FillBehavior="HoldEnd"/>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_Track" Storyboard.TargetProperty="Opacity" FillBehavior="HoldEnd">
+                                        <DoubleKeyFrameCollection>
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.7" Value="0.5" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="0" />
+                                        </DoubleKeyFrameCollection>
+                                    </DoubleAnimationUsingKeyFrames>
                                 </Storyboard>
                             </VisualState>
                         </VisualStateGroup>
                     </VisualStateManager.VisualStateGroups>
-                </Border>
+                </Grid>
                 <ControlTemplate.Triggers>
                     
                 </ControlTemplate.Triggers>
@@ -96,6 +123,7 @@
             <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
                 <Setter Property="SnapsToDevicePixels" Value="True"/>
                 <Setter Property="OverridesDefaultStyle" Value="true"/>
+                <Setter Property="Background" Value="Transparent"/>
                 <Style.Triggers>
                     <Trigger Property="Orientation" Value="Vertical">
                         <Setter Property="Width" Value="0"/>
@@ -104,7 +132,7 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
