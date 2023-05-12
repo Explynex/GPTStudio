@@ -193,22 +193,31 @@ internal class App
             }, cancelToken.Token).ConfigureAwait(false);
 
             var responseContent = response.ToString();
-            var responseTokens = Env.Tokenizer.Calculate(responseContent);
+            var responseTokens  = Env.Tokenizer.Calculate(responseContent);
+            var userDocument    = new BsonDocument("_id", msg.From.Id);
 
             if (response.Length != lastEditMsgLength || cancelToken.IsCancellationRequested)
                 await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId,
                     cancelToken.IsCancellationRequested ? response.Append(". . .").ToString() : responseContent,
                     parseMode: ParseMode.Markdown).ConfigureAwait(false);
 
+            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
+
+            if (responseContent.Length > 500)
+            {
+                responseContent = responseContent[..500];
+                responseTokens  = Env.Tokenizer.Calculate(responseContent);
+            }
+                
             GChat.PushMessage(msg.Chat.Id, lastMsg);
             GChat.PushMessage(msg.Chat.Id, new(sendedMsg.MessageId, responseContent, null)
             {
                 Tokens = responseTokens,
-                Role = Role.Assistant
+                Role   = Role.Assistant
             });
 
-            var userDocument = new BsonDocument("_id", msg.From.Id);
-            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
+            
+            
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalRequests", 1));
         }
         catch(Exception e)

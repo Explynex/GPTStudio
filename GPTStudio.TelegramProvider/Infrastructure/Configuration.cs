@@ -19,11 +19,13 @@ internal static partial class Configuration
         public string TelegramBotToken { get; set; }
         public string OpenAIApiKey { get; set; }
         public string DatabaseEndpoint { get; set; }
+        public long ErrorsRecieverChatId { get; set; }
     }
 
     public static TelegramBotClient Client { get; private set; }
     public static OpenAIClient GPTClient { get; private set; }
     public static string DatabaseEndpoint { get; private set; }
+    public static long ErrorsRecieverChatId { get; private set; }
     public static GPTTokenizer Tokenizer = new(Properties.Resources.TokenizerMerges);
 
     [GeneratedRegex("sk-([a-zA-Z0-9]{48})+$")]

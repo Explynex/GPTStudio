@@ -54,7 +54,7 @@ internal sealed class BindableStringBuilder : INotifyPropertyChanged
 
 }
 
-internal sealed class MessengerViewModel : ObservableObject
+internal sealed class MessengerViewModel : ObservableObject, IDisposable
 {
     public RelayCommand ClearSearchBoxCommand { get; private set; }
     public RelayCommand ExitChatCommand { get; private set; }
@@ -68,9 +68,9 @@ internal sealed class MessengerViewModel : ObservableObject
 
 
     private AudioRecorder _audioRecorder;
-    private GPTTokenizer tokenizer;
+    private GPTTokenizer _tokenizer;
     private ICollectionView SearchFilter;
-    private SpeechHandler speechHandler;
+    private readonly SpeechHandler speechHandler;
 
     private bool IsBusy;
 
@@ -188,6 +188,13 @@ internal sealed class MessengerViewModel : ObservableObject
         }
     }
 
+    public void Dispose()
+    {
+        speechHandler.Dispose();
+        _audioRecorder.Dispose();
+        _tokenizer.Dispose();
+    }
+
     public MessengerViewModel()
     {
         speechHandler = new(Config.Properties.AzureAPIKey,Config.Properties.AzureSpeechRegion);
@@ -195,7 +202,7 @@ internal sealed class MessengerViewModel : ObservableObject
         if (!File.Exists($"{App.UserdataDirectory}voices"))
             _ = speechHandler.GetVoicesListAsync();
 
-        tokenizer = new(File.ReadAllText("merges.txt"));
+        _tokenizer = new(File.ReadAllText("merges.txt"));
 
         Chats = Common.BinaryDeserialize<ObservableCollection<Chat>>($"{App.UserdataDirectory}\\chats") ?? new();
         SearchFilter = CollectionViewSource.GetDefaultView(Chats);
@@ -236,7 +243,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 return;
             }
 
-            SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, currentChat.TypingMessageText) { Tokens = tokenizer.Calculate(currentChat.TypingMessageText)});
+            SelectedChat.Messages.Add(new ChatGPTMessage(Role.User, currentChat.TypingMessageText) { Tokens = _tokenizer.Calculate(currentChat.TypingMessageText)});
             ChatScrollViewer.ScrollToBottom();
 
             #region Calculating tokens
@@ -247,7 +254,7 @@ internal sealed class MessengerViewModel : ObservableObject
             {
                 var system = SelectedChat.PersonaIdentityPrompt + SelectedChat.SystemMessagePrompt;
                 msgList.Add(new(Role.System, system));
-                tokensCount = tokenizer.Calculate(system);
+                tokensCount = _tokenizer.Calculate(system);
             }
 
             for (int i = SelectedChat.Messages.Count-1,insertIndex = tokensCount == 0 ? 0 : 1; i >= 0; i--)
@@ -324,7 +331,7 @@ internal sealed class MessengerViewModel : ObservableObject
                 return;
             }
 
-            currentMsg.Tokens = tokenizer.Calculate(currentMsg.ChatCompletion.Text);
+            currentMsg.Tokens = _tokenizer.Calculate(currentMsg.ChatCompletion.Text);
 
             if (sentence.Length > 0)
                 SpeechChunk(sentence.ToString());

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GPTStudio.TelegramProvider.Utils;
+﻿namespace GPTStudio.TelegramProvider.Utils;
 internal static class Logger
 {
     public static void Print(string value,bool endl = true, ConsoleColor color = ConsoleColor.White)

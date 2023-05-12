@@ -5,6 +5,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -54,9 +55,26 @@ internal static class CommandHandler
                 await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
                 break;
             case '3':
-                await OpenMenuContent(query.Message!,
-                       $"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n" +
-                       $"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}",new(KeyboardBuilder.BackToMainButton(user.LocaleCode)));
+                var summaryString = new StringBuilder($"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n")
+                    .Append($"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}");
+
+                if (user.IsAdmin == true)
+                {
+                    int totalTokens = 0,totalChats = 0;
+                    await Connection.Chats.Aggregate().ForEachAsync(o => 
+                    { 
+                        totalTokens += o.Messages.Sum(o => o.Tokens);
+                        totalChats++;
+                    });
+
+                    summaryString.AppendLine($"\n\n┌🆔 <b>Chat ID:</b> {query.Message!.Chat.Id}")
+                        .AppendLine($"├🗂 <b>Total chats:</b> {totalChats}")
+                        .AppendLine($"├👥 <b>Total users:</b> {Connection.Users.CountDocuments("{}")}")
+                        .AppendLine($"└💠 <b>Total tokens generated:</b> {totalTokens}");
+                }
+
+                
+                await OpenMenuContent(query.Message!, summaryString.ToString(), new(KeyboardBuilder.BackToMainButton(user.LocaleCode)));
                 break;
             case '5' when user.IsAdmin == true:
                 {

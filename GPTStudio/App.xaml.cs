@@ -43,6 +43,8 @@ public partial class App : Application
         if (Chat.NeedToUpdate)
             Chat.Save();
 
+
+        (MainWindowViewModel.MessengerV.DataContext as MessengerViewModel).Dispose();
         Application.Current.Shutdown();
     }
 }
