@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace GPTStudio.TelegramProvider.Utils;
-internal static class Common
+internal static partial class Common
 {
     public static Stream StreamFromString(string s)
     {
@@ -16,4 +17,7 @@ internal static class Common
         stream.Position = 0;
         return stream;
     }
+
+    [GeneratedRegex("^(-\\d|\\d+){1,9}$")]
+    public static partial Regex Integer();
 }

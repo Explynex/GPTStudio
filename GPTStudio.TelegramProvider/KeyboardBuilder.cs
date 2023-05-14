@@ -1,5 +1,6 @@
 ﻿using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace GPTStudio.TelegramProvider;
@@ -50,6 +51,18 @@ internal static class KeyboardBuilder
             });
 
         return new(markup);
+    }
+
+    public static InlineKeyboardMarkup ModelsSettingsMarkup(string locale)
+    {
+        return new(new[]
+        {
+            new[] { InlineKeyboardButton.WithCallbackData("💬 Chat","3.1"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.1")  },
+            new[] { InlineKeyboardButton.WithCallbackData("✂️ Edit", "3.2"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.2") },
+            new[] { InlineKeyboardButton.WithCallbackData("📨 Insert", "3.3"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.3") },
+            new[] { InlineKeyboardButton.WithCallbackData("🖍 Complete", "3.4"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.4") },
+            new[] { BackToSettingsButton(locale) },
+        });
     }
 
 

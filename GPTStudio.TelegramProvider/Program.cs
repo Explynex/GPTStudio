@@ -89,7 +89,6 @@ internal class App
                     await CommandHandler.HandleCommand(e.Message,user);
                 else
                     HandleTextMessage(e.Message, chat,user);
-                    
                 break;
         }
     }
@@ -124,6 +123,23 @@ internal class App
     {
         if (NowGeneration.Contains(msg.From!.Id))
             return;
+        
+        if(user.ChatModel.Quota.DailyMax != -1)
+        {
+            var timeOffset = DateTimeOffset.Now.ToUnixTimeSeconds() - user.ChatModel.Quota.UsedTimestamp;
+            if(timeOffset >= 86400)
+            {
+                user.ChatModel.Quota.UsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+                user.ChatModel.Quota.Used = 0;
+            }   
+            
+            if (user.ChatModel.Quota.Used >= user.ChatModel.Quota.DailyMax && timeOffset < 86400)
+            {
+                await Env.Client.SendTextMessageAsync(msg.Chat.Id, "🔻 You have exhausted the maximum tokens for today.", replyToMessageId: msg.MessageId).ConfigureAwait(false);
+                return;
+            }
+        }
+
 
         NowGeneration.Add(msg.From.Id);
 
@@ -201,7 +217,9 @@ internal class App
                     cancelToken.IsCancellationRequested ? response.Append(". . .").ToString() : responseContent,
                     parseMode: ParseMode.Markdown).ConfigureAwait(false);
 
+            user.ChatModel.Quota.Used += responseTokens;
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
+            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Set(nameof(GUser.ChatModel), user.ChatModel));
 
             if (responseContent.Length > 500)
             {
@@ -216,7 +234,6 @@ internal class App
                 Role   = Role.Assistant
             });
 
-            
             
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalRequests", 1));
         }

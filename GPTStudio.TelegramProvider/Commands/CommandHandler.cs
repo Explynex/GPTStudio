@@ -56,6 +56,7 @@ internal static class CommandHandler
                 break;
             case '3':
                 var summaryString = new StringBuilder($"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n")
+                    .AppendLine($"├🚧 <b>Chat tokens quota:</b> {(user.ChatModel.Quota.DailyMax < 0 ? "Unlimited" : user.ChatModel.Quota.DailyMax)}/day")
                     .Append($"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}");
 
                 if (user.IsAdmin == true)
