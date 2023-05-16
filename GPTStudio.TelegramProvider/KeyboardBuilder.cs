@@ -4,13 +4,33 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace GPTStudio.TelegramProvider;
+
+internal enum KeyboardCallbackData : byte
+{
+    MainMenu,
+    SettingsMenu,
+    SummaryMenu,
+    AboutMenu,
+    AdminPanelMenu,
+    ModelsSettingsMenu,
+    LanguagesMenu,
+    
+    SettingsGenMode,
+
+    AdminTotalUsers,
+    AdminTotalChats,
+    MainMenuStartChat,
+
+    RegenerateImage,
+}
+
 internal static class KeyboardBuilder
 {
     public static InlineKeyboardButton BackToMainButton(string locale)
-        => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToMainTitle], "back1");
+        => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToMainTitle], $"{KeyboardCallbackData.MainMenu}");
 
     public static InlineKeyboardButton BackToSettingsButton(string locale)
-        => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToSettingsTitle], "back2");
+        => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToSettingsTitle], $"{KeyboardCallbackData.SettingsMenu}");
 
     public static InlineKeyboardMarkup LanguagesMarkup(string locale) => new(new[]
     {
@@ -34,20 +54,20 @@ internal static class KeyboardBuilder
         var culture = Locale.Cultures[locale];
         var markup = new List<InlineKeyboardButton[]>
         {
-            new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuStartChatting], "1.1") },
+            new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuStartChatting], $"{KeyboardCallbackData.MainMenuStartChat}") },
             new[]
             {
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuSettings], "1.2"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuSummary], "1.3"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAbout], "1.4"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuSettings], $"{KeyboardCallbackData.SettingsMenu}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuSummary], $"{KeyboardCallbackData.SummaryMenu}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAbout], $"{KeyboardCallbackData.AboutMenu}"),
             },
         };
         if (admin == true)
             markup.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuUsers], "1.5"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuChats], "1.6"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAdminPanal], "1.7"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuUsers], $"{KeyboardCallbackData.AdminTotalUsers}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuChats], $"{KeyboardCallbackData.AdminTotalChats}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAdminPanal], $"{KeyboardCallbackData.AdminPanelMenu}"),
             });
 
         return new(markup);
@@ -71,11 +91,11 @@ internal static class KeyboardBuilder
         var culture = Locale.Cultures[user.LocaleCode];
         return new(new[]
         {
-            new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsGenMode] + culture[user.GenFullyMode == true ? Strings.FullyGenModeMsg : Strings.StreamGenModeMsg ],"2.1") },
+            new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsGenMode] + culture[user.GenFullyMode == true ? Strings.FullyGenModeMsg : Strings.StreamGenModeMsg ],$"{KeyboardCallbackData.SettingsGenMode}") },
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsModelsSettings], "2.2"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsLanguage], "2.3"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsModelsSettings], $"{KeyboardCallbackData.ModelsSettingsMenu}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsLanguage], $"{KeyboardCallbackData.LanguagesMenu}"),
             },
             new[] { BackToMainButton(user.LocaleCode) },
         });
@@ -85,9 +105,6 @@ internal static class KeyboardBuilder
 
     public static readonly InlineKeyboardMarkup ImageGenerateMarkup = new(new[]
 {
-        new[]
-        {
-            InlineKeyboardButton.WithCallbackData("🔄  Regenerate","img.1"),
-        },
+        new[] { InlineKeyboardButton.WithCallbackData("🔄  Regenerate", $"{KeyboardCallbackData.RegenerateImage}"),},
     });
 }

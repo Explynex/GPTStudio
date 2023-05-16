@@ -15,8 +15,8 @@ using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 namespace GPTStudio.TelegramProvider.Commands;
 internal static class CommandHandler
 {
-    public static bool PreviousMsgMenu = false;
-    private static async Task OpenMenuContent(Message msg,string subMessage,InlineKeyboardMarkup markup)
+    #region Helpers
+    private static async Task OpenMenuContent(Message msg, string subMessage, InlineKeyboardMarkup markup)
     {
         Connection.Chats.FindFirst(new BsonDocument("_id", msg.Chat.Id), out GChat chat);
 
@@ -32,97 +32,115 @@ internal static class CommandHandler
             {
                 await Env.Client.DeleteMessageAsync(chat.Id, chat.LastMenuMessageId.Value);
             }
-            catch { await Env.Client.EditMessageTextAsync(chat.Id,chat.LastMenuMessageId.Value,"Command expired."); }
+            catch { await Env.Client.EditMessageTextAsync(chat.Id, chat.LastMenuMessageId.Value, "Command expired."); }
         }
 
-            
-        
         await Env.Client.SendTextMessageAsync(chat.Id, subMessage, ParseMode.Html, replyMarkup: markup);
 
         Connection.Chats.UpdateOne(new BsonDocument("_id", chat.Id), Builders<GChat>.Update.Set(nameof(GChat.LastMenuMessageId), msg.MessageId + 1));
 
     }
 
-    private static async Task MainMenuButtonsHandler(CallbackQuery query,char buttonNum, GUser user)
+    private static async void OpenSummaryMenu(CallbackQuery query, GUser user, Dictionary<Strings, string> locale)
     {
-        var locale = Locale.Cultures[user.LocaleCode];
-        switch(buttonNum)
+        var summaryString = new StringBuilder($"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n")
+    .AppendLine($"├🚧 <b>Chat tokens quota:</b> {(user.ChatModel.Quota.DailyMax < 0 ? "Unlimited" : user.ChatModel.Quota.DailyMax)}/day")
+    .Append($"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}");
+
+        if (user.IsAdmin == true)
         {
-            case '1':
-                await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, locale[Strings.StartChattingMsg]);
-                break;
-            case '2':
-                await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
-                break;
-            case '3':
-                var summaryString = new StringBuilder($"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n")
-                    .AppendLine($"├🚧 <b>Chat tokens quota:</b> {(user.ChatModel.Quota.DailyMax < 0 ? "Unlimited" : user.ChatModel.Quota.DailyMax)}/day")
-                    .Append($"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}");
+            int totalTokens = 0, totalChats = 0;
+            await Connection.Chats.Aggregate().ForEachAsync(o =>
+            {
+                totalTokens += o.Messages.Sum(o => o.Tokens);
+                totalChats++;
+            });
 
-                if (user.IsAdmin == true)
-                {
-                    int totalTokens = 0,totalChats = 0;
-                    await Connection.Chats.Aggregate().ForEachAsync(o => 
-                    { 
-                        totalTokens += o.Messages.Sum(o => o.Tokens);
-                        totalChats++;
-                    });
-
-                    summaryString.AppendLine($"\n\n┌🆔 <b>Chat ID:</b> {query.Message!.Chat.Id}")
-                        .AppendLine($"├🗂 <b>Total chats:</b> {totalChats}")
-                        .AppendLine($"├👥 <b>Total users:</b> {Connection.Users.CountDocuments("{}")}")
-                        .AppendLine($"└💠 <b>Total tokens generated:</b> {totalTokens}");
-                }
-
-                
-                await OpenMenuContent(query.Message!, summaryString.ToString(), new(KeyboardBuilder.BackToMainButton(user.LocaleCode)));
-                break;
-            case '5' when user.IsAdmin == true:
-                {
-                    using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Users.Find(o => o.Id != 0).ToList(),Formatting.Indented));
-                    await Env.Client.SendDocumentAsync(query.Message!.Chat.Id, new(stream, $"Users {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"👥 Users database for {DateTime.UtcNow:R}");
-                    break;
-                }
-            case '6' when user.IsAdmin == true:
-                {
-                    using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Chats.Find("{}").ToList(), Formatting.Indented));
-                    await Env.Client.SendDocumentAsync(query.Message!.Chat.Id, new(stream, $"Chats {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"),caption: $"📚 Chats database for {DateTime.UtcNow:R}");
-                    break;
-                }
-
+            summaryString.AppendLine($"\n\n┌🆔 <b>Chat ID:</b> {query.Message!.Chat.Id}")
+                .AppendLine($"├🗂 <b>Total chats:</b> {totalChats}")
+                .AppendLine($"├👥 <b>Total users:</b> {Connection.Users.CountDocuments("{}")}")
+                .AppendLine($"└💠 <b>Total tokens generated:</b> {totalTokens}");
         }
+
+
+        await OpenMenuContent(query.Message!, summaryString.ToString(), new(KeyboardBuilder.BackToMainButton(user.LocaleCode)));
     }
 
-    private static async Task SettingsMenuButtonsHandler(CallbackQuery query, char buttonNum, GUser user)
+    private static async void SendChatsDb(long chatId)
     {
-        switch (buttonNum)
-        {
-            case '1':
-                user.GenFullyMode = !(user.GenFullyMode ?? false);
-                Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
-                await OpensSettingsMenu(query.Message!,user).ConfigureAwait(false);
-                break;
-            case '3':
-                await OpenMenuContent(query.Message!, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
-                    KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
-                break;
-        }
+        using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Chats.Find("{}").ToList(), Formatting.Indented));
+        await Env.Client.SendDocumentAsync(chatId, new(stream, $"Chats {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"📚 Chats database for {DateTime.UtcNow:R}");
     }
+
+    private static async void SendUsersDb(long chatId)
+    {
+        using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Users.Find(o => o.Id != 0).ToList(), Formatting.Indented));
+        await Env.Client.SendDocumentAsync(chatId, new(stream, $"Users {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"👥 Users database for {DateTime.UtcNow:R}");
+    } 
+    #endregion
 
 
     public static async Task HandleCallbackQuery(CallbackQuery query,GUser user)
     {
-        if (query == null) return;
+        if (query.Data == null || query.Message == null) return;
 
-        if (query.Data![0] == '1')
-            await MainMenuButtonsHandler(query, query.Data[^1], user).ConfigureAwait(false);
-        else if (query.Data[0] == '2')
-            await SettingsMenuButtonsHandler(query, query.Data[^1], user).ConfigureAwait(false);
-        else if (query.Data == "back1")
-            await OpenMainMenu(query.Message!, user).ConfigureAwait(false);
-        else if (query.Data == "back2")
-            await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
-        else if (query.Data.StartsWith("stop"))
+        var locale = Locale.Cultures[user.LocaleCode];
+
+        if (Enum.TryParse(query.Data,out KeyboardCallbackData callback))
+        {
+            switch(callback)
+            {
+                case KeyboardCallbackData.MainMenu:
+                    await OpenMainMenu(query.Message, user);
+                    break;
+
+                case KeyboardCallbackData.SettingsMenu:
+                    await OpensSettingsMenu(query.Message, user);
+                    break;
+
+                case KeyboardCallbackData.MainMenuStartChat:
+                    await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, locale[Strings.StartChattingMsg]);
+                    break;
+
+                case KeyboardCallbackData.AboutMenu:
+                    break;
+
+                case KeyboardCallbackData.SummaryMenu:
+                    OpenSummaryMenu(query, user, locale);
+                    break;
+
+                case KeyboardCallbackData.SettingsGenMode:
+                    user.GenFullyMode = !(user.GenFullyMode ?? false);
+                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
+                    await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
+                    break;
+
+                case KeyboardCallbackData.ModelsSettingsMenu:
+                    await OpenMenuContent(query.Message,"Models", KeyboardBuilder.ModelsSettingsMarkup(user.LocaleCode));
+                    break;
+
+                case KeyboardCallbackData.LanguagesMenu:
+                    await OpenMenuContent(query.Message, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
+                   KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
+                    break;
+
+                case KeyboardCallbackData.AdminPanelMenu when user.IsAdmin == true:
+                    break;
+
+                case KeyboardCallbackData.AdminTotalChats when user.IsAdmin == true:
+                    SendChatsDb(query.Message.Chat.Id);
+                    break;
+
+                case KeyboardCallbackData.AdminTotalUsers when user.IsAdmin == true:
+                    SendUsersDb(query.Message.Chat.Id);
+                    break;
+
+                    
+            }
+        }
+        
+
+        if (query.Data.StartsWith("stop"))
             App.NowGeneration.Remove(Convert.ToInt64(query.Data.Split('.').Last()));
         else if (query.Data.StartsWith("lang"))
         {
@@ -135,8 +153,6 @@ internal static class CommandHandler
                 new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.LocaleCode), lang[^1]));
             await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, $"{Locale.Cultures[lang[^1]][Strings.SuccessChangeLang]}{lang[^2]}").ConfigureAwait(false);
         }
-        else if (query.Data.StartsWith("img"))
-            return;
         
     }
 
