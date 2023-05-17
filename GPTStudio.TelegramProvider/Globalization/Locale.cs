@@ -7,6 +7,7 @@ internal enum Strings
     MainMenuTitle,
     SettingsTitle,
     LanguagesMenuTitle,
+    ModesMenuTitle,
 
     MainMenuStartChatting,
     MainMenuSettings,

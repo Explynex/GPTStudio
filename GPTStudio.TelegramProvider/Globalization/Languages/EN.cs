@@ -24,6 +24,7 @@ internal class EN
         {Strings.MainMenuAdminPanal, "🖥 Admin panel" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Language settings</b>\n🔰\n🔰 Use the buttons <b>below</b> to select language." },
+        {Strings.ModesMenuTitle,$"🔸 <b>Operating modes</b>\n🔰\n🔰 Use the buttons <b>below</b> to select or configure mode." },
 
         {Strings.SummaryForMsg,$"📊 Summary for:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Member since:</b>" },
@@ -33,7 +34,7 @@ internal class EN
         {Strings.SettingsTitle,$"🔸 <b>Settings</b> {MenuTitleTip}" },
         {Strings.SettingsGenMode,"🌀 Generation mode: " },
         {Strings.SettingsLanguage,"🏳 Language" },
-        {Strings.SettingsModelsSettings,"👾 Models settings" },
+        {Strings.SettingsModelsSettings,"👾 Modes" },
 
         {Strings.BackToSettingsTitle,"⬅️ Back to settings" },
         {Strings.BackToMainTitle,"⬅️ Back to main menu" },

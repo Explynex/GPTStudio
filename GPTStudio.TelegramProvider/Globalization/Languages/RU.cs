@@ -24,6 +24,7 @@ internal class RU
         {Strings.MainMenuAdminPanal, "🖥 Админ-панель" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Настройки языка</b>\n🔰\n🔰 Используйте кнопки <b>внизу</b> чтобы выбрать язык." },
+        {Strings.ModesMenuTitle,$"🔸 <b>Режимы работы</b>\n🔰\n🔰 Используйте кнопки <b>внизу</b> чтобы выбрать или настроить режим." },
 
         {Strings.SummaryForMsg,$"📊 Сводка для:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Участник с:</b>" },
@@ -33,7 +34,7 @@ internal class RU
         {Strings.SettingsTitle,$"🔸 <b>Настройки</b> {MenuTitleTip}" },
         {Strings.SettingsGenMode,"🌀 Режим генерации: " },
         {Strings.SettingsLanguage,"🏳 Язык" },
-        {Strings.SettingsModelsSettings,"👾 Настройки моделей" },
+        {Strings.SettingsModelsSettings,"👾 Режимы" },
 
         {Strings.BackToSettingsTitle,"⬅️ Назад к настройкам" },
         {Strings.BackToMainTitle,"⬅️ Назад в главное меню" },

@@ -2,6 +2,14 @@
 
 namespace GPTStudio.TelegramProvider.Database.Models;
 
+internal enum ModelMode : byte
+{
+    Chat,
+    Edit,
+    Insert,
+    Complete
+}
+
 internal sealed class GUser
 {
     public GUser(long userId)
@@ -53,6 +61,8 @@ internal sealed class GUser
     [BsonIgnoreIfNull]
     [BsonElement("LocaleCode")]
     private string? _localeCode;
+
+    public ModelMode Mode { get; set; }
 
     [BsonIgnore]
     public string LocaleCode

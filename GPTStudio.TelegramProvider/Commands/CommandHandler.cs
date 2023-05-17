@@ -90,6 +90,16 @@ internal static class CommandHandler
         {
             switch(callback)
             {
+                case KeyboardCallbackData.ModesChatMode:
+                case KeyboardCallbackData.ModesCompleteMode:
+                case KeyboardCallbackData.ModesEditMode:
+                case KeyboardCallbackData.ModesInsertMode:
+                    if (user.Mode == (ModelMode)callback) return;
+                    user.Mode = (ModelMode)callback;
+                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.Mode), callback));
+                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModelsSettingsMarkup(user.LocaleCode, user));
+                    break;
+
                 case KeyboardCallbackData.MainMenu:
                     await OpenMainMenu(query.Message, user);
                     break;
@@ -115,8 +125,8 @@ internal static class CommandHandler
                     await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
                     break;
 
-                case KeyboardCallbackData.ModelsSettingsMenu:
-                    await OpenMenuContent(query.Message,"Models", KeyboardBuilder.ModelsSettingsMarkup(user.LocaleCode));
+                case KeyboardCallbackData.ModesMenu:
+                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModelsSettingsMarkup(user.LocaleCode,user));
                     break;
 
                 case KeyboardCallbackData.LanguagesMenu:

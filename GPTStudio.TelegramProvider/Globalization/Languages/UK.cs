@@ -24,6 +24,7 @@ internal class UK
         {Strings.MainMenuAdminPanal, "🖥 Адмін-панель" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Налаштування мови</b>\n🔰\n🔰 Використовуйте кнопки <b>внизу</b> щоб обрати мову." },
+        {Strings.ModesMenuTitle,$"🔸 <b>Режими роботи</b>\n🔰\n🔰 Використовуйте кнопки <b>внизу</b> щоб обрати або налаштувати режим." },
 
         {Strings.SummaryForMsg,$"📊 Зведення для:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Учасник з:</b>" },
@@ -33,7 +34,7 @@ internal class UK
         {Strings.SettingsTitle,$"🔸 <b>Налаштування</b> {MenuTitleTip}" },
         {Strings.SettingsGenMode,"🌀 Режим генерації: " },
         {Strings.SettingsLanguage,"🏳 Мова" },
-        {Strings.SettingsModelsSettings,"👾 Налаштування моделей" },
+        {Strings.SettingsModelsSettings,"👾 Режими" },
 
         {Strings.BackToSettingsTitle,"⬅️ Назад до налаштувань" },
         {Strings.BackToMainTitle,"⬅️ Назад у головне меню" },

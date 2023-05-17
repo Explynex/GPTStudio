@@ -7,12 +7,20 @@ namespace GPTStudio.TelegramProvider;
 
 internal enum KeyboardCallbackData : byte
 {
+    ModesChatMode,
+    ModesEditMode,
+    ModesInsertMode,
+    ModesCompleteMode,
+    
+
     MainMenu,
     SettingsMenu,
     SummaryMenu,
     AboutMenu,
     AdminPanelMenu,
-    ModelsSettingsMenu,
+    ModesMenu,
+    ModeSettingsMenu,
+
     LanguagesMenu,
     
     SettingsGenMode,
@@ -73,14 +81,21 @@ internal static class KeyboardBuilder
         return new(markup);
     }
 
-    public static InlineKeyboardMarkup ModelsSettingsMarkup(string locale)
+    public static InlineKeyboardMarkup ModelsSettingsMarkup(string locale,GUser user)
     {
         return new(new[]
         {
-            new[] { InlineKeyboardButton.WithCallbackData("💬 Chat","3.1"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.1")  },
-            new[] { InlineKeyboardButton.WithCallbackData("✂️ Edit", "3.2"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.2") },
-            new[] { InlineKeyboardButton.WithCallbackData("📨 Insert", "3.3"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.3") },
-            new[] { InlineKeyboardButton.WithCallbackData("🖍 Complete", "3.4"), InlineKeyboardButton.WithCallbackData("⚙️", "3.1.4") },
+            new[] 
+            {
+                InlineKeyboardButton.WithCallbackData("💬 Chat" + (user.Mode == ModelMode.Chat ? "   ✅" : ""),$"{KeyboardCallbackData.ModesChatMode}"),
+                InlineKeyboardButton.WithCallbackData("✂️ Edit" +(user.Mode == ModelMode.Edit ? "   ✅" : ""), $"{KeyboardCallbackData.ModesEditMode}")
+            },
+            new[] 
+            {
+                InlineKeyboardButton.WithCallbackData("📨 Insert" + (user.Mode == ModelMode.Insert ? "   ✅" : ""), $"{KeyboardCallbackData.ModesInsertMode}"),
+                InlineKeyboardButton.WithCallbackData("🖍 Complete" + (user.Mode == ModelMode.Complete ? "   ✅" : ""), $"{KeyboardCallbackData.ModesCompleteMode}")
+            },
+            new[] { InlineKeyboardButton.WithCallbackData("🔬 Mode settings", $"{KeyboardCallbackData.ModeSettingsMenu}") },
             new[] { BackToSettingsButton(locale) },
         });
     }
@@ -94,7 +109,7 @@ internal static class KeyboardBuilder
             new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsGenMode] + culture[user.GenFullyMode == true ? Strings.FullyGenModeMsg : Strings.StreamGenModeMsg ],$"{KeyboardCallbackData.SettingsGenMode}") },
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsModelsSettings], $"{KeyboardCallbackData.ModelsSettingsMenu}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsModelsSettings], $"{KeyboardCallbackData.ModesMenu}"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsLanguage], $"{KeyboardCallbackData.LanguagesMenu}"),
             },
             new[] { BackToMainButton(user.LocaleCode) },
