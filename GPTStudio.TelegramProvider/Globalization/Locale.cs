@@ -22,6 +22,7 @@ internal enum Strings
     SettingsModelsSettings,
     BackToSettingsTitle,
     BackToMainTitle,
+    BackToModesTitle,
 
     StartChattingMsg,
     StopGenerationMsg,
@@ -34,9 +35,6 @@ internal enum Strings
     SummaryMemberSince,
     SummaryTokensGen,
     SummaryRequests,
-    
-
-    
 
 }
 

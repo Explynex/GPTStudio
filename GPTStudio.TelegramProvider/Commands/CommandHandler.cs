@@ -44,7 +44,7 @@ internal static class CommandHandler
     private static async void OpenSummaryMenu(CallbackQuery query, GUser user, Dictionary<Strings, string> locale)
     {
         var summaryString = new StringBuilder($"{locale[Strings.SummaryForMsg]} @{query.From.Username},{query.From.FirstName}\n│\n├{locale[Strings.SummaryMemberSince]}\t{DateTimeOffset.FromUnixTimeSeconds(user.JoinTimestamp)}\n")
-    .AppendLine($"├🚧 <b>Chat tokens quota:</b> {(user.ChatModel.Quota.DailyMax < 0 ? "Unlimited" : user.ChatModel.Quota.DailyMax)}/day")
+    .AppendLine($"├🚧 <b>Chat tokens quota:</b> {(user.ChatMode.Quota.DailyMax < 0 ? "Unlimited" : user.ChatMode.Quota.DailyMax)}/day")
     .Append($"├{locale[Strings.SummaryTokensGen]}\t{user.TotalTokensGenerated}\n└{locale[Strings.SummaryRequests]}\t{user.TotalRequests}");
 
         if (user.IsAdmin == true)
@@ -92,12 +92,19 @@ internal static class CommandHandler
             {
                 case KeyboardCallbackData.ModesChatMode:
                 case KeyboardCallbackData.ModesCompleteMode:
-                case KeyboardCallbackData.ModesEditMode:
                 case KeyboardCallbackData.ModesInsertMode:
-                    if (user.Mode == (ModelMode)callback) return;
-                    user.Mode = (ModelMode)callback;
-                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.Mode), callback));
-                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModelsSettingsMarkup(user.LocaleCode, user));
+                    if (user.SelectedMode == (ModelMode)callback) return;
+                    user.SelectedMode = (ModelMode)callback;
+                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.SelectedMode), callback));
+                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModesMenuMarkup(user));
+                    break;
+
+                case KeyboardCallbackData.ModeSettingsMenu:
+                    await OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
+                    break;
+
+                case KeyboardCallbackData.TokensSettings:
+                    await OpenMenuContent(query.Message, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{(user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000)}", KeyboardBuilder.TokensSettingsMarkup);
                     break;
 
                 case KeyboardCallbackData.MainMenu:
@@ -126,7 +133,7 @@ internal static class CommandHandler
                     break;
 
                 case KeyboardCallbackData.ModesMenu:
-                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModelsSettingsMarkup(user.LocaleCode,user));
+                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModesMenuMarkup(user));
                     break;
 
                 case KeyboardCallbackData.LanguagesMenu:
@@ -152,6 +159,21 @@ internal static class CommandHandler
 
         if (query.Data.StartsWith("stop"))
             App.NowGeneration.Remove(Convert.ToInt64(query.Data.Split('.').Last()));
+        else if(query.Data.StartsWith("tokens"))
+        {
+            var peak = user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000;
+            var tokens = Convert.ToInt32(query.Data.Split('.')[^1]);
+
+            if (tokens == 2) user.SelectedModeSettings.MaxTokens = peak;
+            else if (tokens == -2) user.SelectedModeSettings.MaxTokens = 1;
+            else user.SelectedModeSettings.MaxTokens += tokens;
+
+            if (user.SelectedModeSettings.MaxTokens < 1 || user.SelectedModeSettings.MaxTokens > peak)
+                return;
+
+            Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
+            await OpenMenuContent(query.Message, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{peak}", KeyboardBuilder.TokensSettingsMarkup);
+        }
         else if (query.Data.StartsWith("lang"))
         {
             var lang = query.Data.Split('.');

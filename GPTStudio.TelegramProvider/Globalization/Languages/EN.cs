@@ -38,5 +38,6 @@ internal class EN
 
         {Strings.BackToSettingsTitle,"⬅️ Back to settings" },
         {Strings.BackToMainTitle,"⬅️ Back to main menu" },
+        {Strings.BackToModesTitle,"⬅️ Back to modes menu" },
     };
 }

@@ -38,5 +38,6 @@ internal class UK
 
         {Strings.BackToSettingsTitle,"⬅️ Назад до налаштувань" },
         {Strings.BackToMainTitle,"⬅️ Назад у головне меню" },
+        {Strings.BackToModesTitle,"⬅️ Back до режимів" },
     };
 }

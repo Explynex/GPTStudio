@@ -124,16 +124,16 @@ internal class App
         if (NowGeneration.Contains(msg.From!.Id))
             return;
         
-        if(user.ChatModel.Quota.DailyMax != -1)
+        if(user.ChatMode.Quota.DailyMax != -1)
         {
-            var timeOffset = DateTimeOffset.Now.ToUnixTimeSeconds() - user.ChatModel.Quota.UsedTimestamp;
+            var timeOffset = DateTimeOffset.Now.ToUnixTimeSeconds() - user.ChatMode.Quota.UsedTimestamp;
             if(timeOffset >= 86400)
             {
-                user.ChatModel.Quota.UsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
-                user.ChatModel.Quota.Used = 0;
+                user.ChatMode.Quota.UsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+                user.ChatMode.Quota.Used = 0;
             }   
             
-            if (user.ChatModel.Quota.Used >= user.ChatModel.Quota.DailyMax && timeOffset < 86400)
+            if (user.ChatMode.Quota.Used >= user.ChatMode.Quota.DailyMax && timeOffset < 86400)
             {
                 await Env.Client.SendTextMessageAsync(msg.Chat.Id, "🔻 You have exhausted the maximum tokens for today.", replyToMessageId: msg.MessageId).ConfigureAwait(false);
                 return;
@@ -217,9 +217,9 @@ internal class App
                     cancelToken.IsCancellationRequested ? response.Append(". . .").ToString() : responseContent,
                     parseMode: ParseMode.Markdown).ConfigureAwait(false);
 
-            user.ChatModel.Quota.Used += responseTokens;
+            user.ChatMode.Quota.Used += responseTokens;
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
-            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Set(nameof(GUser.ChatModel), user.ChatModel));
+            Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Set(nameof(GUser.ChatMode), user.ChatMode));
 
             if (responseContent.Length > 500)
             {

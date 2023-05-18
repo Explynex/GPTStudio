@@ -53,7 +53,7 @@ internal static class ConsoleHandler
                 string? modelName = null;
                 if(chunk.Length != 4 || !chunk[1].All(char.IsDigit) || !Common.Integer().IsMatch(chunk[^1]) || (modelName = GetModelName(Convert.ToInt32(chunk[1]))) == null)
                 {
-                    Logger.PrintError("Invalid syntax. Must be 'setquota <model number (1 - chat, 2 - complete)> <id or username> <value>'");
+                    Logger.PrintError("Invalid syntax. Must be 'setquota <mode number (1 - chat, 2 - complete,3 - insert)> <id or username> <value>'");
                     return;
                 }
 
@@ -64,8 +64,8 @@ internal static class ConsoleHandler
                     return;
                 }
 
-                user.ChatModel.Quota.DailyMax = Convert.ToInt32(chunk[^1]);
-                Connection.Users.UpdateOne(bson, Builders<GUser>.Update.Set(modelName, user.ChatModel));
+                user.ChatMode.Quota.DailyMax = Convert.ToInt32(chunk[^1]);
+                Connection.Users.UpdateOne(bson, Builders<GUser>.Update.Set(modelName, user.ChatMode));
                 Logger.Print($"Quota set successfully", color: ConsoleColor.Green);
 
                 break;
@@ -79,7 +79,9 @@ internal static class ConsoleHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string? GetModelName(int id) => id switch
     {
-        1 => nameof(GUser.ChatModel),
+        1 => nameof(GUser.ChatMode),
+        2 => nameof(GUser.CompleteMode),
+        3 => nameof(GUser.InsertMode),
         _ => null
     };
 }

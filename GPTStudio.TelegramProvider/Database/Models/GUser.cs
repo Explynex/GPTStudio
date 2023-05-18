@@ -1,13 +1,20 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using Amazon.SecurityToken.Model;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace GPTStudio.TelegramProvider.Database.Models;
 
+//db.Users.updateMany({}, { $unset: { ChatModel: null}})
 internal enum ModelMode : byte
 {
-    Chat,
-    Edit,
-    Insert,
-    Complete
+    ChatMode,
+    InsertMode,
+    CompleteMode,
+}
+
+internal enum Commands : byte
+{
+    None,
+    SetSystemMessage,
 }
 
 internal sealed class GUser
@@ -26,16 +33,37 @@ internal sealed class GUser
         public long UsedTimestamp { get; set; }
     }
 
-    internal class ChatModelProps
+    #region Mode classes
+
+    internal abstract class GAbstractMode
     {
-        public ChatModelProps() { }
-        public Quota Quota { get; set; }             = new(10000);
-        public double Temperature { get; set; }      = 0.7d;
-        public int MaxTokens { get; set; }           = 1024;
-        public double TopP { get; set; }             = 1d;
-        public double FrequencyPenalty { get; set; } = 0d;
-        public double PresencePenalty { get; set; }  = 0d;
+        public abstract Quota Quota { get; set; }
+        public virtual double Temperature { get; set; } = 0.7d;
+        public virtual int MaxTokens { get; set; } = 2048;
+        public virtual double TopP { get; set; } = 1d;
+        public virtual double FrequencyPenalty { get; set; } = 0d;
+        public virtual double PresencePenalty { get; set; } = 0d;
     }
+
+    internal class GChatMode : GAbstractMode
+    {
+        public override Quota Quota { get; set; } = new(12000);
+        public string? SystemMessage { get; set; }
+    }
+
+    internal class GCompleteMode : GAbstractMode
+    {
+        public override Quota Quota { get; set; } = new(8000);
+        public string? InjectStartText { get; set; }
+        public string? InjectRestartText { get; set; }
+        public int BestOf { get; set; } = 1;
+    }
+
+    internal class GInsertMode : GAbstractMode
+    {
+        public override Quota Quota { get; set; } = new(10000);
+    } 
+    #endregion
 
     [BsonId]
     public long Id { get; private set; }
@@ -50,19 +78,39 @@ internal sealed class GUser
     [BsonIgnoreIfNull]
     public string? Username { get; set; }
 
-    [BsonIgnoreIfNull]
-    [BsonElement("ChatModel")]
-    private ChatModelProps? _chatModel { get; set; }
 
+    [BsonIgnoreIfNull]
+    [BsonElement("ChatMode")]
+    private GChatMode? _chatModel { get; set; }
     [BsonIgnore]
-    public ChatModelProps ChatModel => _chatModel ??= new();
+    public GChatMode ChatMode => _chatModel ??= new();
+
+
+    [BsonIgnoreIfNull]
+    [BsonElement("CompleteMode")]
+    private GCompleteMode? _completeMode { get; set; }
+    [BsonIgnore]
+    public GCompleteMode CompleteMode => _completeMode ??= new();
+
+
+    [BsonIgnoreIfNull]
+    [BsonElement("InsertMode")]
+    private GInsertMode? _insertMode { get; set; }
+    [BsonIgnore]
+    public GInsertMode InsertMode => _insertMode ??= new();
 
 
     [BsonIgnoreIfNull]
     [BsonElement("LocaleCode")]
     private string? _localeCode;
 
-    public ModelMode Mode { get; set; }
+    public ModelMode SelectedMode { get; set; }
+
+    [BsonIgnore]
+    public GAbstractMode SelectedModeSettings => SelectedMode == ModelMode.ChatMode 
+        ? ChatMode : SelectedMode == ModelMode.InsertMode ? InsertMode : CompleteMode;
+
+
 
     [BsonIgnore]
     public string LocaleCode

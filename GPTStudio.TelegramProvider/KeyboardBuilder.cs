@@ -8,7 +8,6 @@ namespace GPTStudio.TelegramProvider;
 internal enum KeyboardCallbackData : byte
 {
     ModesChatMode,
-    ModesEditMode,
     ModesInsertMode,
     ModesCompleteMode,
     
@@ -28,6 +27,13 @@ internal enum KeyboardCallbackData : byte
     AdminTotalUsers,
     AdminTotalChats,
     MainMenuStartChat,
+    TokensSettings,
+    TemperatureSettings,
+    TopPSettings,
+    FreqPenaltySettings,
+    PresPenaltySettings,
+    BestOfSettings,
+
 
     RegenerateImage,
 }
@@ -39,6 +45,9 @@ internal static class KeyboardBuilder
 
     public static InlineKeyboardButton BackToSettingsButton(string locale)
         => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToSettingsTitle], $"{KeyboardCallbackData.SettingsMenu}");
+
+    public static InlineKeyboardButton BackToModesButton(string locale)
+    => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToModesTitle], $"{KeyboardCallbackData.ModesMenu}");
 
     public static InlineKeyboardMarkup LanguagesMarkup(string locale) => new(new[]
     {
@@ -81,23 +90,63 @@ internal static class KeyboardBuilder
         return new(markup);
     }
 
-    public static InlineKeyboardMarkup ModelsSettingsMarkup(string locale,GUser user)
+    public static InlineKeyboardMarkup ModesMenuMarkup(GUser user)
     {
         return new(new[]
         {
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData("💬 Chat" + (user.Mode == ModelMode.Chat ? "   ✅" : ""),$"{KeyboardCallbackData.ModesChatMode}"),
-                InlineKeyboardButton.WithCallbackData("✂️ Edit" +(user.Mode == ModelMode.Edit ? "   ✅" : ""), $"{KeyboardCallbackData.ModesEditMode}")
+                InlineKeyboardButton.WithCallbackData("💬 Chat" + (user.SelectedMode == ModelMode.ChatMode ? "   ✅" : ""),$"{KeyboardCallbackData.ModesChatMode}"),
+                InlineKeyboardButton.WithCallbackData("📨 Insert" + (user.SelectedMode == ModelMode.InsertMode ? "   ✅" : ""), $"{KeyboardCallbackData.ModesInsertMode}"),
             },
             new[] 
             {
-                InlineKeyboardButton.WithCallbackData("📨 Insert" + (user.Mode == ModelMode.Insert ? "   ✅" : ""), $"{KeyboardCallbackData.ModesInsertMode}"),
-                InlineKeyboardButton.WithCallbackData("🖍 Complete" + (user.Mode == ModelMode.Complete ? "   ✅" : ""), $"{KeyboardCallbackData.ModesCompleteMode}")
+                InlineKeyboardButton.WithCallbackData("🖍 Complete" + (user.SelectedMode == ModelMode.CompleteMode ? "   ✅" : ""), $"{KeyboardCallbackData.ModesCompleteMode}"),
+                InlineKeyboardButton.WithCallbackData("🔬 Mode settings", $"{KeyboardCallbackData.ModeSettingsMenu}")
             },
-            new[] { InlineKeyboardButton.WithCallbackData("🔬 Mode settings", $"{KeyboardCallbackData.ModeSettingsMenu}") },
-            new[] { BackToSettingsButton(locale) },
+            new[] { BackToSettingsButton(user.LocaleCode) },
         });
+    }
+
+    public static readonly InlineKeyboardMarkup TokensSettingsMarkup = new(new[]
+    {
+        new[]
+        {
+            InlineKeyboardButton.WithCallbackData("➕1️⃣","tokens.1"),
+            InlineKeyboardButton.WithCallbackData("➕1️⃣0️⃣","tokens.10"),
+            InlineKeyboardButton.WithCallbackData("➕1️⃣0️⃣0️⃣","tokens.100"),
+            InlineKeyboardButton.WithCallbackData("🔼","tokens.2"),
+        },
+        new[]
+        {
+            InlineKeyboardButton.WithCallbackData("➖1️⃣","tokens.-1"),
+            InlineKeyboardButton.WithCallbackData("➖1️⃣0️⃣","tokens.-10"),
+            InlineKeyboardButton.WithCallbackData("➖1️⃣0️⃣0️⃣","tokens.-100"),
+            InlineKeyboardButton.WithCallbackData("🔽","tokens.-2"),
+        },
+    });
+
+    public static InlineKeyboardMarkup ModeSettingsMarkup(ModelMode mode, string locale)
+    {
+        var list = new List<InlineKeyboardButton[]>
+        {
+                new[] 
+                {
+                    InlineKeyboardButton.WithCallbackData("🎲 Tokens",$"{KeyboardCallbackData.TokensSettings}"),
+                    InlineKeyboardButton.WithCallbackData("💥 Temperature", $"{KeyboardCallbackData.TemperatureSettings}"),
+                    InlineKeyboardButton.WithCallbackData("✨ Top P", $"{KeyboardCallbackData.TopPSettings}")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("🫧 Frequency penalty", $"{KeyboardCallbackData.FreqPenaltySettings}"),
+                    InlineKeyboardButton.WithCallbackData("🫧 Presence penalty", $"{KeyboardCallbackData.PresPenaltySettings}"),
+                },
+                new[] { BackToModesButton(locale) }
+        };
+
+        if (mode != ModelMode.ChatMode)
+            list.Insert(list.Count-1,new[] { InlineKeyboardButton.WithCallbackData("⚜️ Best of ", $"{KeyboardCallbackData.BestOfSettings}") });
+        return new(list);
     }
 
 
