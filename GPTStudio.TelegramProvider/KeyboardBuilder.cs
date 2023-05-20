@@ -48,14 +48,16 @@ internal static class KeyboardBuilder
 
     public static InlineKeyboardButton BackToModesButton(string locale)
     => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToModesTitle], $"{KeyboardCallbackData.ModesMenu}");
+    public static InlineKeyboardButton BackToModeSettingsButton(string locale)
+=> InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.Back], $"{KeyboardCallbackData.ModeSettingsMenu}");
 
     public static InlineKeyboardMarkup LanguagesMarkup(string locale) => new(new[]
     {
         new[]
         {
-            InlineKeyboardButton.WithCallbackData("🇺🇦", "lang.🇺🇦.uk"),
-            InlineKeyboardButton.WithCallbackData("🇬🇧", "lang.🇬🇧.en"),
-            InlineKeyboardButton.WithCallbackData("🇷🇺", "lang.🇷🇺.ru"),
+            InlineKeyboardButton.WithCallbackData("🇺🇦", "lang.🇺🇦|uk"),
+            InlineKeyboardButton.WithCallbackData("🇬🇧", "lang.🇬🇧|en"),
+            InlineKeyboardButton.WithCallbackData("🇷🇺", "lang.🇷🇺|ru"),
         },
 /*        new[]
         {
@@ -108,22 +110,41 @@ internal static class KeyboardBuilder
         });
     }
 
-    public static readonly InlineKeyboardMarkup TokensSettingsMarkup = new(new[]
+    public static  InlineKeyboardMarkup TokensSettingsMarkup(string localeCode) => new(new[]
     {
         new[]
         {
             InlineKeyboardButton.WithCallbackData("➕1️⃣","tokens.1"),
             InlineKeyboardButton.WithCallbackData("➕1️⃣0️⃣","tokens.10"),
             InlineKeyboardButton.WithCallbackData("➕1️⃣0️⃣0️⃣","tokens.100"),
-            InlineKeyboardButton.WithCallbackData("🔼","tokens.2"),
+            InlineKeyboardButton.WithCallbackData("🔼","tokens.3"),
         },
         new[]
         {
             InlineKeyboardButton.WithCallbackData("➖1️⃣","tokens.-1"),
             InlineKeyboardButton.WithCallbackData("➖1️⃣0️⃣","tokens.-10"),
             InlineKeyboardButton.WithCallbackData("➖1️⃣0️⃣0️⃣","tokens.-100"),
-            InlineKeyboardButton.WithCallbackData("🔽","tokens.-2"),
+            InlineKeyboardButton.WithCallbackData("🔽","tokens.-3"),
         },
+        new[] { BackToModeSettingsButton(localeCode) },
+    });
+
+
+    public static InlineKeyboardMarkup FloatKeyboardMarkup(string localeCode, string tag) => new(new[]
+    {
+        new[]
+        {
+            InlineKeyboardButton.WithCallbackData("➕0️⃣,0️⃣1️⃣",$"{tag}.0,01"),
+            InlineKeyboardButton.WithCallbackData("➕0️⃣,1️⃣",$"{tag}.0,1"),
+            InlineKeyboardButton.WithCallbackData("🔼",$"{tag}.3"),
+        },
+        new[]
+        {
+            InlineKeyboardButton.WithCallbackData("➖0️⃣,0️⃣1️⃣",$"{tag}.-0,01"),
+            InlineKeyboardButton.WithCallbackData("➖0️⃣,1️⃣",$"{tag}.-0,1"),
+            InlineKeyboardButton.WithCallbackData("🔽",$"{tag}.-3"),
+        },
+        new[] { BackToModeSettingsButton(localeCode) },
     });
 
     public static InlineKeyboardMarkup ModeSettingsMarkup(ModelMode mode, string locale)

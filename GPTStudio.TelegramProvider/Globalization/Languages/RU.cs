@@ -39,5 +39,6 @@ internal class RU
         {Strings.BackToSettingsTitle,"⬅️ Назад к настройкам" },
         {Strings.BackToMainTitle,"⬅️ Назад в главное меню" },
         {Strings.BackToModesTitle,"⬅️ Назад к режимам" },
+        {Strings.Back,"⬅️ Назад" },
     };
 }

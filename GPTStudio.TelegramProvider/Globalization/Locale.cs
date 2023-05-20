@@ -23,6 +23,7 @@ internal enum Strings
     BackToSettingsTitle,
     BackToMainTitle,
     BackToModesTitle,
+    Back,
 
     StartChattingMsg,
     StopGenerationMsg,

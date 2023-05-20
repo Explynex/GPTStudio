@@ -20,4 +20,14 @@ internal static partial class Common
 
     [GeneratedRegex("^(-\\d|\\d+){1,9}$")]
     public static partial Regex Integer();
+
+    public static void SetPropertyValue(this object obj, string propName, object value)
+    {
+        obj.GetType().GetProperty(propName).SetValue(obj, value, null);
+    }
+
+    public static object GetPropertyValue(this object obj, string propName)
+    {
+        return obj.GetType().GetProperty(propName).GetValue(obj, null);
+    }
 }

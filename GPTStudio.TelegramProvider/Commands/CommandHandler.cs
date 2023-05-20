@@ -86,106 +86,148 @@ internal static class CommandHandler
 
         var locale = Locale.Cultures[user.LocaleCode];
 
-        if (Enum.TryParse(query.Data,out KeyboardCallbackData callback))
+        if (!Enum.TryParse(query.Data,out KeyboardCallbackData callback))
         {
-            switch(callback)
-            {
-                case KeyboardCallbackData.ModesChatMode:
-                case KeyboardCallbackData.ModesCompleteMode:
-                case KeyboardCallbackData.ModesInsertMode:
-                    if (user.SelectedMode == (ModelMode)callback) return;
-                    user.SelectedMode = (ModelMode)callback;
-                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.SelectedMode), callback));
-                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModesMenuMarkup(user));
-                    break;
-
-                case KeyboardCallbackData.ModeSettingsMenu:
-                    await OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
-                    break;
-
-                case KeyboardCallbackData.TokensSettings:
-                    await OpenMenuContent(query.Message, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{(user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000)}", KeyboardBuilder.TokensSettingsMarkup);
-                    break;
-
-                case KeyboardCallbackData.MainMenu:
-                    await OpenMainMenu(query.Message, user);
-                    break;
-
-                case KeyboardCallbackData.SettingsMenu:
-                    await OpensSettingsMenu(query.Message, user);
-                    break;
-
-                case KeyboardCallbackData.MainMenuStartChat:
-                    await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, locale[Strings.StartChattingMsg]);
-                    break;
-
-                case KeyboardCallbackData.AboutMenu:
-                    break;
-
-                case KeyboardCallbackData.SummaryMenu:
-                    OpenSummaryMenu(query, user, locale);
-                    break;
-
-                case KeyboardCallbackData.SettingsGenMode:
-                    user.GenFullyMode = !(user.GenFullyMode ?? false);
-                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
-                    await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
-                    break;
-
-                case KeyboardCallbackData.ModesMenu:
-                    await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModesMenuMarkup(user));
-                    break;
-
-                case KeyboardCallbackData.LanguagesMenu:
-                    await OpenMenuContent(query.Message, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
-                   KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
-                    break;
-
-                case KeyboardCallbackData.AdminPanelMenu when user.IsAdmin == true:
-                    break;
-
-                case KeyboardCallbackData.AdminTotalChats when user.IsAdmin == true:
-                    SendChatsDb(query.Message.Chat.Id);
-                    break;
-
-                case KeyboardCallbackData.AdminTotalUsers when user.IsAdmin == true:
-                    SendUsersDb(query.Message.Chat.Id);
-                    break;
-
-                    
-            }
+            var split = query.Data.Split('.');
+            HandleCallbackTextData(query.Message, user, split[0], split[1]);
+            return;
         }
-        
 
-        if (query.Data.StartsWith("stop"))
-            App.NowGeneration.Remove(Convert.ToInt64(query.Data.Split('.').Last()));
-        else if(query.Data.StartsWith("tokens"))
+        switch (callback)
         {
-            var peak = user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000;
-            var tokens = Convert.ToInt32(query.Data.Split('.')[^1]);
+            case KeyboardCallbackData.ModesChatMode:
+            case KeyboardCallbackData.ModesCompleteMode:
+            case KeyboardCallbackData.ModesInsertMode:
+                if (user.SelectedMode == (ModelMode)callback) return;
+                user.SelectedMode = (ModelMode)callback;
+                Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.SelectedMode), callback));
+                await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModesMenuMarkup(user));
+                break;
 
-            if (tokens == 2) user.SelectedModeSettings.MaxTokens = peak;
-            else if (tokens == -2) user.SelectedModeSettings.MaxTokens = 1;
-            else user.SelectedModeSettings.MaxTokens += tokens;
+            case KeyboardCallbackData.ModeSettingsMenu:
+                await OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
+                break;
 
-            if (user.SelectedModeSettings.MaxTokens < 1 || user.SelectedModeSettings.MaxTokens > peak)
-                return;
+            case KeyboardCallbackData.TokensSettings:
+                await OpenMenuContent(query.Message, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{(user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000)}", KeyboardBuilder.TokensSettingsMarkup(user.LocaleCode));
+                break;
 
-            Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
-            await OpenMenuContent(query.Message, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{peak}", KeyboardBuilder.TokensSettingsMarkup);
+            case KeyboardCallbackData.TemperatureSettings:
+                await OpenMenuContent(query.Message, $"Temperature: {user.SelectedModeSettings.Temperature}", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode, "temp"));
+                break;
+
+            case KeyboardCallbackData.MainMenu:
+                await OpenMainMenu(query.Message, user);
+                break;
+
+            case KeyboardCallbackData.SettingsMenu:
+                await OpensSettingsMenu(query.Message, user);
+                break;
+
+            case KeyboardCallbackData.MainMenuStartChat:
+                await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, locale[Strings.StartChattingMsg]);
+                break;
+
+            case KeyboardCallbackData.AboutMenu:
+                break;
+
+            case KeyboardCallbackData.SummaryMenu:
+                OpenSummaryMenu(query, user, locale);
+                break;
+
+            case KeyboardCallbackData.SettingsGenMode:
+                user.GenFullyMode = !(user.GenFullyMode ?? false);
+                Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
+                await OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
+                break;
+
+            case KeyboardCallbackData.ModesMenu:
+                await OpenMenuContent(query.Message, locale[Strings.ModesMenuTitle], KeyboardBuilder.ModesMenuMarkup(user));
+                break;
+
+            case KeyboardCallbackData.LanguagesMenu:
+                await OpenMenuContent(query.Message, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
+               KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
+                break;
+
+            case KeyboardCallbackData.AdminPanelMenu when user.IsAdmin == true:
+                break;
+
+            case KeyboardCallbackData.AdminTotalChats when user.IsAdmin == true:
+                SendChatsDb(query.Message.Chat.Id);
+                break;
+
+            case KeyboardCallbackData.AdminTotalUsers when user.IsAdmin == true:
+                SendUsersDb(query.Message.Chat.Id);
+                break;
         }
-        else if (query.Data.StartsWith("lang"))
+
+
+    }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static async void HandleCallbackTextData(Message msg,GUser user,string tag, string data)
+    {
+        var bsonId = new BsonDocument("_id", user.Id);
+        switch (tag)
         {
-            var lang = query.Data.Split('.');
+            case "stop":
+                App.NowGeneration.Remove(Convert.ToInt64(data));
+                break;
 
-            if (user.LocaleCode == lang[^1])
-                return;
+            case "tokens":
+                var peak = user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000;
+                var tokens = Convert.ToInt32(data);
 
-            Connection.Users.UpdateOne(
-                new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.LocaleCode), lang[^1]));
-            await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, $"{Locale.Cultures[lang[^1]][Strings.SuccessChangeLang]}{lang[^2]}").ConfigureAwait(false);
+                if (tokens == 3) user.SelectedModeSettings.MaxTokens = peak;
+                else if (tokens == -3) user.SelectedModeSettings.MaxTokens = 1;
+                else user.SelectedModeSettings.MaxTokens += tokens;
+
+                if (user.SelectedModeSettings.MaxTokens < 1 || user.SelectedModeSettings.MaxTokens > peak)
+                    return;
+
+                Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
+                await OpenMenuContent(msg, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{peak}", KeyboardBuilder.TokensSettingsMarkup(user.LocaleCode));
+                break;
+
+            case "temp" or "freq" or "pres":
+
+                var value = Convert.ToDouble(data);
+                double temp = 0;
+
+                if (value == 3d)
+                    value = 2d;
+                else if (value == -3d)
+                    value = 0d;
+
+                if (tag == "temp")
+                    temp = (user.SelectedModeSettings.Temperature += value);
+                else if (tag == "freq")
+                    temp = (user.SelectedModeSettings.FrequencyPenalty += value);
+                else if (tag == "pres")
+                    temp = (user.SelectedModeSettings.PresencePenalty += value);
+
+                if (user.SelectedModeSettings.Temperature > 2.0 || user.SelectedModeSettings.Temperature < 0d)
+                    return;
+
+                Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
+                await OpenMenuContent(msg, $"Tokens: {temp:0.00}\\2,00", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode,tag));
+
+                break;
+
+            case "lang":
+                var lang = data.Split('|');
+
+                if (user.LocaleCode == lang[^1])
+                    return;
+
+                Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(nameof(user.LocaleCode), lang[^1]));
+                await Env.Client.SendTextMessageAsync(msg.Chat.Id, $"{Locale.Cultures[lang[^1]][Strings.SuccessChangeLang]}{lang[0]}").ConfigureAwait(false);
+                break;
+
         }
-        
+
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
