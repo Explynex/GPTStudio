@@ -1,6 +1,7 @@
 ﻿using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
+using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
@@ -68,13 +69,13 @@ internal static class CommandHandler
 
     private static async void SendChatsDb(long chatId)
     {
-        using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Chats.Find("{}").ToList(), Formatting.Indented));
+        using var stream = Common.StreamFromString(JsonConvert.SerializeObject(Connection.Chats.Find("{}").ToList(), Formatting.Indented));
         await Env.Client.SendDocumentAsync(chatId, new(stream, $"Chats {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"📚 Chats database for {DateTime.UtcNow:R}");
     }
 
     private static async void SendUsersDb(long chatId)
     {
-        using var stream = Utils.Common.StreamFromString(JsonConvert.SerializeObject(Connection.Users.Find(o => o.Id != 0).ToList(), Formatting.Indented));
+        using var stream = Common.StreamFromString(JsonConvert.SerializeObject(Connection.Users.Find(o => o.Id != 0).ToList(), Formatting.Indented));
         await Env.Client.SendDocumentAsync(chatId, new(stream, $"Users {DateTime.Now:yyyy-MM-dd  HH\\;mm\\;ss}.json"), caption: $"👥 Users database for {DateTime.UtcNow:R}");
     } 
     #endregion
@@ -108,14 +109,14 @@ internal static class CommandHandler
                 await OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
                 break;
 
-            case KeyboardCallbackData.TokensSettings:
+            case KeyboardCallbackData.Tokens:
                 await OpenMenuContent(query.Message, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{(user.SelectedMode == ModelMode.ChatMode ? 2048 : 4000)}", KeyboardBuilder.TokensSettingsMarkup(user.LocaleCode));
                 break;
 
-            case KeyboardCallbackData.TemperatureSettings:
-                await OpenMenuContent(query.Message, $"Temperature: {user.SelectedModeSettings.Temperature}", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode, "temp"));
+            case KeyboardCallbackData.Temperature or KeyboardCallbackData.FrequencyPenalty or KeyboardCallbackData.PresencePenalty:
+                await OpenMenuContent(query.Message, $"{string.Join(' ', Common.SplitCamelCase(callback.ToString()))}: {Math.Round((double)user.SelectedModeSettings.GetPropertyValue(callback.ToString()),2)}\\2.0", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode,callback.ToString()));
                 break;
-
+                    
             case KeyboardCallbackData.MainMenu:
                 await OpenMainMenu(query.Message, user);
                 break;
@@ -191,28 +192,24 @@ internal static class CommandHandler
                 await OpenMenuContent(msg, $"Tokens: {user.SelectedModeSettings.MaxTokens}\\{peak}", KeyboardBuilder.TokensSettingsMarkup(user.LocaleCode));
                 break;
 
-            case "temp" or "freq" or "pres":
+            case nameof(GUser.GAbstractMode.PresencePenalty) or nameof(GUser.GAbstractMode.FrequencyPenalty) or nameof(GUser.GAbstractMode.Temperature):
 
                 var value = Convert.ToDouble(data);
-                double temp = 0;
-
                 if (value == 3d)
                     value = 2d;
                 else if (value == -3d)
                     value = 0d;
+                else
+                    value += (double)user.SelectedModeSettings.GetPropertyValue(tag);
 
-                if (tag == "temp")
-                    temp = (user.SelectedModeSettings.Temperature += value);
-                else if (tag == "freq")
-                    temp = (user.SelectedModeSettings.FrequencyPenalty += value);
-                else if (tag == "pres")
-                    temp = (user.SelectedModeSettings.PresencePenalty += value);
+                user.SelectedModeSettings.SetPropertyValue(tag, value);
 
-                if (user.SelectedModeSettings.Temperature > 2.0 || user.SelectedModeSettings.Temperature < 0d)
+                if (value > 2.0 || value < 0d)
                     return;
 
+                value = Math.Round(value, 2);
                 Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
-                await OpenMenuContent(msg, $"Tokens: {temp:0.00}\\2,00", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode,tag));
+                await OpenMenuContent(msg, $"{string.Join(' ',Common.SplitCamelCase(tag))}: {value:0.00}\\2,00", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode,tag));
 
                 break;
 

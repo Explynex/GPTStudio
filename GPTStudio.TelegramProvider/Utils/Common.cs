@@ -30,4 +30,9 @@ internal static partial class Common
     {
         return obj.GetType().GetProperty(propName).GetValue(obj, null);
     }
+
+    public static string[] SplitCamelCase(string input)
+    {
+        return Regex.Replace(input, "(?<=[a-z])([A-Z])", " $1", RegexOptions.Compiled).Split(' ');
+    }
 }

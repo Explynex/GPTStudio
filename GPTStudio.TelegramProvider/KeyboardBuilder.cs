@@ -27,12 +27,12 @@ internal enum KeyboardCallbackData : byte
     AdminTotalUsers,
     AdminTotalChats,
     MainMenuStartChat,
-    TokensSettings,
-    TemperatureSettings,
-    TopPSettings,
-    FreqPenaltySettings,
-    PresPenaltySettings,
-    BestOfSettings,
+    Tokens,
+    Temperature,
+    TopP,
+    FrequencyPenalty,
+    PresencePenalty,
+    BestOf,
 
 
     RegenerateImage,
@@ -153,20 +153,20 @@ internal static class KeyboardBuilder
         {
                 new[] 
                 {
-                    InlineKeyboardButton.WithCallbackData("🎲 Tokens",$"{KeyboardCallbackData.TokensSettings}"),
-                    InlineKeyboardButton.WithCallbackData("💥 Temperature", $"{KeyboardCallbackData.TemperatureSettings}"),
-                    InlineKeyboardButton.WithCallbackData("✨ Top P", $"{KeyboardCallbackData.TopPSettings}")
+                    InlineKeyboardButton.WithCallbackData("🎲 Tokens",$"{KeyboardCallbackData.Tokens}"),
+                    InlineKeyboardButton.WithCallbackData("💥 Temperature", $"{KeyboardCallbackData.Temperature}"),
+                    InlineKeyboardButton.WithCallbackData("✨ Top P", $"{KeyboardCallbackData.TopP}")
                 },
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData("🫧 Frequency penalty", $"{KeyboardCallbackData.FreqPenaltySettings}"),
-                    InlineKeyboardButton.WithCallbackData("🫧 Presence penalty", $"{KeyboardCallbackData.PresPenaltySettings}"),
+                    InlineKeyboardButton.WithCallbackData("🫧 Frequency penalty", $"{KeyboardCallbackData.FrequencyPenalty}"),
+                    InlineKeyboardButton.WithCallbackData("🫧 Presence penalty", $"{KeyboardCallbackData.PresencePenalty}"),
                 },
                 new[] { BackToModesButton(locale) }
         };
 
         if (mode != ModelMode.ChatMode)
-            list.Insert(list.Count-1,new[] { InlineKeyboardButton.WithCallbackData("⚜️ Best of ", $"{KeyboardCallbackData.BestOfSettings}") });
+            list.Insert(list.Count-1,new[] { InlineKeyboardButton.WithCallbackData("⚜️ Best of ", $"{KeyboardCallbackData.BestOf}") });
         return new(list);
     }
 
