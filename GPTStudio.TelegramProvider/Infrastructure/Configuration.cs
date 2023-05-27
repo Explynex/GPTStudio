@@ -1,15 +1,9 @@
-﻿using GPTStudio.OpenAI.Tokenizer;
-using GPTStudio.OpenAI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Telegram.Bot;
+﻿using GPTStudio.OpenAI;
+using GPTStudio.OpenAI.Tokenizer;
+using GPTStudio.TelegramProvider.Utils;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
-using GPTStudio.TelegramProvider.Utils;
+using Telegram.Bot;
 
 namespace GPTStudio.TelegramProvider.Infrastructure;
 internal static partial class Configuration
@@ -37,10 +31,10 @@ internal static partial class Configuration
 
         if (File.Exists("env.json"))
         {
-            cfg = JsonSerializer.Deserialize<Env>(File.ReadAllText("env.json"));
+            cfg = JsonSerializer.Deserialize<Env>(File.ReadAllText("env.json"))!;
         }
 
-        string input = null;
+        string? input = null;
 
         while (cfg.TelegramBotToken == null)
         {

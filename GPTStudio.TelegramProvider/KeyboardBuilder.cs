@@ -1,6 +1,5 @@
 ﻿using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace GPTStudio.TelegramProvider;
