@@ -16,9 +16,9 @@ internal static class VoiceRecognizer
         using var waveStream = new MemoryStream();
         await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(voiceFile.FileId).ConfigureAwait(false)).FilePath!, downloadStream);
 
-        using MemoryStream pcmStream = new MemoryStream();
+        using MemoryStream pcmStream = new();
         OpusDecoder decoder = OpusDecoder.Create(48000, 1);
-        OpusOggReadStream oggIn = new OpusOggReadStream(decoder, downloadStream);
+        OpusOggReadStream oggIn = new(decoder, downloadStream);
 
         while (oggIn.HasNextPacket)
         {

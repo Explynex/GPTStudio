@@ -1,21 +1,25 @@
 ﻿namespace GPTStudio.TelegramProvider.Utils;
 internal static class Logger
 {
-    public static void Print(string value,bool endl = true, ConsoleColor color = ConsoleColor.White)
+    public static void Print(string value,bool endlEnd = true,bool endlStart = false,bool beforeCommand = false, ConsoleColor color = ConsoleColor.White)
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write(DateTime.Now + "\t| ");
+        Console.Write((endlStart ? "\n" : "") + DateTime.Now + "\t| ");
         Console.ForegroundColor = color;
-        Console.Write(value + (endl ? "\n" : ""));
-        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(value + (endlEnd ? "\n" : ""));
+
+        if(beforeCommand)
+            Print("Command: /", false,color: ConsoleColor.Cyan);
+        else
+            Console.ForegroundColor = ConsoleColor.White;
     }
 
     public static void PrintError(string value)
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write(DateTime.Now + "\t| ");
+        Console.Write("\n" + DateTime.Now + "\t| ");
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(value);
+        Console.WriteLine("Error:" + value);
         Console.ForegroundColor = ConsoleColor.White;
     }
 }

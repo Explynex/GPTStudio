@@ -53,7 +53,7 @@ internal static class CommandHandler
             int totalTokens = 0, totalChats = 0;
             await Connection.Chats.Aggregate().ForEachAsync(o =>
             {
-                totalTokens += o.Messages.Sum(o => o.Tokens);
+                totalTokens += o.Messages.Sum(o => o.Role == OpenAI.Chat.Role.Assistant ? o.Tokens : 0);
                 totalChats++;
             });
 

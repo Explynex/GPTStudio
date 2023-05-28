@@ -66,7 +66,7 @@ internal static partial class Configuration
 
         while (cfg.DatabaseEndpoint == null)
         {
-            Logger.Print("Enter MongoDB connection string: : ", false);
+            Logger.Print("Enter MongoDB connection string: ", false);
             input = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(input))
             {

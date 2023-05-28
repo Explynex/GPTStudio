@@ -1,5 +1,4 @@
-﻿using Amazon.SecurityToken.Model;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace GPTStudio.TelegramProvider.Database.Models;
 

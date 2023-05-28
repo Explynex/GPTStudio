@@ -36,7 +36,7 @@ internal class App
 
         while(!IsShuttingDown)
         {
-            Logger.Print("Command: /",false);
+            Logger.Print("Command: /",false,color: ConsoleColor.Cyan);
             var cmd = Console.ReadLine();
             if (!string.IsNullOrEmpty(cmd))
                 ConsoleHandler.HandleConsoleCommand(cmd);
@@ -55,7 +55,7 @@ internal class App
         {
             var isSupportedLang = Globalization.Locale.SupportedLocales.Contains(senderUser.LanguageCode);
 
-            Logger.Print("OnUpdateHandler() | Joined new user: @" + senderUser.Username + " , ID: " + senderUser.Id);
+            Logger.Print("OnUpdateHandler() | Joined new user: @" + senderUser.Username + " , ID: " + senderUser.Id, endlStart: true,beforeCommand:true);
             Connection.Users.InsertOne(user = new GUser(senderUser.Id) { LocaleCode = isSupportedLang ? senderUser.LanguageCode : null});
 
             if (chatId != null)
