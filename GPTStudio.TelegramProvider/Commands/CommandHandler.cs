@@ -19,27 +19,30 @@ internal static class CommandHandler
     #region Helpers
     private static async Task OpenMenuContent(Message msg, string subMessage, InlineKeyboardMarkup markup)
     {
+
         Connection.Chats.FindFirst(new BsonDocument("_id", msg.Chat.Id), out GChat chat);
 
-        if (chat.LastMenuMessageId == msg.MessageId)
+        try
         {
-            await Env.Client.EditMessageTextAsync(chat.Id, msg.MessageId, subMessage, ParseMode.Html, replyMarkup: markup);
-            return;
-        }
-
-        if (chat.LastMenuMessageId != null)
-        {
-            try
+            if (chat.LastMenuMessageId == msg.MessageId)
             {
-                await Env.Client.DeleteMessageAsync(chat.Id, chat.LastMenuMessageId.Value);
+                await Env.Client.EditMessageTextAsync(chat.Id, msg.MessageId, subMessage, ParseMode.Html, replyMarkup: markup);
+                return;
             }
-            catch { await Env.Client.EditMessageTextAsync(chat.Id, chat.LastMenuMessageId.Value, "Command expired."); }
-        }
 
+            if (chat.LastMenuMessageId != null)
+            {
+                try
+                {
+                    await Env.Client.DeleteMessageAsync(chat.Id, chat.LastMenuMessageId.Value);
+                }
+                catch { await Env.Client.EditMessageTextAsync(chat.Id, chat.LastMenuMessageId.Value, "Command expired."); }
+            }
+        }
+        catch { }
         await Env.Client.SendTextMessageAsync(chat.Id, subMessage, ParseMode.Html, replyMarkup: markup);
 
         Connection.Chats.UpdateOne(new BsonDocument("_id", chat.Id), Builders<GChat>.Update.Set(nameof(GChat.LastMenuMessageId), msg.MessageId + 1));
-
     }
 
     private static async void OpenSummaryMenu(CallbackQuery query, GUser user, Dictionary<Strings, string> locale)
@@ -246,6 +249,8 @@ internal static class CommandHandler
                 break;
 
             case "/image":
+                await Env.Client.SendTextMessageAsync(command.Chat.Id,"❌ Unavailable");
+                return;
                 if (command.Text.Length < 5)
                     return;
 
