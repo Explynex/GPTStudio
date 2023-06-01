@@ -4,11 +4,13 @@ using GPTStudio.TelegramProvider.Commands;
 using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
+using GPTStudio.TelegramProvider.Globalization.Languages;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Text;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -58,15 +60,20 @@ internal class App
             Logger.Print("OnUpdateHandler() | Joined new user: @" + senderUser.Username + " , ID: " + senderUser.Id, endlStart: true,beforeCommand:true);
             Connection.Users.InsertOne(user = new GUser(senderUser.Id) { LocaleCode = isSupportedLang ? senderUser.LanguageCode : null});
 
-          /*  if (chatId != null)
-                await Env.Client.SendTextMessageAsync(chatId, $"{Locale.Cultures[user.LocaleCode!][Strings.FirstHelloMsg]} {senderUser.FirstName} ?");*/
+            if (chatId != null)
+                await Env.Client.SendTextMessageAsync(chatId, $"{Locale.Cultures[user.LocaleCode!][Strings.FirstHelloMsg]} {senderUser.FirstName} ?");
         }
         else if(senderUser.Username != user.Username)
         {
             Connection.Users.UpdateOne(o => o.Id == senderUser.Id, Builders<GUser>.Update.Set(nameof(user.Username), senderUser.Username));
         }
 
-        if (e.Type == UpdateType.CallbackQuery)
+#if DEBUG
+        if (user.IsAdmin != true)
+            return;
+#endif
+
+            if (e.Type == UpdateType.CallbackQuery)
         {
             await CommandHandler.HandleCallbackQuery(e.CallbackQuery!, user);
             return;
@@ -175,7 +182,7 @@ internal class App
               await Env.Client.SendTextMessageAsync(msg.Chat.Id, Locale.Cultures[user.LocaleCode][Strings.ResponseGenMsg], replyToMessageId: msg.MessageId,replyMarkup: new InlineKeyboardMarkup(button)).ConfigureAwait(false)
             : await Env.Client.SendTextMessageAsync(msg.Chat.Id, ". . .",replyToMessageId: msg.MessageId).ConfigureAwait(false);
 
-        var lastEdit          = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
+        var lastEdit          = DateTimeOffset.Now.ToUnixTimeSeconds();
         var lastEditMsgLength = 0;
         using var cancelToken = new CancellationTokenSource();
 
@@ -189,7 +196,6 @@ internal class App
                     return;
                 }
 
-
                 if (String.IsNullOrEmpty(result.FirstChoice))
                     return;
 
@@ -198,7 +204,7 @@ internal class App
                 if (user.GenFullyMode == true)
                     return;
 
-                var offset = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
+                var offset = DateTimeOffset.Now.ToUnixTimeSeconds();
                 if ((offset - lastEdit) >= 1)
                 {
                     lastEdit = offset;
@@ -212,10 +218,19 @@ internal class App
             var responseTokens  = Env.Tokenizer.Calculate(responseContent);
             var userDocument    = new BsonDocument("_id", msg.From.Id);
 
-            if (response.Length != lastEditMsgLength || cancelToken.IsCancellationRequested)
-                await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId,
-                    cancelToken.IsCancellationRequested ? response.Append(". . .").ToString() : responseContent,
-                    parseMode: ParseMode.Markdown).ConfigureAwait(false);
+            if (response.Length != lastEditMsgLength || cancelToken.IsCancellationRequested || user.GenFullyMode != true)
+            {
+                try
+                {
+                    FilanizeGeneration(responseContent);
+                }
+                catch(ApiRequestException exc)
+                {
+                    if (exc.ToString().Contains("can't parse entities: Can't find end of the entity"))
+                        FilanizeGeneration(responseContent, null);
+                }
+            }    
+
 
             user.ChatMode.Quota.Used += responseTokens;
             Connection.Users.UpdateOne(userDocument, Builders<GUser>.Update.Inc("TotalTokensGenerated", responseTokens));
@@ -243,6 +258,12 @@ internal class App
             await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, Locale.Cultures[user.LocaleCode][Strings.ErrorWhileGenMsg]).ConfigureAwait(false);
         }
 
+        async void FilanizeGeneration(string responseContent,ParseMode? mode = ParseMode.Markdown)
+        {
+            await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg!.MessageId,
+    cancelToken!.IsCancellationRequested ? response!.Append(". . .").ToString() : responseContent,
+    parseMode: mode).ConfigureAwait(false);
+        }
 
         NowGeneration.Remove(msg.From.Id);
     }
