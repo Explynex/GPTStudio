@@ -25,6 +25,8 @@ internal class App
 
     static void Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) => Logger.PrintError(e.ExceptionObject.ToString()!);
+
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("   ___   ___   _____   ___   _               _   _       \n" +
             "  / __| | _ \\ |_   _| / __| | |_   _  _   __| | (_)  ___ \n" + " | (_ | |  _/   | |   \\__ \\ |  _| | || | / _` | | | / _ \\\n"
@@ -222,12 +224,12 @@ internal class App
             {
                 try
                 {
-                    FilanizeGeneration(responseContent);
+                    await FilanizeGeneration(responseContent);
                 }
-                catch(ApiRequestException exc)
+                catch(Exception exc)
                 {
                     if (exc.ToString().Contains("can't parse entities: Can't find end of the entity"))
-                        FilanizeGeneration(responseContent, null);
+                        await FilanizeGeneration(responseContent, null);
                 }
             }    
 
@@ -258,7 +260,7 @@ internal class App
             await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, Locale.Cultures[user.LocaleCode][Strings.ErrorWhileGenMsg]).ConfigureAwait(false);
         }
 
-        async void FilanizeGeneration(string responseContent,ParseMode? mode = ParseMode.Markdown)
+        async Task FilanizeGeneration(string responseContent,ParseMode? mode = ParseMode.Markdown)
         {
             await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg!.MessageId,
     cancelToken!.IsCancellationRequested ? response!.Append(". . .").ToString() : responseContent,
