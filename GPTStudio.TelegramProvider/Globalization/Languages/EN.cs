@@ -21,10 +21,11 @@ internal class EN
         {Strings.MainMenuSummary, "📊  Summary" },
         {Strings.MainMenuUsers, "👥 Users" },
         {Strings.MainMenuChats, "📚 Chats" },
-        {Strings.MainMenuAdminPanal, "🖥 Admin panel" },
+        {Strings.MainMenuAdminPanel, "🖥 Admin panel" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Language settings</b>\n🔰\n🔰 Use the buttons <b>below</b> to select language." },
         {Strings.ModesMenuTitle,$"🔸 <b>Operating modes</b>\n🔰\n🔰 Use the buttons <b>below</b> to select or configure mode." },
+        {Strings.AdminPanelTitle,$"🔸 <b>Administrator menu</b> {MenuTitleTip}" },
 
         {Strings.SummaryForMsg,$"📊 Summary for:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Member since:</b>" },

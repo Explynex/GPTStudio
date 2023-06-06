@@ -21,10 +21,11 @@ internal class UK
         {Strings.MainMenuSummary, "📊  Зведення" },
         {Strings.MainMenuUsers, "👥 Користувачі" },
         {Strings.MainMenuChats, "📚 Чати" },
-        {Strings.MainMenuAdminPanal, "🖥 Адмін-панель" },
+        {Strings.MainMenuAdminPanel, "🖥 Адмін-панель" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Налаштування мови</b>\n🔰\n🔰 Використовуйте кнопки <b>внизу</b> щоб обрати мову." },
         {Strings.ModesMenuTitle,$"🔸 <b>Режими роботи</b>\n🔰\n🔰 Використовуйте кнопки <b>внизу</b> щоб обрати або налаштувати режим." },
+        {Strings.AdminPanelTitle,$"🔸 <b>Меню адміністратора</b> {MenuTitleTip}" },
 
         {Strings.SummaryForMsg,$"📊 Зведення для:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Учасник з:</b>" },

@@ -57,7 +57,7 @@ internal class App
 
         if (!Connection.Users.FindFirst(o => o.Id == senderUser.Id, out GUser user))
         {
-            var isSupportedLang = Globalization.Locale.SupportedLocales.Contains(senderUser.LanguageCode);
+            var isSupportedLang = Locale.SupportedLocales.Contains(senderUser.LanguageCode);
 
             Logger.Print("OnUpdateHandler() | Joined new user: @" + senderUser.Username + " , ID: " + senderUser.Id, endlStart: true,beforeCommand:true);
             Connection.Users.InsertOne(user = new GUser(senderUser.Id) { LocaleCode = isSupportedLang ? senderUser.LanguageCode : null});
@@ -75,15 +75,21 @@ internal class App
             return;
 #endif
 
-            if (e.Type == UpdateType.CallbackQuery)
+        if (e.Type == UpdateType.CallbackQuery)
         {
             await CommandHandler.HandleCallbackQuery(e.CallbackQuery!, user);
+            return;
+        }
+
+        if(user.LastCommand != WaitCommand.None && e.Message?.Text != "/cancel")
+        {
+            CommandHandler.HandleWaitCommand(e.Message, user);
             return;
         }
         
         if (e.Message!.Type == MessageType.Voice)
         {
-            e.Message.Text = await Utils.VoiceRecognizer.RecognizeVoice(e.Message.Voice!);
+            e.Message.Text = await VoiceRecognizer.RecognizeVoice(e.Message.Voice!);
         }
         else if (e.Message.Type != MessageType.Text)
             return;
@@ -153,17 +159,26 @@ internal class App
         NowGeneration.Add(msg.From.Id);
 
         #region Calculation tokens
-        var totalTokens = Env.Tokenizer.Calculate(msg.Text);
-        if (totalTokens > 3000)
+
+
+        var lastMsg = new GChatMessage(msg.MessageId, msg.Text, msg.From.Id) { Tokens = Env.Tokenizer.Calculate(msg.Text), Role = Role.User };
+        if (lastMsg.Tokens > 3000)
             return;
 
-        var lastMsg = new GChatMessage(msg.MessageId, msg.Text, msg.From.Id) { Tokens = totalTokens, Role = Role.User };
+        chat.Messages.Add(lastMsg);
 
+        int totalTokens = 0;
         List<GChatMessage> msgList = new();
-        for (int i = chat.Messages.Count - 1, insertIndex = 0; i >= 0; i--)
+        
+        if (!string.IsNullOrEmpty(user.ChatMode.SystemMessage))
+        {
+            totalTokens = Env.Tokenizer.Calculate(user.ChatMode.SystemMessage);
+            msgList.Add(new GChatMessage(0, user.ChatMode.SystemMessage, null) { Role = Role.System });
+        }
+
+        for (int i = chat.Messages.Count - 1, insertIndex = totalTokens == 0 ? 0 : 1; i >= 0; i--)
         {
             var gMsg = chat.Messages[i];
-
 
             if (gMsg.MessageType != GMessageType.Text)
                 continue;
@@ -174,7 +189,6 @@ internal class App
             msgList.Insert(insertIndex, chat.Messages[i]);
         }
 
-        msgList.Add(lastMsg);
         #endregion
 
         var button            = InlineKeyboardButton.WithCallbackData(Locale.Cultures[user.LocaleCode][Strings.StopGenerationMsg], $"stop.{msg.From.Id}");

@@ -119,6 +119,14 @@ internal static class CommandHandler
             case KeyboardCallbackData.Temperature or KeyboardCallbackData.FrequencyPenalty or KeyboardCallbackData.PresencePenalty:
                 await OpenMenuContent(query.Message, $"{string.Join(' ', Common.SplitCamelCase(callback.ToString()))}: {Math.Round((double)user.SelectedModeSettings.GetPropertyValue(callback.ToString()),2)}\\2.0", KeyboardBuilder.FloatKeyboardMarkup(user.LocaleCode,callback.ToString()));
                 break;
+
+            case KeyboardCallbackData.SetChatModeSystemMessage:
+                await OpenMenuContent(query.Message, "▫️ Отправьте сообщение, которому будет следовать бот при общении",
+                    InlineKeyboardButton.WithCallbackData("Отмена", $"{KeyboardCallbackData.CancelWaitCommand}"));
+
+                if (user.LastCommand != WaitCommand.SetChatModeSystemMessage)
+                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.LastCommand), WaitCommand.SetChatModeSystemMessage));
+                break;
                     
             case KeyboardCallbackData.MainMenu:
                 await OpenMainMenu(query.Message, user);
@@ -151,10 +159,21 @@ internal static class CommandHandler
 
             case KeyboardCallbackData.LanguagesMenu:
                 await OpenMenuContent(query.Message, Locale.Cultures[user.LocaleCode][Strings.LanguagesMenuTitle],
-               KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
+                    KeyboardBuilder.LanguagesMarkup(user.LocaleCode)).ConfigureAwait(false);
                 break;
 
             case KeyboardCallbackData.AdminPanelMenu when user.IsAdmin == true:
+                await OpenMenuContent(query.Message, Locale.Cultures[user.LocaleCode][Strings.AdminPanelTitle],
+                    KeyboardBuilder.AdminPanelMarkup(user)).ConfigureAwait(false);
+                break;
+
+            case KeyboardCallbackData.MassRequest when user.IsAdmin == true:
+                await OpenMenuContent(query.Message, "📥 Отправьте текстовый документ с несколькими запросами а так же укажите строку-разделитель в строке \"Подпись\".",
+                    InlineKeyboardButton.WithCallbackData("Отмена", $"{KeyboardCallbackData.CancelWaitCommand}"));
+
+                if (user.LastCommand != WaitCommand.MassRequestFile)
+                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.LastCommand), WaitCommand.MassRequestFile));
+               
                 break;
 
             case KeyboardCallbackData.AdminTotalChats when user.IsAdmin == true:
@@ -240,12 +259,130 @@ internal static class CommandHandler
         await OpenMenuContent(msg, Locale.Cultures[user.LocaleCode][Strings.SettingsTitle],
                             KeyboardBuilder.SettingsMenuMarkup(user)).ConfigureAwait(false);
 
+    public static async void HandleWaitCommand(Message msg, GUser user)
+    {
+        if (msg is null)
+            return;
+
+        switch (user.LastCommand)
+        {
+            case WaitCommand.SetChatModeSystemMessage:
+
+                if (string.IsNullOrEmpty(msg.Text))
+                    return;
+
+                user.ChatMode.SystemMessage = msg.Text;
+
+                user.ResetLastCommand();
+                Connection.Users.UpdateOne(new BsonDocument("_id",user.Id), Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
+                await OpenMenuContent(msg, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
+                break;
+            case WaitCommand.MassRequestFile when msg.Type == MessageType.Document && user.IsAdmin == true:
+                {
+                    if (string.IsNullOrEmpty(msg.Caption))
+                    {
+                        await Env.Client.SendTextMessageAsync(msg.Chat.Id, "❌ Ошибка: не указан разделитель");
+                        return;
+                    }
+
+                    if (msg.Document!.FileSize > 128000)
+                    {
+                        await Env.Client.SendTextMessageAsync(msg.Chat.Id, "❌ Ошибка: файл слишком большой");
+                        return;
+                    }
+
+                    using var downloadStream = new MemoryStream();
+                    await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(msg.Document.FileId).ConfigureAwait(false)).FilePath!, downloadStream).ConfigureAwait(false);
+                    downloadStream.Position = 0;
+
+                    var stream  = new StreamReader(downloadStream);
+                    var content = await stream.ReadToEndAsync();
+
+                    var requests = content.Split(msg.Caption);
+
+                    if (requests == null || requests.Length == 0)
+                    {
+                        await Env.Client.SendTextMessageAsync(msg.Chat.Id, "❌ Ошибка: Не найдено совпадений");
+                        return;
+                    }
+
+                    int i = 0;
+                    StringBuilder response = new();
+                    StringBuilder temp = new();
+                    var stateMsg = await Env.Client.SendTextMessageAsync(msg.Chat.Id, $"🔸 Найдено запросов: {requests.Length}");
+                    int totalTokens = 0;
+
+                    for (int errCounter = 0; i < requests.Length; i++)
+                    {
+                        _ = Env.Client.EditMessageTextAsync(stateMsg.Chat.Id,stateMsg.MessageId, $"{stateMsg.Text}\n🌀 Обработка: {i + 1}/{requests.Length}");
+                        try
+                        {
+                            var request = new OpenAI.Chat.ChatRequest(new OpenAI.Chat.Message[]
+                                {
+                                    new OpenAI.Chat.Message(OpenAI.Chat.Role.System, user.ChatMode.SystemMessage),
+                                    new OpenAI.Chat.Message(OpenAI.Chat.Role.User, requests[i])
+                                }, maxTokens: user.ChatMode.MaxTokens);
+
+                            await Env.GPTClient.ChatEndpoint.StreamCompletionAsync(request, result =>
+                            {
+                                if (string.IsNullOrEmpty(result.FirstChoice))
+                                    return;
+                                temp.Append(result.FirstChoice);
+                            });
+
+                            totalTokens += Env.Tokenizer.Calculate(temp.ToString());
+                            response.Append($"\n### {i + 1}. {requests[i]}\n").Append(temp).Append("\n\n---\n");
+                            temp.Clear();
+                            await Task.Delay(20000);
+                            errCounter = 0;
+                        }
+                        catch (Exception e)
+                        {
+                            if (errCounter < 3)
+                            {
+                                i--;
+                                await Task.Delay(20000);
+                                errCounter++;
+                            }
+                            else
+                            {
+                                response.Append("Error\n\n---\n");
+                                errCounter = 0;
+                            }
+                                
+                        }
+                    }
+                    
+                    
+
+                    using var textStream = Common.StreamFromString(response.ToString());
+                    await Env.Client.SendDocumentAsync(msg.Chat.Id, new(textStream, $"Responses to {msg.Document.FileName}.md"));
+
+                    var userBson = new BsonDocument("_id", user.Id);
+                    Connection.Users.UpdateOne(userBson, Builders<GUser>.Update.Inc("TotalTokensGenerated", totalTokens));
+                    Connection.Users.UpdateOne(userBson, Builders<GUser>.Update.Inc("TotalRequests", i+1));
+
+                    user.ResetLastCommand();
+
+                   
+
+                    break;
+                }
+
+        }
+    }
+
     public static async Task HandleCommand(Message command,GUser user)
     {
         switch (command.Text!.Split(' ').First())
         {
             case "/menu" or "/start":
                 await OpenMainMenu(command,user).ConfigureAwait(false);
+                break;
+
+            case "/cancel" when user.LastCommand != WaitCommand.None:
+                Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Unset(nameof(GUser.LastCommand)));
+                await Env.Client.SendTextMessageAsync(command.Chat.Id, "🔸 Последня команда ожидающая ответа отменена");
                 break;
 
             case "/image":

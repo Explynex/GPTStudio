@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace GPTStudio.TelegramProvider.Database.Models;
 
@@ -10,10 +11,11 @@ internal enum ModelMode : byte
     CompleteMode,
 }
 
-internal enum Commands : byte
+internal enum WaitCommand : byte
 {
     None,
-    SetSystemMessage,
+    SetChatModeSystemMessage,
+    MassRequestFile,
 }
 
 internal sealed class GUser
@@ -104,6 +106,7 @@ internal sealed class GUser
     private string? _localeCode;
 
     public ModelMode SelectedMode { get; set; }
+    public WaitCommand LastCommand { get; set; }
 
     [BsonIgnore]
     public GAbstractMode SelectedModeSettings => SelectedMode == ModelMode.ChatMode 
@@ -117,4 +120,7 @@ internal sealed class GUser
         get => _localeCode ?? "en";
         set => _localeCode = value;
     }
+
+    public void ResetLastCommand()
+        => Connection.Users.UpdateOne(o => o.Id == Id, Builders<GUser>.Update.Unset(nameof(LastCommand)));
 }

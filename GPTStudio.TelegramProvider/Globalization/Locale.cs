@@ -8,6 +8,7 @@ internal enum Strings
     SettingsTitle,
     LanguagesMenuTitle,
     ModesMenuTitle,
+    AdminPanelTitle,
 
     MainMenuStartChatting,
     MainMenuSettings,
@@ -15,7 +16,7 @@ internal enum Strings
     MainMenuSummary,
     MainMenuUsers,
     MainMenuChats,
-    MainMenuAdminPanal,
+    MainMenuAdminPanel,
 
     SettingsLanguage,
     SettingsGenMode,

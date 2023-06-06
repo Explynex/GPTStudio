@@ -32,9 +32,12 @@ internal enum KeyboardCallbackData : byte
     FrequencyPenalty,
     PresencePenalty,
     BestOf,
+    SetChatModeSystemMessage,
 
+    MassRequest,
 
     RegenerateImage,
+    CancelWaitCommand,
 }
 
 internal static class KeyboardBuilder
@@ -46,9 +49,9 @@ internal static class KeyboardBuilder
         => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToSettingsTitle], $"{KeyboardCallbackData.SettingsMenu}");
 
     public static InlineKeyboardButton BackToModesButton(string locale)
-    => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToModesTitle], $"{KeyboardCallbackData.ModesMenu}");
+        => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToModesTitle], $"{KeyboardCallbackData.ModesMenu}");
     public static InlineKeyboardButton BackToModeSettingsButton(string locale)
-=> InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.Back], $"{KeyboardCallbackData.ModeSettingsMenu}");
+        => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.Back], $"{KeyboardCallbackData.ModeSettingsMenu}");
 
     public static InlineKeyboardMarkup LanguagesMarkup(string locale) => new(new[]
     {
@@ -85,7 +88,7 @@ internal static class KeyboardBuilder
             {
                 InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuUsers], $"{KeyboardCallbackData.AdminTotalUsers}"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuChats], $"{KeyboardCallbackData.AdminTotalChats}"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAdminPanal], $"{KeyboardCallbackData.AdminPanelMenu}"),
+                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAdminPanel], $"{KeyboardCallbackData.AdminPanelMenu}"),
             });
 
         return new(markup);
@@ -127,8 +130,6 @@ internal static class KeyboardBuilder
         },
         new[] { BackToModeSettingsButton(localeCode) },
     });
-
-
     public static InlineKeyboardMarkup FloatKeyboardMarkup(string localeCode, string tag) => new(new[]
     {
         new[]
@@ -145,7 +146,6 @@ internal static class KeyboardBuilder
         },
         new[] { BackToModeSettingsButton(localeCode) },
     });
-
     public static InlineKeyboardMarkup ModeSettingsMarkup(ModelMode mode, string locale)
     {
         var list = new List<InlineKeyboardButton[]>
@@ -161,6 +161,10 @@ internal static class KeyboardBuilder
                     InlineKeyboardButton.WithCallbackData("🫧 Frequency penalty", $"{KeyboardCallbackData.FrequencyPenalty}"),
                     InlineKeyboardButton.WithCallbackData("🫧 Presence penalty", $"{KeyboardCallbackData.PresencePenalty}"),
                 },
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("👾 System message", $"{KeyboardCallbackData.SetChatModeSystemMessage}"),
+            },
                 new[] { BackToModesButton(locale) }
         };
 
@@ -185,7 +189,14 @@ internal static class KeyboardBuilder
         });
     }
 
-
+    public static InlineKeyboardMarkup AdminPanelMarkup(GUser user)
+    {
+        return new(new[]
+        {
+            new[] {InlineKeyboardButton.WithCallbackData("📝 Mass request", $"{KeyboardCallbackData.MassRequest}") },
+            new[] { BackToMainButton(user.LocaleCode) },
+        });
+    }
 
     public static readonly InlineKeyboardMarkup ImageGenerateMarkup = new(new[]
 {
