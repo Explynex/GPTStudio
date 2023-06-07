@@ -5,6 +5,7 @@ using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
 using GPTStudio.TelegramProvider.Globalization.Languages;
+using GPTStudio.TelegramProvider.Keyboard;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -77,7 +78,7 @@ internal class App
 
         if (e.Type == UpdateType.CallbackQuery)
         {
-            await CommandHandler.HandleCallbackQuery(e.CallbackQuery!, user);
+            await CallbackHandler.HandleCallbackQuery(e.CallbackQuery!, user);
             return;
         }
 

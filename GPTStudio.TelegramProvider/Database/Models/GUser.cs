@@ -4,7 +4,7 @@ using MongoDB.Driver;
 namespace GPTStudio.TelegramProvider.Database.Models;
 
 //db.Users.updateMany({}, { $unset: { ChatModel: null}})
-internal enum ModelMode : byte
+internal enum BotMode : byte
 {
     ChatMode,
     InsertMode,
@@ -105,12 +105,12 @@ internal sealed class GUser
     [BsonElement("LocaleCode")]
     private string? _localeCode;
 
-    public ModelMode SelectedMode { get; set; }
+    public BotMode SelectedMode { get; set; }
     public WaitCommand LastCommand { get; set; }
 
     [BsonIgnore]
-    public GAbstractMode SelectedModeSettings => SelectedMode == ModelMode.ChatMode 
-        ? ChatMode : SelectedMode == ModelMode.InsertMode ? InsertMode : CompleteMode;
+    public GAbstractMode SelectedModeSettings => SelectedMode == BotMode.ChatMode 
+        ? ChatMode : SelectedMode == BotMode.InsertMode ? InsertMode : CompleteMode;
 
 
 

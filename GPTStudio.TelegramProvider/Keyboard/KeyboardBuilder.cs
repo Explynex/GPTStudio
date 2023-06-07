@@ -2,14 +2,14 @@
 using GPTStudio.TelegramProvider.Globalization;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace GPTStudio.TelegramProvider;
+namespace GPTStudio.TelegramProvider.Keyboard;
 
 internal enum KeyboardCallbackData : byte
 {
     ModesChatMode,
     ModesInsertMode,
     ModesCompleteMode,
-    
+
 
     MainMenu,
     SettingsMenu,
@@ -20,7 +20,7 @@ internal enum KeyboardCallbackData : byte
     ModeSettingsMenu,
 
     LanguagesMenu,
-    
+
     SettingsGenMode,
 
     AdminTotalUsers,
@@ -33,6 +33,8 @@ internal enum KeyboardCallbackData : byte
     PresencePenalty,
     BestOf,
     SetChatModeSystemMessage,
+    RemoveSystemMessage,
+
 
     MassRequest,
 
@@ -52,6 +54,8 @@ internal static class KeyboardBuilder
         => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.BackToModesTitle], $"{KeyboardCallbackData.ModesMenu}");
     public static InlineKeyboardButton BackToModeSettingsButton(string locale)
         => InlineKeyboardButton.WithCallbackData(Locale.Cultures[locale][Strings.Back], $"{KeyboardCallbackData.ModeSettingsMenu}");
+    public static InlineKeyboardButton CancelLastCommandButton(string locale)
+        => InlineKeyboardButton.WithCallbackData("◀️ Отмена", $"{KeyboardCallbackData.CancelWaitCommand}");
 
     public static InlineKeyboardMarkup LanguagesMarkup(string locale) => new(new[]
     {
@@ -98,21 +102,21 @@ internal static class KeyboardBuilder
     {
         return new(new[]
         {
-            new[] 
+            new[]
             {
-                InlineKeyboardButton.WithCallbackData("💬 Chat" + (user.SelectedMode == ModelMode.ChatMode ? "   ✅" : ""),$"{KeyboardCallbackData.ModesChatMode}"),
-                InlineKeyboardButton.WithCallbackData("📨 Insert" + (user.SelectedMode == ModelMode.InsertMode ? "   ✅" : ""), $"{KeyboardCallbackData.ModesInsertMode}"),
+                InlineKeyboardButton.WithCallbackData("💬 Chat" + (user.SelectedMode == BotMode.ChatMode ? "   ✅" : ""),$"{KeyboardCallbackData.ModesChatMode}"),
+                InlineKeyboardButton.WithCallbackData("📨 Insert" + (user.SelectedMode == BotMode.InsertMode ? "   ✅" : ""), $"{KeyboardCallbackData.ModesInsertMode}"),
             },
-            new[] 
+            new[]
             {
-                InlineKeyboardButton.WithCallbackData("🖍 Complete" + (user.SelectedMode == ModelMode.CompleteMode ? "   ✅" : ""), $"{KeyboardCallbackData.ModesCompleteMode}"),
+                InlineKeyboardButton.WithCallbackData("🖍 Complete" + (user.SelectedMode == BotMode.CompleteMode ? "   ✅" : ""), $"{KeyboardCallbackData.ModesCompleteMode}"),
                 InlineKeyboardButton.WithCallbackData("🔬 Mode settings", $"{KeyboardCallbackData.ModeSettingsMenu}")
             },
             new[] { BackToSettingsButton(user.LocaleCode) },
         });
     }
 
-    public static  InlineKeyboardMarkup TokensSettingsMarkup(string localeCode) => new(new[]
+    public static InlineKeyboardMarkup TokensSettingsMarkup(string localeCode) => new(new[]
     {
         new[]
         {
@@ -146,11 +150,11 @@ internal static class KeyboardBuilder
         },
         new[] { BackToModeSettingsButton(localeCode) },
     });
-    public static InlineKeyboardMarkup ModeSettingsMarkup(ModelMode mode, string locale)
+    public static InlineKeyboardMarkup ModeSettingsMarkup(BotMode mode, string locale)
     {
         var list = new List<InlineKeyboardButton[]>
         {
-                new[] 
+                new[]
                 {
                     InlineKeyboardButton.WithCallbackData("🎲 Tokens",$"{KeyboardCallbackData.Tokens}"),
                     InlineKeyboardButton.WithCallbackData("💥 Temperature", $"{KeyboardCallbackData.Temperature}"),
@@ -161,15 +165,14 @@ internal static class KeyboardBuilder
                     InlineKeyboardButton.WithCallbackData("🫧 Frequency penalty", $"{KeyboardCallbackData.FrequencyPenalty}"),
                     InlineKeyboardButton.WithCallbackData("🫧 Presence penalty", $"{KeyboardCallbackData.PresencePenalty}"),
                 },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("👾 System message", $"{KeyboardCallbackData.SetChatModeSystemMessage}"),
-            },
                 new[] { BackToModesButton(locale) }
         };
 
-        if (mode != ModelMode.ChatMode)
-            list.Insert(list.Count-1,new[] { InlineKeyboardButton.WithCallbackData("⚜️ Best of ", $"{KeyboardCallbackData.BestOf}") });
+        if (mode == BotMode.ChatMode)
+            list.Insert(list.Count - 1, new[] { InlineKeyboardButton.WithCallbackData("👾 System message", $"{KeyboardCallbackData.SetChatModeSystemMessage}") });
+
+        if (mode != BotMode.ChatMode)
+            list.Insert(list.Count - 1, new[] { InlineKeyboardButton.WithCallbackData("⚜️ Best of ", $"{KeyboardCallbackData.BestOf}") });
         return new(list);
     }
 
@@ -180,7 +183,7 @@ internal static class KeyboardBuilder
         return new(new[]
         {
             new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsGenMode] + culture[user.GenFullyMode == true ? Strings.FullyGenModeMsg : Strings.StreamGenModeMsg ],$"{KeyboardCallbackData.SettingsGenMode}") },
-            new[] 
+            new[]
             {
                 InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsModelsSettings], $"{KeyboardCallbackData.ModesMenu}"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.SettingsLanguage], $"{KeyboardCallbackData.LanguagesMenu}"),
@@ -195,6 +198,15 @@ internal static class KeyboardBuilder
         {
             new[] {InlineKeyboardButton.WithCallbackData("📝 Mass request", $"{KeyboardCallbackData.MassRequest}") },
             new[] { BackToMainButton(user.LocaleCode) },
+        });
+    }
+
+    public static InlineKeyboardMarkup SetSystemMessageMarkup(GUser user)
+    {
+        return new(new[]
+        {
+            new[] { InlineKeyboardButton.WithCallbackData("❌ Удалить текущее", $"{KeyboardCallbackData.RemoveSystemMessage}") },
+            new[] { InlineKeyboardButton.WithCallbackData("◀️ Отмена", $"{KeyboardCallbackData.CancelWaitCommand}") }
         });
     }
 
