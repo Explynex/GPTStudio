@@ -135,32 +135,14 @@ internal class App
         }
     }
 
+
+
     private static async void HandleTextMessage(Telegram.Bot.Types.Message msg, GChat chat,GUser user)
     {
-        if (NowGeneration.Contains(msg.From!.Id))
+        if (NowGeneration.Contains(msg.From!.Id) || await CommonHelpers.IsQuotaExceeded(msg,user))
             return;
-        
-        if(user.ChatMode.Quota.DailyMax != -1)
-        {
-            var timeOffset = DateTimeOffset.Now.ToUnixTimeSeconds() - user.ChatMode.Quota.UsedTimestamp;
-            if(timeOffset >= 86400)
-            {
-                user.ChatMode.Quota.UsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
-                user.ChatMode.Quota.Used = 0;
-            }   
-            
-            if (user.ChatMode.Quota.Used >= user.ChatMode.Quota.DailyMax && timeOffset < 86400)
-            {
-                await Env.Client.SendTextMessageAsync(msg.Chat.Id, "🔻 You have exhausted the maximum tokens for today.", replyToMessageId: msg.MessageId).ConfigureAwait(false);
-                return;
-            }
-        }
-
 
         NowGeneration.Add(msg.From.Id);
-
-        #region Calculation tokens
-
 
         var lastMsg = new GChatMessage(msg.MessageId, msg.Text, msg.From.Id) { Tokens = Env.Tokenizer.Calculate(msg.Text), Role = Role.User };
         if (lastMsg.Tokens > 3000)
@@ -168,32 +150,9 @@ internal class App
 
         chat.Messages.Add(lastMsg);
 
-        int totalTokens = 0;
-        List<GChatMessage> msgList = new();
-        
-        if (!string.IsNullOrEmpty(user.ChatMode.SystemMessage))
-        {
-            totalTokens = Env.Tokenizer.Calculate(user.ChatMode.SystemMessage);
-            msgList.Add(new GChatMessage(0, user.ChatMode.SystemMessage, null) { Role = Role.System });
-        }
-
-        for (int i = chat.Messages.Count - 1, insertIndex = totalTokens == 0 ? 0 : 1; i >= 0; i--)
-        {
-            var gMsg = chat.Messages[i];
-
-            if (gMsg.MessageType != GMessageType.Text)
-                continue;
-            if ((totalTokens + gMsg.Tokens) > 3000)
-                break;
-
-            totalTokens += gMsg.Tokens;
-            msgList.Insert(insertIndex, chat.Messages[i]);
-        }
-
-        #endregion
 
         var button            = InlineKeyboardButton.WithCallbackData(Locale.Cultures[user.LocaleCode][Strings.StopGenerationMsg], $"stop.{msg.From.Id}");
-        var request           = new ChatRequest(msgList, Model.GPT3_5_Turbo, maxTokens: 2048);
+        var request           = Common.GenerateChatRequest(chat, user);
         var response          = new StringBuilder();
         var sendedMsg         = user.GenFullyMode == true ?
               await Env.Client.SendTextMessageAsync(msg.Chat.Id, Locale.Cultures[user.LocaleCode][Strings.ResponseGenMsg], replyToMessageId: msg.MessageId,replyMarkup: new InlineKeyboardMarkup(button)).ConfigureAwait(false)

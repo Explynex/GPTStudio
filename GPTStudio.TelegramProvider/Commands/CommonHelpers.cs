@@ -48,5 +48,26 @@ internal static class CommonHelpers
         Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
         await MenuProvider.OpenMenuContent(msg, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
     }
-    
+
+    public static async Task<bool> IsQuotaExceeded(Telegram.Bot.Types.Message msg, GUser user)
+    {
+        if (user.SelectedModeSettings.Quota.DailyMax == -1)
+            return false;
+
+        var timeOffset = DateTimeOffset.Now.ToUnixTimeSeconds() - user.SelectedModeSettings.Quota.UsedTimestamp;
+        if (timeOffset >= 86400) //86400s == 24h
+        {
+            user.SelectedModeSettings.Quota.UsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();
+            user.SelectedModeSettings.Quota.Used = 0;
+        }
+
+        if (user.SelectedModeSettings.Quota.Used >= user.SelectedModeSettings.Quota.DailyMax && timeOffset < 86400)
+        {
+            await Env.Client.SendTextMessageAsync(msg.Chat.Id, "🔻 You have exhausted the maximum tokens for today.", replyToMessageId: msg.MessageId).ConfigureAwait(false);
+            return true;
+        }
+
+        return false;
+    }
+
 }
