@@ -34,6 +34,7 @@ internal enum KeyboardCallbackData : byte
     BestOf,
     SetChatModeSystemMessage,
     RemoveSystemMessage,
+    IgnoreChatHistory,
 
 
     MassRequest,
@@ -150,7 +151,7 @@ internal static class KeyboardBuilder
         },
         new[] { BackToModeSettingsButton(localeCode) },
     });
-    public static InlineKeyboardMarkup ModeSettingsMarkup(BotMode mode, string locale)
+    public static InlineKeyboardMarkup ModeSettingsMarkup(BotMode mode, GUser user)
     {
         var list = new List<InlineKeyboardButton[]>
         {
@@ -165,11 +166,18 @@ internal static class KeyboardBuilder
                     InlineKeyboardButton.WithCallbackData("🫧 Frequency penalty", $"{KeyboardCallbackData.FrequencyPenalty}"),
                     InlineKeyboardButton.WithCallbackData("🫧 Presence penalty", $"{KeyboardCallbackData.PresencePenalty}"),
                 },
-                new[] { BackToModesButton(locale) }
+                new[] { BackToModesButton(user.LocaleCode) }
         };
 
         if (mode == BotMode.ChatMode)
-            list.Insert(list.Count - 1, new[] { InlineKeyboardButton.WithCallbackData("👾 System message", $"{KeyboardCallbackData.SetChatModeSystemMessage}") });
+        {
+            list.Insert(list.Count - 1, new[] 
+            { 
+                InlineKeyboardButton.WithCallbackData("👾 System message", $"{KeyboardCallbackData.SetChatModeSystemMessage}"),
+                InlineKeyboardButton.WithCallbackData($"{(user.ChatMode.IgnoreChatHistory ? "✅" : "❌")} Игнорировать историю чата",$"{KeyboardCallbackData.IgnoreChatHistory}" ),
+            });
+        }
+            
 
         if (mode != BotMode.ChatMode)
             list.Insert(list.Count - 1, new[] { InlineKeyboardButton.WithCallbackData("⚜️ Best of ", $"{KeyboardCallbackData.BestOf}") });

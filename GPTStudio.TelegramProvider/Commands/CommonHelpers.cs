@@ -1,6 +1,5 @@
 ﻿using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
-using GPTStudio.TelegramProvider.Globalization;
 using GPTStudio.TelegramProvider.Keyboard;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
@@ -9,7 +8,6 @@ using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 
 namespace GPTStudio.TelegramProvider.Commands;
@@ -46,10 +44,10 @@ internal static class CommonHelpers
     {
         user.ResetLastCommand();
         Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(user.SelectedMode.ToString(), user.SelectedModeSettings));
-        await MenuProvider.OpenMenuContent(msg, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
+        await MenuProvider.OpenMenuContent(msg, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user));
     }
 
-    public static async Task<bool> IsQuotaExceeded(Telegram.Bot.Types.Message msg, GUser user)
+    public static async Task<bool> IsQuotaExceeded(Message msg, GUser user)
     {
         if (user.SelectedModeSettings.Quota.DailyMax == -1)
             return false;

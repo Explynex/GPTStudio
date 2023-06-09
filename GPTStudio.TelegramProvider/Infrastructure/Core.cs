@@ -16,7 +16,6 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
-namespace GPTStudio.TelegramProvider;
 
 namespace GPTStudio.TelegramProvider.Infrastructure;
 internal static class Core

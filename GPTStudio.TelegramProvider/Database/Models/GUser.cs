@@ -49,7 +49,12 @@ internal sealed class GUser
     internal class GChatMode : GAbstractMode
     {
         public override Quota Quota { get; set; } = new(12000);
+
+        [BsonIgnoreIfNull]
         public string? SystemMessage { get; set; }
+
+        [BsonIgnoreIfDefault]
+        public bool IgnoreChatHistory { get; set; }
     }
 
     internal class GCompleteMode : GAbstractMode

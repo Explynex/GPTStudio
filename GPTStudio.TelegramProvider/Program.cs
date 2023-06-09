@@ -150,9 +150,8 @@ internal class App
 
         chat.Messages.Add(lastMsg);
 
-
         var button            = InlineKeyboardButton.WithCallbackData(Locale.Cultures[user.LocaleCode][Strings.StopGenerationMsg], $"stop.{msg.From.Id}");
-        var request           = Common.GenerateChatRequest(chat, user);
+        var request           = Common.GenerateChatRequest(chat, user, user.ChatMode.IgnoreChatHistory ? lastMsg : null);
         var response          = new StringBuilder();
         var sendedMsg         = user.GenFullyMode == true ?
               await Env.Client.SendTextMessageAsync(msg.Chat.Id, Locale.Cultures[user.LocaleCode][Strings.ResponseGenMsg], replyToMessageId: msg.MessageId,replyMarkup: new InlineKeyboardMarkup(button)).ConfigureAwait(false)
@@ -234,14 +233,14 @@ internal class App
             await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, Locale.Cultures[user.LocaleCode][Strings.ErrorWhileGenMsg]).ConfigureAwait(false);
         }
 
+        NowGeneration.Remove(msg.From.Id);
+
         async Task FilanizeGeneration(string responseContent,ParseMode? mode = ParseMode.Markdown)
         {
             await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg!.MessageId,
-    cancelToken!.IsCancellationRequested ? response!.Append(". . .").ToString() : responseContent,
-    parseMode: mode).ConfigureAwait(false);
+            cancelToken!.IsCancellationRequested ? response!.Append(". . .").ToString() : responseContent,
+            parseMode: mode).ConfigureAwait(false);
         }
-
-        NowGeneration.Remove(msg.From.Id);
     }
 
     private async static Task OnErrorHandler(ITelegramBotClient sender, Exception e, CancellationToken cancellationToken)

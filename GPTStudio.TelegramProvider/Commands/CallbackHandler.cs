@@ -28,6 +28,8 @@ internal static class CallbackHandler
             return;
         }
 
+        var bsonId = new BsonDocument("_id", user.Id);
+
         switch (callback)
         {
             #region Mode properties callback
@@ -41,7 +43,7 @@ internal static class CallbackHandler
                 break;
 
             case KeyboardCallbackData.ModeSettingsMenu:
-                await MenuProvider.OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user.LocaleCode));
+                await MenuProvider.OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user));
                 break;
 
             case KeyboardCallbackData.Tokens:
@@ -59,12 +61,18 @@ internal static class CallbackHandler
                     IsMessageExists ? KeyboardBuilder.SetSystemMessageMarkup(user) : KeyboardBuilder.CancelLastCommandButton(user.LocaleCode));
 
                 if (user.LastCommand != WaitCommand.SetChatModeSystemMessage)
-                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.LastCommand), WaitCommand.SetChatModeSystemMessage));
+                    Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(nameof(GUser.LastCommand), WaitCommand.SetChatModeSystemMessage));
                 break;
 
             case KeyboardCallbackData.RemoveSystemMessage:
                 user.ChatMode.SystemMessage = null;
                 CommonHelpers.SetSystemMessage(query.Message, user);
+                break;
+
+            case KeyboardCallbackData.IgnoreChatHistory:
+                user.ChatMode.IgnoreChatHistory = !user.ChatMode.IgnoreChatHistory;
+                await MenuProvider.OpenMenuContent(query.Message, "SelectedMode settings", KeyboardBuilder.ModeSettingsMarkup(user.SelectedMode, user));
+                Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set($"{nameof(user.ChatMode)}.{nameof(user.ChatMode.IgnoreChatHistory)}", user.ChatMode.IgnoreChatHistory));
                 break;
             #endregion
 
@@ -105,7 +113,7 @@ internal static class CallbackHandler
 
             case KeyboardCallbackData.SettingsGenMode:
                 user.GenFullyMode = !(user.GenFullyMode ?? false);
-                Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
+                Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
                 await MenuProvider.OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
                 break;
 
