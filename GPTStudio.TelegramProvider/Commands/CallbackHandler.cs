@@ -143,6 +143,10 @@ internal static class CallbackHandler
 
                 break;
 
+            case KeyboardCallbackData.RestartBot:
+                ConsoleHandler.HandleConsoleCommand("restart");
+                break;
+
             case KeyboardCallbackData.AdminTotalChats:
                 CommonHelpers.SendChatsDb(msg.Chat.Id);
                 break;

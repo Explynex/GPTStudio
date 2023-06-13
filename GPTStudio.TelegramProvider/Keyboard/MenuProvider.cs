@@ -1,8 +1,11 @@
 ﻿using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
+using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Telegram.Bot;
@@ -66,7 +69,7 @@ internal static class MenuProvider
                 totalUsers++;
             });
 
-            summaryString.AppendLine($"\n\n┌🆔 <b>Chat ID:</b> {query.Message!.Chat.Id}")
+            summaryString.AppendLine($"\n\n┌📈 <b>Uptime:</b> {(DateTime.Now - Process.GetCurrentProcess().StartTime).ToReadableString()}")
                 .AppendLine($"├🗂 <b>Total chats:</b> {Connection.Chats.CountDocuments("{}")}")
                 .AppendLine($"├👥 <b>Total users:</b> {totalUsers}")
                 .AppendLine($"└💠 <b>Total tokens generated:</b> {totalTokens}");

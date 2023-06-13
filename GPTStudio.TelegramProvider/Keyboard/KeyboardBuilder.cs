@@ -37,7 +37,9 @@ internal enum KeyboardCallbackData : byte
     IgnoreChatHistory,
 
 
+
     MassRequest,
+    RestartBot,
 
     RegenerateImage,
     CancelWaitCommand,
@@ -205,6 +207,7 @@ internal static class KeyboardBuilder
         return new(new[]
         {
             new[] {InlineKeyboardButton.WithCallbackData("📝 Mass request", $"{KeyboardCallbackData.MassRequest}") },
+            new[] {InlineKeyboardButton.WithCallbackData("🔄 Restart the bot", $"{KeyboardCallbackData.RestartBot}") },
             new[] { BackToMainButton(user.LocaleCode) },
         });
     }

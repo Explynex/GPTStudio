@@ -3,7 +3,9 @@ using GPTStudio.OpenAI.Models;
 using GPTStudio.TelegramProvider.Database.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -52,7 +54,6 @@ internal static partial class Common
         return new ChatRequest(msgList, Model.GPT3_5_Turbo, maxTokens: user.ChatMode.MaxTokens);
     }
 
-
     public static Stream StreamFromString(string s)
     {
         var stream = new MemoryStream();
@@ -79,5 +80,37 @@ internal static partial class Common
     public static string[] SplitCamelCase(string input)
     {
         return Regex.Replace(input, "(?<=[a-z])([A-Z])", " $1", RegexOptions.Compiled).Split(' ');
+    }
+
+    public static string ToReadableString(this TimeSpan span)
+    {
+        string formatted = string.Format("{0}{1}{2}{3}",
+            span.Duration().Days > 0 ? string.Format("{0:0} d, ", span.Days) : string.Empty,
+            span.Duration().Hours > 0 ? string.Format("{0:0} h, ", span.Hours) : string.Empty,
+            span.Duration().Minutes > 0 ? string.Format("{0:0} m, ", span.Minutes) : string.Empty,
+            span.Duration().Seconds > 0 ? string.Format("{0:0} s", span.Seconds) : string.Empty);
+
+        if (formatted.EndsWith(", ")) formatted = formatted.Substring(0, formatted.Length - 2);
+
+        if (string.IsNullOrEmpty(formatted)) formatted = "0 seconds";
+
+        return formatted;
+    }
+
+    public static void ExecConsoleCommand(string command,int? sleep = null)
+    {
+        using var process = new Process();
+        process.StartInfo.UseShellExecute = false;
+        if (OperatingSystem.IsWindows())
+        {
+            process.StartInfo.FileName = "cmd";
+            process.StartInfo.Arguments = $"/c \"{(sleep.HasValue ? $"timeout {sleep} /nobreak > nul &&" : null)} {command}\"";
+        }
+        else if(OperatingSystem.IsLinux())
+        {
+            process.StartInfo.FileName = "/bin/bash";
+            process.StartInfo.Arguments = $"-c \"{(sleep.HasValue ? $"sleep {sleep} &&" : null)} {command}\"";
+        }
+        process.Start();
     }
 }

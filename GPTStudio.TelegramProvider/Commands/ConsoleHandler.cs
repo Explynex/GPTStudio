@@ -46,7 +46,7 @@ internal static class ConsoleHandler
 
             case "stop":
                 Logger.Print("Shutting down...", color: ConsoleColor.DarkYellow);
-                App.IsShuttingDown = true;
+                App.Shutdown();
                 break;
 
             case "setquota":
@@ -68,6 +68,12 @@ internal static class ConsoleHandler
                 Connection.Users.UpdateOne(bson, Builders<GUser>.Update.Set(modelName, user.ChatMode));
                 Logger.Print($"Quota set successfully", color: ConsoleColor.Green);
 
+                break;
+
+            case "restart":
+                Logger.Print("Restarting...", color: ConsoleColor.DarkYellow);
+                Common.ExecConsoleCommand($"\"{Environment.ProcessPath}\"",3);
+                App.Shutdown();
                 break;
         }
     }

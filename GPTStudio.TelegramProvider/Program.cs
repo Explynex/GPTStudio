@@ -21,11 +21,12 @@ namespace GPTStudio.TelegramProvider;
 
 internal class App
 {
-    public static bool IsShuttingDown                  = false;
-    public static readonly HashSet<long> NowGeneration = new();
+    public static bool IsShuttingDown { get; private set; } = false;
+    public static readonly HashSet<long> NowGeneration      = new();
 
     static void Main(string[] args)
     {
+        Console.Clear();
         AppDomain.CurrentDomain.UnhandledException += (sender, e) => Logger.PrintError(e.ExceptionObject.ToString()!);
 
         Console.ForegroundColor = ConsoleColor.Cyan;
@@ -39,14 +40,23 @@ internal class App
         Env.Client.StartReceiving(OnUpdateHandler, OnErrorHandler);
         Logger.Print($"Telegram update callback processing...");
 
-        while(!IsShuttingDown)
+        while (!IsShuttingDown)
         {
-            Logger.Print("Command: /",false,color: ConsoleColor.Cyan);
+            Logger.Print("Command: /", false, color: ConsoleColor.Cyan);
             var cmd = Console.ReadLine();
             if (!string.IsNullOrEmpty(cmd))
                 ConsoleHandler.HandleConsoleCommand(cmd);
         }
+
+
     }
+
+    public static void Shutdown()
+    {
+        IsShuttingDown = true;
+        Environment.Exit(0);
+    }
+
 
     private static async Task OnUpdateHandler(ITelegramBotClient sender, Update e,CancellationToken cancellationToken)
     {
