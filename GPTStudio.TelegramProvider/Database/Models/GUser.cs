@@ -16,6 +16,7 @@ internal enum WaitCommand : byte
     None,
     SetChatModeSystemMessage,
     MassRequestFile,
+    TextExtractImage,
 }
 
 internal sealed class GUser

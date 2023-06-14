@@ -140,11 +140,15 @@ internal static class CallbackHandler
 
                 if (user.LastCommand != WaitCommand.MassRequestFile)
                     Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.LastCommand), WaitCommand.MassRequestFile));
-
                 break;
 
             case KeyboardCallbackData.RestartBot:
-                ConsoleHandler.HandleConsoleCommand("restart");
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(1000);
+                    ConsoleHandler.HandleConsoleCommand("restart");
+                });
+                
                 break;
 
             case KeyboardCallbackData.AdminTotalChats:

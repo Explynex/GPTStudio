@@ -1,10 +1,12 @@
 ﻿using GPTStudio.OpenAI.Chat;
 using GPTStudio.OpenAI.Models;
 using GPTStudio.TelegramProvider.Database.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -52,6 +54,22 @@ internal static partial class Common
         else msgList.Add(userMessage);
 
         return new ChatRequest(msgList, Model.GPT3_5_Turbo, maxTokens: user.ChatMode.MaxTokens);
+    }
+
+    public static async Task<string> ExtractTextFromImage(MemoryStream stream)
+    {
+        App.HttpClient.DefaultRequestHeaders.Clear();
+        App.HttpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Env.AzureCredentials.ComputerVisionKey);
+        var uri =
+            $"https://{Env.AzureCredentials.ComputerVisionServiceName}.cognitiveservices.azure.com/computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read";
+
+        stream.Position = 0;
+        using var content = new ByteArrayContent(stream.ToArray());
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+        using var response = await App.HttpClient.PostAsync(uri, content);
+        var jobject = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+        return jobject["readResult"]["content"].Value<string>();
     }
 
     public static Stream StreamFromString(string s)
@@ -111,6 +129,7 @@ internal static partial class Common
             process.StartInfo.FileName = "/bin/bash";
             process.StartInfo.Arguments = $"-c \"{(sleep.HasValue ? $"sleep {sleep} &&" : null)} {command}\"";
         }
+
         process.Start();
     }
 }

@@ -21,8 +21,9 @@ namespace GPTStudio.TelegramProvider;
 
 internal class App
 {
-    public static bool IsShuttingDown { get; private set; } = false;
-    public static readonly HashSet<long> NowGeneration      = new();
+    public static bool IsShuttingDown { get; private set; }   = false;
+    public static HttpClient HttpClient { get; private set; } = new();
+    public static readonly HashSet<long> NowGeneration        = new();
 
     static void Main(string[] args)
     {
@@ -54,6 +55,7 @@ internal class App
     public static void Shutdown()
     {
         IsShuttingDown = true;
+        Console.In.Close();
         Environment.Exit(0);
     }
 
@@ -65,7 +67,6 @@ internal class App
 
         if (senderUser == null)
             return;
-
         if (!Connection.Users.FindFirst(o => o.Id == senderUser.Id, out GUser user))
         {
             var isSupportedLang = Locale.SupportedLocales.Contains(senderUser.LanguageCode);

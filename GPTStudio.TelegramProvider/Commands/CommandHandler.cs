@@ -29,6 +29,14 @@ internal static class CommandHandler
 
                 CommonHelpers.SetSystemMessage(msg, user);
                 break;
+
+            case WaitCommand.TextExtractImage when msg.Type == MessageType.Photo:
+
+
+                user.ResetLastCommand();
+                break;
+
+
             case WaitCommand.MassRequestFile when msg.Type == MessageType.Document && user.IsAdmin == true:
                 {
                     if (string.IsNullOrEmpty(msg.Caption))
@@ -37,11 +45,8 @@ internal static class CommandHandler
                         return;
                     }
 
-                    if (msg.Document!.FileSize > 128000)
-                    {
-                        await Env.Client.SendTextMessageAsync(msg.Chat.Id, "❌ Ошибка: файл слишком большой");
+                    if (!await IsValidFileSize(msg.Document!.FileSize!.Value,128000))
                         return;
-                    }
 
                     using var downloadStream = new MemoryStream();
                     await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(msg.Document.FileId).ConfigureAwait(false)).FilePath!, downloadStream).ConfigureAwait(false);
@@ -121,6 +126,15 @@ internal static class CommandHandler
                     break;
                 }
 
+        }
+
+        async Task<bool> IsValidFileSize(long fileSize, long peak)
+        {
+            if (fileSize > peak)
+                return true;
+
+            await Env.Client.SendTextMessageAsync(msg.Chat.Id, "❌ Ошибка: файл слишком большой");
+            return false;
         }
     }
 

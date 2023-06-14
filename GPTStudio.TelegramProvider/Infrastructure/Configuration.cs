@@ -8,17 +8,25 @@ using Telegram.Bot;
 namespace GPTStudio.TelegramProvider.Infrastructure;
 internal static partial class Configuration
 {
+    public class Azure
+    {
+        public string ComputerVisionKey { get; set; }
+        public string ComputerVisionServiceName { get; set; }
+    }
     private class Env
     {
         public string TelegramBotToken { get; set; }
         public string OpenAIApiKey { get; set; }
         public string DatabaseEndpoint { get; set; }
         public long ErrorsRecieverChatId { get; set; }
+        public Azure Azure { get; set; }
+
     }
 
     public static TelegramBotClient Client { get; private set; }
     public static OpenAIClient GPTClient { get; private set; }
     public static string DatabaseEndpoint { get; private set; }
+    public static Azure Azure { get; private set; }
     public static long ErrorsRecieverChatId { get; private set; }
     public static GPTTokenizer Tokenizer = new(Properties.Resources.TokenizerMerges);
 
