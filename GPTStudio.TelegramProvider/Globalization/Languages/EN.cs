@@ -12,20 +12,19 @@ internal class EN
         {Strings.ResponseGenMsg,"⏳ Generating response. . ." },
         {Strings.StreamGenModeMsg,"Stream" },
         {Strings.FullyGenModeMsg,"Fully" },
-        {Strings.ErrorWhileGenMsg,"❌ An error occurred during generation" },
+        {Strings.RequestErrorMsg,"❌ An error occurred while processing the request" },
 
         {Strings.MainMenuTitle,$"🔸 <b>Main menu</b> {MenuTitleTip}" },
         {Strings.MainMenuStartChatting, "💬  Start chatting" },
         {Strings.MainMenuSettings, "⚙️  Settings" },
         {Strings.MainMenuAbout, "📖  About" },
         {Strings.MainMenuSummary, "📊  Summary" },
-        {Strings.MainMenuUsers, "👥 Users" },
-        {Strings.MainMenuChats, "📚 Chats" },
         {Strings.MainMenuAdminPanel, "🖥 Admin panel" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Language settings</b>\n🔰\n🔰 Use the buttons <b>below</b> to select language." },
         {Strings.ModesMenuTitle,$"🔸 <b>Operating modes</b>\n🔰\n🔰 Use the buttons <b>below</b> to select or configure mode." },
         {Strings.AdminPanelTitle,$"🔸 <b>Administrator menu</b> {MenuTitleTip}" },
+        {Strings.ServicesMenuTitle,$"🔸 <b>Services menu</b> {MenuTitleTip}" },
 
         {Strings.SummaryForMsg,$"📊 Summary for:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Member since:</b>" },

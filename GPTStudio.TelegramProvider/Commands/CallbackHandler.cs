@@ -82,14 +82,18 @@ internal static class CallbackHandler
                 break;
 
             case KeyboardCallbackData.SettingsMenu:
-                await MenuProvider.OpensSettingsMenu(query.Message, user);
+                await MenuProvider.OpenSettingsMenu(query.Message, user);
                 break;
 
             case KeyboardCallbackData.MainMenuStartChat:
-                await Env.Client.SendTextMessageAsync(query.Message!.Chat.Id, locale[Strings.StartChattingMsg]);
+                await Env.Client.SendTextMessageAsync(query.Message.Chat.Id, locale[Strings.StartChattingMsg]);
                 break;
 
             case KeyboardCallbackData.AboutMenu:
+                break;
+
+            case KeyboardCallbackData.ServicesMenu:
+                await MenuProvider.OpenServicesMenu(query.Message, user);
                 break;
 
             case KeyboardCallbackData.SummaryMenu:
@@ -114,11 +118,19 @@ internal static class CallbackHandler
             case KeyboardCallbackData.SettingsGenMode:
                 user.GenFullyMode = !(user.GenFullyMode ?? false);
                 Connection.Users.UpdateOne(bsonId, Builders<GUser>.Update.Set(nameof(user.GenFullyMode), user.GenFullyMode));
-                await MenuProvider.OpensSettingsMenu(query.Message!, user).ConfigureAwait(false);
+                await MenuProvider.OpenSettingsMenu(query.Message!, user).ConfigureAwait(false);
                 break;
 
             case KeyboardCallbackData.CancelWaitCommand:
                 CommonHelpers.CancelLastCommand(query.Message, user);
+                break;
+
+            case KeyboardCallbackData.ImageToTextService:
+
+                await MenuProvider.OpenImageToTextMenu(query.Message, user).ConfigureAwait(false);
+
+                if (user.LastCommand != WaitCommand.MassRequestFile)
+                    Connection.Users.UpdateOne(new BsonDocument("_id", user.Id), Builders<GUser>.Update.Set(nameof(GUser.LastCommand), WaitCommand.ExtractTextFromImage));
                 break;
 
             default:
@@ -134,7 +146,7 @@ internal static class CallbackHandler
     {
         switch(callback)
         {
-            case KeyboardCallbackData.MassRequest:
+            case KeyboardCallbackData.MassRequestService:
                 await MenuProvider.OpenMenuContent(msg, "📥 Отправьте текстовый документ с несколькими запросами а так же укажите строку-разделитель в строке \"Подпись\".",
                     InlineKeyboardButton.WithCallbackData("Отмена", $"{KeyboardCallbackData.CancelWaitCommand}"));
 
@@ -149,14 +161,6 @@ internal static class CallbackHandler
                     ConsoleHandler.HandleConsoleCommand("restart");
                 });
                 
-                break;
-
-            case KeyboardCallbackData.AdminTotalChats:
-                CommonHelpers.SendChatsDb(msg.Chat.Id);
-                break;
-
-            case KeyboardCallbackData.AdminTotalUsers:
-                CommonHelpers.SendUsersDb(msg.Chat.Id);
                 break;
         }
     }

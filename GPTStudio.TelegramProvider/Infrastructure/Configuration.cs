@@ -26,7 +26,7 @@ internal static partial class Configuration
     public static TelegramBotClient Client { get; private set; }
     public static OpenAIClient GPTClient { get; private set; }
     public static string DatabaseEndpoint { get; private set; }
-    public static Azure Azure { get; private set; }
+    public static Azure AzureCredentials { get; private set; }
     public static long ErrorsRecieverChatId { get; private set; }
     public static GPTTokenizer Tokenizer = new(Properties.Resources.TokenizerMerges);
 
@@ -40,6 +40,7 @@ internal static partial class Configuration
         if (File.Exists("env.json"))
         {
             cfg = JsonSerializer.Deserialize<Env>(File.ReadAllText("env.json"))!;
+            AzureCredentials = cfg.Azure;
         }
 
         string? input = null;

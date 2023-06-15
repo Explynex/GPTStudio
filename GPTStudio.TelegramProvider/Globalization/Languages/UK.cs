@@ -12,20 +12,19 @@ internal class UK
         {Strings.ResponseGenMsg,"⏳ Генерація відповіді. . ." },
         {Strings.StreamGenModeMsg,"Потоком" },
         {Strings.FullyGenModeMsg,"Цілком" },
-        {Strings.ErrorWhileGenMsg,"❌ Під час генерації виникла помилка" },
+        {Strings.RequestErrorMsg,"❌ Під час обробки запиту виникла помилка" },
 
         {Strings.MainMenuTitle,$"🔸 <b>Головне меню</b> {MenuTitleTip}" },
         {Strings.MainMenuStartChatting, "💬  Розпочати чат" },
         {Strings.MainMenuSettings, "⚙️  Налаштування" },
         {Strings.MainMenuAbout, "📖  Інформація" },
         {Strings.MainMenuSummary, "📊  Зведення" },
-        {Strings.MainMenuUsers, "👥 Користувачі" },
-        {Strings.MainMenuChats, "📚 Чати" },
         {Strings.MainMenuAdminPanel, "🖥 Адмін-панель" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Налаштування мови</b>\n🔰\n🔰 Використовуйте кнопки <b>внизу</b> щоб обрати мову." },
         {Strings.ModesMenuTitle,$"🔸 <b>Режими роботи</b>\n🔰\n🔰 Використовуйте кнопки <b>внизу</b> щоб обрати або налаштувати режим." },
         {Strings.AdminPanelTitle,$"🔸 <b>Меню адміністратора</b> {MenuTitleTip}" },
+        {Strings.ServicesMenuTitle,$"🔸 <b>Меню сервісів</b> {MenuTitleTip}" },
 
         {Strings.SummaryForMsg,$"📊 Зведення для:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Учасник з:</b>" },

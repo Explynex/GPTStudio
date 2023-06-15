@@ -1,5 +1,6 @@
 ﻿using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace GPTStudio.TelegramProvider.Keyboard;
@@ -18,13 +19,12 @@ internal enum KeyboardCallbackData : byte
     AdminPanelMenu,
     ModesMenu,
     ModeSettingsMenu,
+    ServicesMenu,
 
     LanguagesMenu,
 
     SettingsGenMode,
 
-    AdminTotalUsers,
-    AdminTotalChats,
     MainMenuStartChat,
     Tokens,
     Temperature,
@@ -36,9 +36,9 @@ internal enum KeyboardCallbackData : byte
     RemoveSystemMessage,
     IgnoreChatHistory,
 
+    MassRequestService,
+    ImageToTextService,
 
-
-    MassRequest,
     RestartBot,
 
     RegenerateImage,
@@ -85,7 +85,11 @@ internal static class KeyboardBuilder
             new[] { InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuStartChatting], $"{KeyboardCallbackData.MainMenuStartChat}") },
             new[]
             {
+                InlineKeyboardButton.WithCallbackData("⚛️ Сервисы", $"{KeyboardCallbackData.ServicesMenu}"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuSettings], $"{KeyboardCallbackData.SettingsMenu}"),
+            },
+            new[]
+            {
                 InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuSummary], $"{KeyboardCallbackData.SummaryMenu}"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAbout], $"{KeyboardCallbackData.AboutMenu}"),
             },
@@ -93,9 +97,24 @@ internal static class KeyboardBuilder
         if (admin == true)
             markup.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuUsers], $"{KeyboardCallbackData.AdminTotalUsers}"),
-                InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuChats], $"{KeyboardCallbackData.AdminTotalChats}"),
                 InlineKeyboardButton.WithCallbackData(culture[Strings.MainMenuAdminPanel], $"{KeyboardCallbackData.AdminPanelMenu}"),
+            });
+
+        return new(markup);
+    }
+
+    public static InlineKeyboardMarkup ServicesMenuMarkup(GUser user)
+    {
+        var markup = new List<InlineKeyboardButton[]>
+        {
+            new[] { InlineKeyboardButton.WithCallbackData("📰 Изображение в текст", $"{KeyboardCallbackData.ImageToTextService}") },
+            new[] { BackToMainButton(user.LocaleCode) }
+        };
+
+        if (user.IsAdmin == true)
+            markup.Insert(markup.Count - 1,new[]
+            {
+                InlineKeyboardButton.WithCallbackData("♨️ Массовый запрос", $"{KeyboardCallbackData.MassRequestService}")
             });
 
         return new(markup);
@@ -206,7 +225,6 @@ internal static class KeyboardBuilder
     {
         return new(new[]
         {
-            new[] {InlineKeyboardButton.WithCallbackData("📝 Mass request", $"{KeyboardCallbackData.MassRequest}") },
             new[] {InlineKeyboardButton.WithCallbackData("🔄 Restart the bot", $"{KeyboardCallbackData.RestartBot}") },
             new[] { BackToMainButton(user.LocaleCode) },
         });

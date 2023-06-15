@@ -12,20 +12,19 @@ internal class RU
         {Strings.ResponseGenMsg,"⏳ Генерация ответа. . ." },
         {Strings.StreamGenModeMsg,"Потоком" },
         {Strings.FullyGenModeMsg,"Целиком" },
-        {Strings.ErrorWhileGenMsg,"❌ Во время генерации произошла ошибка" },
+        {Strings.RequestErrorMsg,"❌ Во время обработки запроса произошла ошибка" },
 
         {Strings.MainMenuTitle,$"🔸 <b>Главное меню</b> {MenuTitleTip}" },
         {Strings.MainMenuStartChatting, "💬  Начать чат" },
         {Strings.MainMenuSettings, "⚙️  Настройки" },
         {Strings.MainMenuAbout, "📖  Информация" },
         {Strings.MainMenuSummary, "📊  Сводка" },
-        {Strings.MainMenuUsers, "👥 Пользователи" },
-        {Strings.MainMenuChats, "📚 Чаты" },
         {Strings.MainMenuAdminPanel, "🖥 Админ-панель" },
 
         {Strings.LanguagesMenuTitle,$"🔸 <b>Настройки языка</b>\n🔰\n🔰 Используйте кнопки <b>внизу</b> чтобы выбрать язык." },
         {Strings.ModesMenuTitle,$"🔸 <b>Режимы работы</b>\n🔰\n🔰 Используйте кнопки <b>внизу</b> чтобы выбрать или настроить режим." },
         {Strings.AdminPanelTitle,$"🔸 <b>Меню администратора</b> {MenuTitleTip}" },
+        {Strings.ServicesMenuTitle,$"🔸 <b>Меню сервисов</b> {MenuTitleTip}" },
 
         {Strings.SummaryForMsg,$"📊 Сводка для:" },
         {Strings.SummaryMemberSince,$"🗓 <b>Участник с:</b>" },

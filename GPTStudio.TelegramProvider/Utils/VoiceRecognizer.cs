@@ -13,8 +13,8 @@ internal static class VoiceRecognizer
     public static async Task<string> RecognizeVoice(Voice voiceFile)
     {
         using var downloadStream = new MemoryStream();
-        using var waveStream = new MemoryStream();
-        await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(voiceFile.FileId).ConfigureAwait(false)).FilePath!, downloadStream);
+        using var waveStream     = new MemoryStream();
+        await Common.DownloadFileToStream(voiceFile.FileId, downloadStream);
 
         using MemoryStream pcmStream = new();
         OpusDecoder decoder = OpusDecoder.Create(48000, 1);

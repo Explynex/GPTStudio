@@ -170,6 +170,7 @@ internal class App
 
         var lastEdit          = DateTimeOffset.Now.ToUnixTimeSeconds();
         var lastEditMsgLength = 0;
+        var failCounter       = 0;
         using var cancelToken = new CancellationTokenSource();
 
         try
@@ -183,7 +184,14 @@ internal class App
                 }
 
                 if (String.IsNullOrEmpty(result.FirstChoice))
+                {
+                    failCounter++;
+                    if(failCounter == 20)
+                        throw new Exception("Too many failures while response generating");
+                    
                     return;
+                }
+
 
                 response.Append(result.FirstChoice);
 
@@ -240,8 +248,7 @@ internal class App
         }
         catch(Exception e)
         {
-            Logger.PrintError(e.ToString());
-            await Env.Client.EditMessageTextAsync(msg.Chat.Id, sendedMsg.MessageId, Locale.Cultures[user.LocaleCode][Strings.ErrorWhileGenMsg]).ConfigureAwait(false);
+            Common.NotifyOfRequestError(chat.Id, user, e, sendedMsg.MessageId);
         }
 
         NowGeneration.Remove(msg.From.Id);

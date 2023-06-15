@@ -50,9 +50,19 @@ internal static class MenuProvider
                 KeyboardBuilder.MainMenuMarkup(user.LocaleCode, user.IsAdmin)).ConfigureAwait(false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task OpensSettingsMenu(Message msg, GUser user) =>
+    public static async Task OpenSettingsMenu(Message msg, GUser user) =>
         await OpenMenuContent(msg, Locale.Cultures[user.LocaleCode][Strings.SettingsTitle],
                             KeyboardBuilder.SettingsMenuMarkup(user)).ConfigureAwait(false);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task OpenServicesMenu(Message msg, GUser user) =>
+        await OpenMenuContent(msg, Locale.Cultures[user.LocaleCode][Strings.ServicesMenuTitle],
+                            KeyboardBuilder.ServicesMenuMarkup(user)).ConfigureAwait(false);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task OpenImageToTextMenu(Message msg, GUser user) => 
+        await OpenMenuContent(msg, "📥 Отправьте изображение с текстом",
+            InlineKeyboardButton.WithCallbackData("Отмена", $"{KeyboardCallbackData.CancelWaitCommand}"));
 
     public static async void OpenSummaryMenu(CallbackQuery query, GUser user, Dictionary<Strings, string> locale)
     {

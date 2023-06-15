@@ -9,13 +9,12 @@ internal enum Strings
     LanguagesMenuTitle,
     ModesMenuTitle,
     AdminPanelTitle,
+    ServicesMenuTitle,
 
     MainMenuStartChatting,
     MainMenuSettings,
     MainMenuAbout,
     MainMenuSummary,
-    MainMenuUsers,
-    MainMenuChats,
     MainMenuAdminPanel,
 
     SettingsLanguage,
@@ -31,7 +30,7 @@ internal enum Strings
     ResponseGenMsg,
     StreamGenModeMsg,
     FullyGenModeMsg,
-    ErrorWhileGenMsg,
+    RequestErrorMsg,
 
     SummaryForMsg,
     SummaryMemberSince,

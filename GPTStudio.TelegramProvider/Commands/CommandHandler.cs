@@ -8,6 +8,7 @@ using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 
 namespace GPTStudio.TelegramProvider.Commands;
@@ -17,6 +18,8 @@ internal static class CommandHandler
     {
         if (msg is null)
             return;
+
+        using var downloadStream = new MemoryStream();
 
         switch (user.LastCommand)
         {
@@ -30,10 +33,23 @@ internal static class CommandHandler
                 CommonHelpers.SetSystemMessage(msg, user);
                 break;
 
-            case WaitCommand.TextExtractImage when msg.Type == MessageType.Photo:
+            case WaitCommand.ExtractTextFromImage when msg.Type == MessageType.Photo:
 
+                await Common.DownloadFileToStream(msg.Photo![^1].FileId, downloadStream);
 
-                user.ResetLastCommand();
+                try
+                {
+                    var result = await Common.ExtractTextFromImage(downloadStream);
+
+                    if(string.IsNullOrEmpty(result))
+                       await Env.Client.SendTextMessageAsync(msg.Chat.Id, "✴️ Не удалось распознать текст на изображении",replyToMessageId:msg.MessageId);
+                    else
+                       await Env.Client.SendTextMessageAsync(msg.Chat.Id, "✅ <b>Текст распознан</b>\n\n" + result, replyToMessageId: msg.MessageId,parseMode: ParseMode.Html);
+                }
+                catch (Exception e)
+                {
+                    Common.NotifyOfRequestError(msg.Chat.Id, user, e, replyMsgId: msg.MessageId);
+                }
                 break;
 
 
@@ -48,9 +64,7 @@ internal static class CommandHandler
                     if (!await IsValidFileSize(msg.Document!.FileSize!.Value,128000))
                         return;
 
-                    using var downloadStream = new MemoryStream();
-                    await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(msg.Document.FileId).ConfigureAwait(false)).FilePath!, downloadStream).ConfigureAwait(false);
-                    downloadStream.Position = 0;
+                    await Common.DownloadFileToStream(msg.Document.FileId, downloadStream);
 
                     var stream  = new StreamReader(downloadStream);
                     var content = await stream.ReadToEndAsync();
@@ -125,7 +139,10 @@ internal static class CommandHandler
 
                     break;
                 }
-
+            default:
+                await Env.Client.SendTextMessageAsync(msg.Chat.Id, "❗️ Введите подходящие данные или отмените команду: `/cancel`", parseMode: ParseMode.Markdown,
+                    replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("/cancel")) { ResizeKeyboard = true, OneTimeKeyboard = true});
+                break;
         }
 
         async Task<bool> IsValidFileSize(long fileSize, long peak)

@@ -1,6 +1,7 @@
 ﻿using GPTStudio.OpenAI.Chat;
 using GPTStudio.OpenAI.Models;
 using GPTStudio.TelegramProvider.Database.Models;
+using GPTStudio.TelegramProvider.Globalization;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 
 namespace GPTStudio.TelegramProvider.Utils;
@@ -55,6 +57,20 @@ internal static partial class Common
 
         return new ChatRequest(msgList, Model.GPT3_5_Turbo, maxTokens: user.ChatMode.MaxTokens);
     }
+
+
+    /// <summary>
+    ///  If editMsgId not null message editing with error
+    /// </summary>
+    public static async void NotifyOfRequestError(long chatId, GUser user,Exception e,int? editMsgId = null, int? replyMsgId = null)
+    {
+        Logger.PrintError(e.ToString());
+        if (editMsgId != null)
+            await Env.Client.EditMessageTextAsync(chatId, editMsgId.Value, Locale.Cultures[user.LocaleCode][Strings.RequestErrorMsg]).ConfigureAwait(false);
+        else
+            await Env.Client.SendTextMessageAsync(chatId, Locale.Cultures[user.LocaleCode][Strings.RequestErrorMsg],replyToMessageId: replyMsgId).ConfigureAwait(false);
+    }
+
 
     public static async Task<string> ExtractTextFromImage(MemoryStream stream)
     {
@@ -131,5 +147,11 @@ internal static partial class Common
         }
 
         process.Start();
+    }
+
+    public static async Task DownloadFileToStream(string fileid, MemoryStream stream)
+    {
+        await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(fileid).ConfigureAwait(false)).FilePath!, stream).ConfigureAwait(false);
+        stream.Position = 0;
     }
 }
