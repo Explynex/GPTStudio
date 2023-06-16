@@ -127,6 +127,12 @@ internal static class CallbackHandler
 
             case KeyboardCallbackData.ImageToTextService:
 
+                if (string.IsNullOrEmpty(Env.Props.Azure.ComputerVisionKey) || string.IsNullOrEmpty(Env.Props.Azure.ComputerVisionServiceName))
+                {
+                    await Env.Client.SendTextMessageAsync(query.Message.Chat.Id, "🚧 Сервис недоступен, попробуйте позже");
+                    return;
+                }
+
                 await MenuProvider.OpenImageToTextMenu(query.Message, user).ConfigureAwait(false);
 
                 if (user.LastCommand != WaitCommand.MassRequestFile)

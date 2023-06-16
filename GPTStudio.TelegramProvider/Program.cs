@@ -21,9 +21,9 @@ namespace GPTStudio.TelegramProvider;
 
 internal class App
 {
-    public static bool IsShuttingDown { get; private set; }   = false;
-    public static HttpClient HttpClient { get; private set; } = new();
-    public static readonly HashSet<long> NowGeneration        = new();
+    public static bool IsShuttingDown { get; private set; }         = false;
+    public static HttpClient HttpClient { get; private set; }       = new();
+    public static readonly HashSet<long> NowGeneration              = new();
 
     static void Main(string[] args)
     {
@@ -57,6 +57,12 @@ internal class App
         IsShuttingDown = true;
         Console.In.Close();
         Environment.Exit(0);
+    }
+
+    public static void Restart()
+    {
+        Common.ExecConsoleCommand($"\"{Environment.ProcessPath}\"", 3);
+        App.Shutdown();
     }
 
 
@@ -263,6 +269,13 @@ internal class App
 
     private async static Task OnErrorHandler(ITelegramBotClient sender, Exception e, CancellationToken cancellationToken)
     {
+        if(e is ApiRequestException apiException && apiException.ErrorCode == 404)
+        {
+            Logger.PrintError("Invalid telegram bot token");
+            Env.Props.TelegramBotToken = null;
+            Env.Save();
+            Restart();
+        }
         Logger.PrintError(e.ToString());
     }
 }

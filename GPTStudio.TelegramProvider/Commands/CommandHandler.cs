@@ -44,7 +44,7 @@ internal static class CommandHandler
                     if(string.IsNullOrEmpty(result))
                        await Env.Client.SendTextMessageAsync(msg.Chat.Id, "✴️ Не удалось распознать текст на изображении",replyToMessageId:msg.MessageId);
                     else
-                       await Env.Client.SendTextMessageAsync(msg.Chat.Id, "✅ <b>Текст распознан</b>\n\n" + result, replyToMessageId: msg.MessageId,parseMode: ParseMode.Html);
+                       await Env.Client.SendTextMessageAsync(msg.Chat.Id, $"✅ *Текст распознан*\n\n`{result}`", replyToMessageId: msg.MessageId,parseMode: ParseMode.Markdown);
                 }
                 catch (Exception e)
                 {
@@ -124,7 +124,6 @@ internal static class CommandHandler
                         }
                     }
                     
-                    
 
                     using var textStream = Common.StreamFromString(response.ToString());
                     await Env.Client.SendDocumentAsync(msg.Chat.Id, new(textStream, $"Responses to {msg.Document.FileName}.md"));
@@ -134,8 +133,7 @@ internal static class CommandHandler
                     Connection.Users.UpdateOne(userBson, Builders<GUser>.Update.Inc("TotalRequests", i+1));
 
                     user.ResetLastCommand();
-
-                   
+                    await MenuProvider.OpenServicesMenu(msg,user);
 
                     break;
                 }

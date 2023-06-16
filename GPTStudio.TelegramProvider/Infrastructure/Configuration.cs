@@ -10,24 +10,22 @@ internal static partial class Configuration
 {
     public class Azure
     {
-        public string ComputerVisionKey { get; set; }
-        public string ComputerVisionServiceName { get; set; }
+        public string? ComputerVisionKey { get; set; }
+        public string? ComputerVisionServiceName { get; set; }
     }
-    private class Env
+    public class ConfigProperties
     {
-        public string TelegramBotToken { get; set; }
-        public string OpenAIApiKey { get; set; }
-        public string DatabaseEndpoint { get; set; }
+        public string? TelegramBotToken { get; set; }
+        public string? OpenAIApiKey { get; set; }
+        public string? DatabaseEndpoint { get; set; }
         public long ErrorsRecieverChatId { get; set; }
-        public Azure Azure { get; set; }
+        public Azure Azure { get; set; } = new();
 
     }
 
     public static TelegramBotClient Client { get; private set; }
     public static OpenAIClient GPTClient { get; private set; }
-    public static string DatabaseEndpoint { get; private set; }
-    public static Azure AzureCredentials { get; private set; }
-    public static long ErrorsRecieverChatId { get; private set; }
+    public static ConfigProperties Props { get; private set; }
     public static GPTTokenizer Tokenizer = new(Properties.Resources.TokenizerMerges);
 
     [GeneratedRegex("sk-([a-zA-Z0-9]{48})+$")]
@@ -35,17 +33,24 @@ internal static partial class Configuration
 
     public static void Setup()
     {
-        Env cfg = new();
+        Props = new();
 
         if (File.Exists("env.json"))
         {
-            cfg = JsonSerializer.Deserialize<Env>(File.ReadAllText("env.json"))!;
-            AzureCredentials = cfg.Azure;
+            Props = JsonSerializer.Deserialize<ConfigProperties>(File.ReadAllText("env.json"))!;
         }
 
+        RequestConfigureData();
+
+        GPTClient        = new(Props.OpenAIApiKey!);
+        Client           = new(Props.TelegramBotToken!);
+    }
+
+    private static void RequestConfigureData()
+    {
         string? input = null;
 
-        while (cfg.TelegramBotToken == null)
+        while (Props.TelegramBotToken == null)
         {
             Logger.Print("Enter Telegram access token: ", false);
             input = Console.ReadLine();
@@ -55,11 +60,11 @@ internal static partial class Configuration
                 continue;
             }
 
-            cfg.TelegramBotToken = input;
+            Props.TelegramBotToken = input;
             break;
         }
 
-        while (cfg.OpenAIApiKey == null)
+        while (Props.OpenAIApiKey == null)
         {
             Logger.Print("Enter OpenAI API key: ", false);
             input = Console.ReadLine();
@@ -69,11 +74,11 @@ internal static partial class Configuration
                 continue;
             }
 
-            cfg.OpenAIApiKey = input;
+            Props.OpenAIApiKey = input;
             break;
         }
 
-        while (cfg.DatabaseEndpoint == null)
+        while (Props.DatabaseEndpoint == null)
         {
             Logger.Print("Enter MongoDB connection string: ", false);
             input = Console.ReadLine();
@@ -83,18 +88,17 @@ internal static partial class Configuration
                 continue;
             }
 
-            cfg.DatabaseEndpoint = input;
+            Props.DatabaseEndpoint = input;
             break;
         }
 
 
         if (input != null)
-            File.WriteAllText("env.json",JsonSerializer.Serialize(cfg));
+            Save();
+    }
 
-        GPTClient        = new(cfg.OpenAIApiKey);
-        Client           = new(cfg.TelegramBotToken);
-        DatabaseEndpoint = cfg.DatabaseEndpoint;
-
-        cfg = null;
+    public static void Save()
+    {
+        File.WriteAllText("env.json", JsonSerializer.Serialize(Props));
     }
 }

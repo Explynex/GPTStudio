@@ -2,6 +2,7 @@
 using GPTStudio.OpenAI.Models;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
+using GPTStudio.TelegramProvider.Infrastructure;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -75,9 +76,9 @@ internal static partial class Common
     public static async Task<string> ExtractTextFromImage(MemoryStream stream)
     {
         App.HttpClient.DefaultRequestHeaders.Clear();
-        App.HttpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Env.AzureCredentials.ComputerVisionKey);
+        App.HttpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Env.Props.Azure.ComputerVisionKey);
         var uri =
-            $"https://{Env.AzureCredentials.ComputerVisionServiceName}.cognitiveservices.azure.com/computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read";
+            $"https://{Env.Props.Azure.ComputerVisionServiceName}.cognitiveservices.azure.com/computervision/imageanalysis:analyze?api-version=2023-02-01-preview&features=read";
 
         stream.Position = 0;
         using var content = new ByteArrayContent(stream.ToArray());
@@ -101,14 +102,47 @@ internal static partial class Common
     [GeneratedRegex("^(-\\d|\\d+){1,9}$")]
     public static partial Regex Integer();
 
-    public static void SetPropertyValue(this object obj, string propName, object value)
+    public static bool SetPropertyValue(this object obj, string propName, object? value)
     {
-        obj.GetType().GetProperty(propName).SetValue(obj, value, null);
+        var index = propName.IndexOf('.');
+        if (index != -1)
+            return obj.GetType().GetProperty(propName[..index])?.GetValue(obj, null)?.SetPropertyValue(propName[(index + 1)..],value) == true;
+
+        var property = obj.GetType().GetProperty(propName);
+        if (property is null || (value != default && property.GetValue(obj, null) != default && !TryCast(ref value, property.GetValue(obj, null))))
+            return false;
+
+       property.SetValue(obj, value, null);
+       return true;
     }
 
-    public static object GetPropertyValue(this object obj, string propName)
+    public static object? GetPropertyValue(this object obj, string propName)
     {
-        return obj.GetType().GetProperty(propName).GetValue(obj, null);
+        var index = propName.IndexOf('.');
+        if (index != -1)
+           return obj.GetType().GetProperty(propName[..index])?.GetValue(obj, null)?.GetPropertyValue(propName[(index + 1)..]);
+
+        return obj.GetType().GetProperty(propName)?.GetValue(obj, null);
+    }
+
+    public static bool TryCast(ref object? obj, object? to)
+    {
+        if (obj == null || to == null)
+            return false;
+
+        var conversionType = to.GetType();
+        if (obj.GetType() == conversionType)
+            return true;
+
+        try
+        {
+            obj = Convert.ChangeType(obj, conversionType);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public static string[] SplitCamelCase(string input)
