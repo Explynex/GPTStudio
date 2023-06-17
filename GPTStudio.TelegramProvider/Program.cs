@@ -56,7 +56,6 @@ internal partial class App
         }
 
         Logger.Print($"Starting {Version.ToReadable()}",color: ConsoleColor.DarkYellow);
-
         await CheckUpdate();
 
         Env.Setup();

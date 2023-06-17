@@ -167,7 +167,7 @@ internal static partial class Common
 
     public static string ToReadable(this Version version)
     {
-        return $"v. {version}{(version.Revision == 0 ? "" : "Pre-release")}";
+        return $"v. {version}{(version.Revision == 0 ? "" : " Pre-release")}";
     }
 
     public static void CreateDirIfNotExists(string path)

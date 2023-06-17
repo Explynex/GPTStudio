@@ -14,9 +14,13 @@ internal static class Logger
             Console.ForegroundColor = ConsoleColor.White;
     }
 
-    public static void PrintError(string value)
+    public static void PrintError(string value,bool verbose = true)
     {
         File.AppendAllText("log.txt","\n\n" + DateTime.Now + "\t| "+ value);
+
+        if (!verbose)
+            return;
+
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\n" + DateTime.Now + "\t| ");
         Console.ForegroundColor = ConsoleColor.Red;

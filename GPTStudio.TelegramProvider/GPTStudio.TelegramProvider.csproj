@@ -6,7 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>0.0.0.1</AssemblyVersion>
+    <RepositoryUrl>https://github.com/k1tbyte/GPTStudio</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

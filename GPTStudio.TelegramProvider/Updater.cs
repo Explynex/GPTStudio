@@ -76,7 +76,7 @@ internal partial class App
         catch(Exception e)
         {
             Logger.Print("An error occurred while installing the update, check log.txt", color: ConsoleColor.Red);
-            Logger.PrintError(e.ToString());
+            Logger.PrintError(e.ToString(),false);
             return;
         }
       
