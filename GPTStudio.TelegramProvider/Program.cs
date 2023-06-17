@@ -5,6 +5,7 @@ using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Globalization;
 using GPTStudio.TelegramProvider.Globalization.Languages;
+using GPTStudio.TelegramProvider.Infrastructure;
 using GPTStudio.TelegramProvider.Keyboard;
 using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
@@ -16,30 +17,53 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
+using System.Reflection;
+
 namespace GPTStudio.TelegramProvider;
 
 
-internal class App
+internal partial class App
 {
+    /// <summary>
+    /// (Major.Minor.Build.Revision)
+    /// </summary>
+    public static readonly Version Version = Assembly.GetExecutingAssembly().GetName().Version!;
+    public static readonly string WorkingDir = Path.Combine(Environment.CurrentDirectory, " ").TrimEnd();
+
     public static bool IsShuttingDown { get; private set; }         = false;
     public static HttpClient HttpClient { get; private set; }       = new();
     public static readonly HashSet<long> NowGeneration              = new();
 
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         Console.Clear();
-        AppDomain.CurrentDomain.UnhandledException += (sender, e) => Logger.PrintError(e.ExceptionObject.ToString()!);
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) => OnUnhandledException(e.ExceptionObject);
+        TaskScheduler.UnobservedTaskException += (sender,e) => OnUnhandledException(e.Exception);
 
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("   ___   ___   _____   ___   _               _   _       \n" +
             "  / __| | _ \\ |_   _| / __| | |_   _  _   __| | (_)  ___ \n" + " | (_ | |  _/   | |   \\__ \\ |  _| | || | / _` | | | / _ \\\n"
             + "  \\___| |_|     |_|   |___/  \\__|  \\_,_| \\__,_| |_| \\___/\n_________________________________________________________________\n");
         Console.ForegroundColor = ConsoleColor.White;
+        
+
+        if(OS.IsRunningAsRoot())
+        {
+            Logger.Print("You're attempting to run GPTStudio as the administrator (root). GPTStudio does not require root access for its operation, we recommend to run it as non-administrator user if possible. Continue? [y\\n]: ",false, color: ConsoleColor.Gray);
+            var key = Console.ReadLine();
+            if (key?[0] != 'y')
+                return;
+        }
+
+        Logger.Print($"Starting {Version.ToReadable()}",color: ConsoleColor.DarkYellow);
+
+        await CheckUpdate();
 
         Env.Setup();
         Connection.Connect();
         Env.Client.StartReceiving(OnUpdateHandler, OnErrorHandler);
         Logger.Print($"Telegram update callback processing...");
+        Console.Out.Flush();
 
         while (!IsShuttingDown)
         {
@@ -49,7 +73,11 @@ internal class App
                 ConsoleHandler.HandleConsoleCommand(cmd);
         }
 
-
+        static void OnUnhandledException(object e)
+        {
+            Logger.PrintError(e.ToString()!);
+            Shutdown();
+        }
     }
 
     public static void Shutdown()

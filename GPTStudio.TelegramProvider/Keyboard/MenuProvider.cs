@@ -79,7 +79,7 @@ internal static class MenuProvider
                 totalUsers++;
             });
 
-            summaryString.AppendLine($"\n\n┌📈 <b>Uptime:</b> {(DateTime.Now - Process.GetCurrentProcess().StartTime).ToReadableString()}")
+            summaryString.AppendLine($"\n\n┌📈 <b>Uptime:</b> {(DateTime.Now - Process.GetCurrentProcess().StartTime).ToReadable()}")
                 .AppendLine($"├🗂 <b>Total chats:</b> {Connection.Chats.CountDocuments("{}")}")
                 .AppendLine($"├👥 <b>Total users:</b> {totalUsers}")
                 .AppendLine($"└💠 <b>Total tokens generated:</b> {totalTokens}");

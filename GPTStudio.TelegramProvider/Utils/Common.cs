@@ -150,7 +150,7 @@ internal static partial class Common
         return Regex.Replace(input, "(?<=[a-z])([A-Z])", " $1", RegexOptions.Compiled).Split(' ');
     }
 
-    public static string ToReadableString(this TimeSpan span)
+    public static string ToReadable(this TimeSpan span)
     {
         string formatted = string.Format("{0}{1}{2}{3}",
             span.Duration().Days > 0 ? string.Format("{0:0} d, ", span.Days) : string.Empty,
@@ -165,6 +165,19 @@ internal static partial class Common
         return formatted;
     }
 
+    public static string ToReadable(this Version version)
+    {
+        return $"v. {version}{(version.Revision == 0 ? "" : "Pre-release")}";
+    }
+
+    public static void CreateDirIfNotExists(string path)
+    {
+        if (Directory.Exists(path))
+            return;
+
+        Directory.CreateDirectory(path);
+    }
+
     public static void ExecConsoleCommand(string command,int? sleep = null)
     {
         using var process = new Process();
@@ -174,9 +187,9 @@ internal static partial class Common
             process.StartInfo.FileName = "cmd";
             process.StartInfo.Arguments = $"/c \"{(sleep.HasValue ? $"timeout {sleep} /nobreak > nul &&" : null)} {command}\"";
         }
-        else if(OperatingSystem.IsLinux())
+        else
         {
-            process.StartInfo.FileName = "/bin/bash";
+            process.StartInfo.FileName = OperatingSystem.IsLinux() ? "/bin/bash" : "/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal";
             process.StartInfo.Arguments = $"-c \"{(sleep.HasValue ? $"sleep {sleep} &&" : null)} {command}\"";
         }
 
