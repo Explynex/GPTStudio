@@ -42,12 +42,12 @@ internal partial class App
             }
 
 
-            var updateResponse = await HttpClient.GetAsync($"{ReleaseURL}GPTStudio.TelegramProvider-{OS.GetName()}-{RuntimeInformation.OSArchitecture.ToString().ToLower()}.zip");
+            Logger.Print($"A newer version {fetchedVer.ToReadable()} has been found. Installation....", color: ConsoleColor.Green);
+
+            var updateResponse = await HttpClient.GetAsync($"{ReleaseURL}/{fetchedVer}/GPTStudio.TelegramProvider-{OS.GetName()}-{RuntimeInformation.OSArchitecture.ToString().ToLower()}.zip");
 
             if (updateResponse.StatusCode != System.Net.HttpStatusCode.OK)
                 return;
-
-            Logger.Print($"A newer version {fetchedVer.ToReadable()} has been found. Installation....", color: ConsoleColor.Green);
 
             Common.CreateDirIfNotExists($"{WorkingDir}.temp");
 
