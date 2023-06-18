@@ -42,7 +42,7 @@ internal partial class App
             }
 
 
-            var updateResponse = await HttpClient.GetAsync($"{ReleaseURL}GPTStudio.TelegramProvider-{OS.GetName()}-{RuntimeInformation.OSArchitecture}.zip");
+            var updateResponse = await HttpClient.GetAsync($"{ReleaseURL}GPTStudio.TelegramProvider-{OS.GetName()}-{RuntimeInformation.OSArchitecture.ToString().ToLower()}.zip");
 
             if (updateResponse.StatusCode != System.Net.HttpStatusCode.OK)
                 return;
@@ -60,12 +60,14 @@ internal partial class App
             
 
             System.IO.Compression.ZipFile.ExtractToDirectory($"{path}update",path);
+            File.Delete($"{path}update");
+
 
             if(!isWin)
                 File.SetUnixFileMode(path + Path.GetFileName(Environment.ProcessPath), UnixFileMode.UserWrite | UnixFileMode.UserRead | UnixFileMode.UserExecute);
 
             Common.ExecConsoleCommand(
-                $"{(isWin ? "move /Y" : "mv -f")} \"{path + Path.GetFileName(Environment.ProcessPath)}\" \"{Environment.ProcessPath}\" && " +
+                $"{(isWin ? "move /Y" : "mv -f")} \"{path}*\" \"{WorkingDir}\" && " +
                 $"{(isWin ? "rmdir /S /Q" : "rm -rf")} \"{path}\" && " +
                 $"{Environment.ProcessPath}",3);
 
