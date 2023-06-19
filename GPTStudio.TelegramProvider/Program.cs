@@ -34,6 +34,8 @@ internal partial class App
     public static HttpClient HttpClient { get; private set; }       = new();
     public static readonly HashSet<long> NowGeneration              = new();
 
+    private static readonly TaskCompletionSource<byte> ShutdownResetEvent = new();
+
     static async Task Main(string[] args)
     {
         Console.Clear();
@@ -54,6 +56,7 @@ internal partial class App
             if (key?[0] != 'y')
                 return;
         }
+        
 
         Logger.Print($"Starting {Version.ToReadable()}",color: ConsoleColor.DarkYellow);
         await CheckUpdate();
@@ -62,15 +65,20 @@ internal partial class App
         Connection.Connect();
         Env.Client.StartReceiving(OnUpdateHandler, OnErrorHandler);
         Logger.Print($"Telegram update callback processing...");
-        Console.Out.Flush();
 
-        while (!IsShuttingDown)
+        if (args.Length > 0 && args[0].ToLower() == "--console")
         {
-            Logger.Print("Command: /", false, color: ConsoleColor.Cyan);
-            var cmd = Console.ReadLine();
-            if (!string.IsNullOrEmpty(cmd))
-                ConsoleHandler.HandleConsoleCommand(cmd);
+            while (!IsShuttingDown)
+            {
+                Logger.Print("Command: /", false, color: ConsoleColor.Cyan);
+                var cmd = Console.ReadLine();
+                if (!string.IsNullOrEmpty(cmd))
+                    ConsoleHandler.HandleConsoleCommand(cmd);
+            }
         }
+        else
+           await ShutdownResetEvent.Task.ConfigureAwait(false);
+
 
         static void OnUnhandledException(object e)
         {
@@ -81,8 +89,7 @@ internal partial class App
 
     public static void Shutdown()
     {
-        IsShuttingDown = true;
-        Console.In.Close();
+        ShutdownResetEvent.TrySetResult(0);
         Environment.Exit(0);
     }
 
