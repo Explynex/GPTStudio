@@ -1,25 +1,18 @@
 ﻿using GPTStudio.OpenAI.Chat;
 using GPTStudio.OpenAI.Models;
 using GPTStudio.TelegramProvider.Database.Models;
-using GPTStudio.TelegramProvider.Globalization;
-using GPTStudio.TelegramProvider.Infrastructure;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 
-namespace GPTStudio.TelegramProvider.Utils;
-internal static partial class Common
+namespace GPTStudio.TelegramProvider.Core;
+internal static class Utils
 {
-
     /// <summary>
     /// If you specify a user message, the chat context will not be taken into account
     /// </summary>
@@ -27,7 +20,7 @@ internal static partial class Common
     /// <param name="user"></param>
     /// <param name="userMessage"></param>
     /// <returns></returns>
-    public static ChatRequest GenerateChatRequest(GChat chat,GUser user, GChatMessage? userMessage = null)
+    public static ChatRequest GenerateChatRequest(GChat chat, GUser user, GChatMessage? userMessage = null)
     {
         int totalTokens = 0;
         List<GChatMessage> msgList = new();
@@ -39,7 +32,7 @@ internal static partial class Common
             msgList.Add(new GChatMessage(0, user.ChatMode.SystemMessage, null) { Role = Role.System });
         }
 
-        if(userMessage == null)
+        if (userMessage == null)
         {
             for (int i = chat.Messages.Count - 1, insertIndex = totalTokens == 0 ? 0 : 1; i >= 0; i--)
             {
@@ -63,13 +56,13 @@ internal static partial class Common
     /// <summary>
     ///  If editMsgId not null message editing with error
     /// </summary>
-    public static async void NotifyOfRequestError(long chatId, GUser user,Exception e,int? editMsgId = null, int? replyMsgId = null)
+    public static async void NotifyOfRequestError(long chatId, GUser user, Exception e, int? editMsgId = null, int? replyMsgId = null)
     {
         Logger.PrintError(e.ToString());
         if (editMsgId != null)
             await Env.Client.EditMessageTextAsync(chatId, editMsgId.Value, Locale.Cultures[user.LocaleCode][Strings.RequestErrorMsg]).ConfigureAwait(false);
         else
-            await Env.Client.SendTextMessageAsync(chatId, Locale.Cultures[user.LocaleCode][Strings.RequestErrorMsg],replyToMessageId: replyMsgId).ConfigureAwait(false);
+            await Env.Client.SendTextMessageAsync(chatId, Locale.Cultures[user.LocaleCode][Strings.RequestErrorMsg], replyToMessageId: replyMsgId).ConfigureAwait(false);
     }
 
 
@@ -99,28 +92,26 @@ internal static partial class Common
         return stream;
     }
 
-    [GeneratedRegex("^(-\\d|\\d+){1,9}$")]
-    public static partial Regex Integer();
 
     public static bool SetPropertyValue(this object obj, string propName, object? value)
     {
         var index = propName.IndexOf('.');
         if (index != -1)
-            return obj.GetType().GetProperty(propName[..index])?.GetValue(obj, null)?.SetPropertyValue(propName[(index + 1)..],value) == true;
+            return obj.GetType().GetProperty(propName[..index])?.GetValue(obj, null)?.SetPropertyValue(propName[(index + 1)..], value) == true;
 
         var property = obj.GetType().GetProperty(propName);
         if (property is null || (value != default && property.GetValue(obj, null) != default && !TryCast(ref value, property.GetValue(obj, null))))
             return false;
 
-       property.SetValue(obj, value, null);
-       return true;
+        property.SetValue(obj, value, null);
+        return true;
     }
 
     public static object? GetPropertyValue(this object obj, string propName)
     {
         var index = propName.IndexOf('.');
         if (index != -1)
-           return obj.GetType().GetProperty(propName[..index])?.GetValue(obj, null)?.GetPropertyValue(propName[(index + 1)..]);
+            return obj.GetType().GetProperty(propName[..index])?.GetValue(obj, null)?.GetPropertyValue(propName[(index + 1)..]);
 
         return obj.GetType().GetProperty(propName)?.GetValue(obj, null);
     }
@@ -178,7 +169,7 @@ internal static partial class Common
         Directory.CreateDirectory(path);
     }
 
-    public static void ExecConsoleCommand(string command,int? sleep = null)
+    public static void ExecConsoleCommand(string command, int? sleep = null)
     {
         using var process = new Process();
         process.StartInfo.UseShellExecute = false;
@@ -200,5 +191,26 @@ internal static partial class Common
     {
         await Env.Client.DownloadFileAsync((await Env.Client.GetFileAsync(fileid).ConfigureAwait(false)).FilePath!, stream).ConfigureAwait(false);
         stream.Position = 0;
+    }
+
+    public static async void InBackground(Action action, bool longRunning = false)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        TaskCreationOptions options = TaskCreationOptions.DenyChildAttach;
+
+        if (longRunning)
+        {
+            options |= TaskCreationOptions.LongRunning | TaskCreationOptions.PreferFairness;
+        }
+
+        await Task.Factory.StartNew(action, CancellationToken.None, options, TaskScheduler.Default).ConfigureAwait(false);
+    }
+
+    public static void InBackground<T>(Func<T> function, bool longRunning = false)
+    {
+        ArgumentNullException.ThrowIfNull(function);
+
+        InBackground(void () => function(), longRunning);
     }
 }

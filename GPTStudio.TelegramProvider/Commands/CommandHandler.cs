@@ -1,7 +1,6 @@
 ﻿using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
 using GPTStudio.TelegramProvider.Keyboard;
-using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Text;
@@ -9,7 +8,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
+using Env = GPTStudio.TelegramProvider.Infrastructure.Config;
 
 namespace GPTStudio.TelegramProvider.Commands;
 internal static class CommandHandler

@@ -1,20 +1,21 @@
 ﻿using Concentus.Oggfile;
 using Concentus.Structs;
 using GPTStudio.OpenAI.Audio;
+using GPTStudio.TelegramProvider.Core;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
+using Env = GPTStudio.TelegramProvider.Infrastructure.Config;
 
-namespace GPTStudio.TelegramProvider.Utils;
+namespace GPTStudio.TelegramProvider.Helpers;
 internal static class VoiceRecognizer
 {
     public static async Task<string> RecognizeVoice(Voice voiceFile)
     {
         using var downloadStream = new MemoryStream();
-        using var waveStream     = new MemoryStream();
-        await Common.DownloadFileToStream(voiceFile.FileId, downloadStream);
+        using var waveStream = new MemoryStream();
+        await Utils.DownloadFileToStream(voiceFile.FileId, downloadStream);
 
         using MemoryStream pcmStream = new();
         OpusDecoder decoder = OpusDecoder.Create(48000, 1);

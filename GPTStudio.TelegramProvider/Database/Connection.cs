@@ -21,10 +21,10 @@ internal static class Connection
 
     public static void Connect()
     {
-        Logger.Print($"Connection to database {Configuration.Props.DatabaseEndpoint}");
+        Logger.Print($"Connection to database {Config.Props.DatabaseEndpoint}");
         try
         {
-            Client = new MongoClient(Configuration.Props.DatabaseEndpoint);
+            Client = new MongoClient(Config.Props.DatabaseEndpoint);
             Logger.Print($"Getting database collections.");
             Database = Client.GetDatabase("GPTStudio");
             Users = Database.GetCollection<GUser>("Users");
@@ -35,8 +35,8 @@ internal static class Connection
             if(e.Message.EndsWith("is not valid."))
             {
                 Logger.PrintError(" Invalid MongoDB Connection string");
-                Configuration.Props.DatabaseEndpoint = null;
-                Configuration.Save();
+                Config.Props.DatabaseEndpoint = null;
+                Config.Save();
                 App.Restart();
             }
                 
