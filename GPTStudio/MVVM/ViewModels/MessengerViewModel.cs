@@ -67,7 +67,7 @@ internal sealed class MessengerViewModel : ObservableObject, IDisposable
     public static ScrollViewer ChatScrollViewer { get; set; }
 
 
-    private AudioRecorder _audioRecorder;
+    private AudioRecorder? _audioRecorder;
     private GPTTokenizer _tokenizer;
     private ICollectionView SearchFilter;
     private readonly SpeechHandler speechHandler;
@@ -191,7 +191,7 @@ internal sealed class MessengerViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         speechHandler.Dispose();
-        _audioRecorder.Dispose();
+        _audioRecorder?.Dispose();
         _tokenizer.Dispose();
     }
 
