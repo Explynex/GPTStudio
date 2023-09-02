@@ -1,5 +1,6 @@
 ﻿using GPTStudio.TelegramProvider.Database;
 using GPTStudio.TelegramProvider.Database.Models;
+using GPTStudio.TelegramProvider.Utils;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Runtime.CompilerServices;
@@ -123,7 +124,7 @@ internal static class ConsoleHandler
                 break;
 
             case "config":
-                Logger.Print($"\n\n{JsonConvert.SerializeObject(Config.Props, new JsonSerializerSettings()
+                Logger.Print($"\n\n{JsonConvert.SerializeObject(Configuration.Props, new JsonSerializerSettings()
                 {
                     Formatting = Formatting.Indented,
                 })}\n", color: ConsoleColor.Gray);
@@ -136,14 +137,14 @@ internal static class ConsoleHandler
                     return;
                 }
 
-                if(!Config.Props.SetPropertyValue(key, command["-v"] ?? default))
+                if(!Configuration.Props.SetPropertyValue(key, command["-v"] ?? default))
                 {
                     Logger.Print($"Failed to set value for property '{key}'.", color: ConsoleColor.Red);
                     return;
                 }
                     
                 Logger.Print($"The value has been set for the property '{key}'.", color: ConsoleColor.Green);
-                Config.Save();
+                Configuration.Save();
 
                 break;
 

@@ -1,4 +1,4 @@
-﻿namespace GPTStudio.TelegramProvider.Common;
+﻿namespace GPTStudio.TelegramProvider.Utils;
 internal static class Logger
 {
     public static void Print(string value,bool endlEnd = true,bool endlStart = false,bool beforeCommand = false, ConsoleColor color = ConsoleColor.White)

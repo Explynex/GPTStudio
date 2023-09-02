@@ -12,7 +12,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Env = GPTStudio.TelegramProvider.Infrastructure.Config;
+using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 
 namespace GPTStudio.TelegramProvider.Keyboard;
 internal static class MenuProvider

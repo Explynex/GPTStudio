@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-using Env = GPTStudio.TelegramProvider.Infrastructure.Config;
+using Env = GPTStudio.TelegramProvider.Infrastructure.Configuration;
 
 namespace GPTStudio.TelegramProvider.Commands;
 internal static class CommonHelpers
